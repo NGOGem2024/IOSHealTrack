@@ -17,10 +17,16 @@ import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
 import {useSession} from '../context/SessionContext';
 import axiosInstance from '../utils/axiosConfig';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/types';
+
 
 interface AppointmentDetailsScreenProps {
   appointment: {
+    plan_id: string;
     _id: string;
+    patient_id: string;
     therepy_type: string;
     therepy_link?: string;
     therepy_start_time: string;
@@ -41,6 +47,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
     ),
   );
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   // const { idToken } = useSession();
   const [isStarted, setIsStarted] = useState(false);
@@ -148,6 +155,10 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
 
       if (response.status === 200) {
         setModalVisible(true); // Show post-session remarks modal
+        navigation.navigate("payment", {
+          planId: appointment.plan_id,
+          patientId: appointment.patient_id,
+        });
       } else {
         Alert.alert('Error', 'Failed to end therapy session.');
       }

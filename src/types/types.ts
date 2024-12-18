@@ -17,7 +17,9 @@ export type RootStackParamList = {
   Media: undefined;
   Report: undefined;
   Logout: undefined;
+  payment: { planId?: string; patientId?: string };   
   AllPatients: undefined;
+  EditTherapyPlan: { planId?: string };
   UpdateTherapy: {patientId?: string};
   CreateTherapy: {patientId?: string};
   DoctorDashboard: undefined;
@@ -36,6 +38,8 @@ export type RootStackParamList = {
   SearchPatients: undefined;
   Settings: undefined;
   Main: undefined; // Add this for the TabNavigator
+  planDetails: {planId: string}
+
 };
 
 export type RootTabParamList = {

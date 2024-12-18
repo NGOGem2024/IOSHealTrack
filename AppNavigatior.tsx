@@ -25,6 +25,10 @@ import EditDoctor from './src/screens/updatedoc';
 import CreateTherapy from './src/screens/BottomTab/CreateTherapy';
 import DoctorRegister from './src/screens/Doctorreg';
 import SettingsScreen from './src/screens/settings';
+import TherapyPlanDetails from './src/screens/planDetails';
+import PaymentDetailsScreen from './src/screens/paymentpage';
+import EditTherapyPlan from './src/screens/editPlan';
+
 
 // Import your screens...
 
@@ -91,6 +95,11 @@ const HomeStackNavigator = () => (
       options={{headerShown: false}}
     />
     <Stack.Screen
+      name="planDetails"
+      component={ TherapyPlanDetails}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
       name="UpdateTherapy"
       component={TherapyHistory}
       options={{headerShown: false}}
@@ -111,8 +120,18 @@ const HomeStackNavigator = () => (
       options={{headerShown: false}}
     />
     <Stack.Screen
+      name="payment"
+      component={PaymentDetailsScreen}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
       name="UpdateDoctor"
       component={EditDoctor}
+      options={{headerShown: false}}
+    />
+     <Stack.Screen
+      name="EditTherapyPlan"
+      component={EditTherapyPlan}
       options={{headerShown: false}}
     />
   </Stack.Navigator>

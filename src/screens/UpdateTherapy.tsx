@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,49 +12,51 @@ import {
   Dimensions,
   Modal,
   TextInput,
-  Linking, // Replaced expo-web-browser
-} from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Replaced @expo/vector-icons
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
-import {RootStackParamList} from '../types/types';
-import {useSession} from '../context/SessionContext';
-import EditTherapy from './Update';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {handleError, showSuccessToast} from '../utils/errorHandler';
-import axiosInstance from '../utils/axiosConfig';
+  ActivityIndicator,
+  Linking,
+} from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
+
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../types/types";
+import InAppBrowser from 'react-native-inappbrowser-reborn';
+import { useSession } from "../context/SessionContext";
+import EditTherapy from "./Update";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { handleError, showSuccessToast } from "../utils/errorHandler";
+import axiosInstance from "../utils/axiosConfig";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-} from 'react-native-reanimated';
-import BackTabTop from './BackTopTab';
-import AppointmentDetails from './AppointmentDetails';
+} from "react-native-reanimated";
+import BackTabTop from "./BackTopTab";
+import AppointmentDetails from "./AppointmentDetails";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 interface Therapy {
+  
   _id: string;
+  plan_id: string;
   patient_id: string;
   therepy_id: string;
   therepy_type: string;
   therepy_remarks: string;
   therepy_link: string;
   therepy_date: string;
-  therepy_start_time: string; // Ensure correct typing
+  therepy_start_time: string;
   therepy_end_time?: string;
   status?: string;
   therepy_cost?: string;
 }
-
-type TherapyHistoryScreenProps = StackScreenProps<
-  RootStackParamList,
-  'UpdateTherapy'
->;
+type TherapyHistoryScreenProps = NativeStackScreenProps<RootStackParamList, 'UpdateTherapy'>
 
 const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
   navigation,
   route,
 }) => {
-  const {session} = useSession();
+  const { session } = useSession();
   const patientId = route.params?.patientId;
 
   const [therapies, setTherapies] = useState<Therapy[] | undefined>(undefined);
@@ -67,35 +69,40 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
   const [refreshing, setRefreshing] = useState(false);
   const [editingTherapy, setEditingTherapy] = useState<Therapy | null>(null);
   const [showRemarksPopup, setShowRemarksPopup] = useState(false);
-  const [selectedTherapyId, setSelectedTherapyId] = useState('');
-  const [remarks, setRemarks] = useState('');
-  const [improvements, setImprovements] = useState('');
+  const [selectedTherapyId, setSelectedTherapyId] = useState("");
+  const [remarks, setRemarks] = useState("");
+  const [improvements, setImprovements] = useState("");
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [therapyToDelete, setTherapyToDelete] = useState<Therapy | null>(null);
   const [showNewUserPopup, setShowNewUserPopup] = useState(false);
   const popupScale = useSharedValue(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!patientId) {
-      setError('No patient ID provided.');
+      setError("No patient ID provided.");
       return;
     }
+
     fetchTherapies();
   }, [patientId, session]);
 
   const fetchTherapies = async () => {
     setIsLoading(true);
+
     try {
       const response = await axiosInstance.get(`/therepy/${patientId}`, {
         headers: {
-          Authorization: 'Bearer ' + session.idToken,
+          Authorization: "Bearer " + session.idToken,
         },
       });
+
       if (response.status === 404) {
         setShowNewUserPopup(true);
         popupScale.value = withSpring(1);
         return;
       }
+
       if (response.status !== 200) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -105,15 +112,15 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
         const now = new Date();
         const past = data.therepys.filter((therapy: Therapy) => {
           const therapyEndTime = new Date(
-            `${therapy.therepy_date}T${therapy.therepy_end_time}`,
+            `${therapy.therepy_date}T${therapy.therepy_end_time}`
           );
-          return therapyEndTime < now || therapy.status === 'completed';
+          return therapyEndTime < now || therapy.status === "completed";
         });
         const upcoming = data.therepys.filter((therapy: Therapy) => {
           const therapyEndTime = new Date(
-            `${therapy.therepy_date}T${therapy.therepy_end_time}`,
+            `${therapy.therepy_date}T${therapy.therepy_end_time}`
           );
-          return therapyEndTime >= now && therapy.status !== 'completed';
+          return therapyEndTime >= now && therapy.status !== "completed";
         });
 
         setPastTherapies(past);
@@ -125,14 +132,49 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
       }
     } catch (error) {
       handleError(error);
-      if (error instanceof Error && error.message === 'No therapies found') {
-        showSuccessToast('You are new. No therapies found.');
+      if (error instanceof Error && error.message === "No therapies found") {
+        showSuccessToast("You are new. No therapies found.");
       }
     } finally {
       setIsLoading(false);
     }
   };
-
+  const openInAppBrowser = async (url: string) => {
+    try {
+      if (await InAppBrowser.isAvailable()) {
+        const result = await InAppBrowser.open(url, {
+          // iOS Properties
+          dismissButtonStyle: 'cancel',
+          preferredBarTintColor: '#119FB3',
+          preferredControlTintColor: 'white',
+          readerMode: false,
+          animated: true,
+          modalPresentationStyle: 'fullScreen',
+          modalEnabled: true,
+          enableBarCollapsing: false,
+          // Android Properties
+          showTitle: true,
+          toolbarColor: '#119FB3',
+          secondaryToolbarColor: 'black',
+          navigationBarColor: 'black',
+          navigationBarDividerColor: 'white',
+          enableUrlBarHiding: true,
+          enableDefaultShare: true,
+          forceCloseOnRedirection: false,
+        });
+      } else {
+        await Linking.openURL(url);
+      }
+    } catch (error) {
+      handleError(error);
+      // Fallback to normal linking if in-app browser fails
+      try {
+        await Linking.openURL(url);
+      } catch (linkError) {
+        handleError(linkError);
+      }
+    }
+  };
   const handleDeleteTherapy = (therapy: Therapy) => {
     setTherapyToDelete(therapy);
     setShowDeleteConfirmation(true);
@@ -141,20 +183,26 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
   const confirmDeleteTherapy = async () => {
     if (!therapyToDelete) return;
 
+    setIsDeleting(true); // Start loading
     try {
       const response = await axiosInstance.delete(
-        `/therapy/delete/${therapyToDelete._id}`,
+        `/therapy/delete/${therapyToDelete._id}`
       );
+
       if (response.status !== 200) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      setUpcomingTherapies(prevTherapies =>
-        prevTherapies.filter(therapy => therapy._id !== therapyToDelete._id),
+
+      // Remove the deleted therapy from the state
+      setUpcomingTherapies((prevTherapies) =>
+        prevTherapies.filter((therapy) => therapy._id !== therapyToDelete._id)
       );
-      showSuccessToast('Therapy deleted successfully');
+
+      showSuccessToast("Therapy deleted successfully");
     } catch (error) {
       handleError(error);
     } finally {
+      setIsDeleting(false); // Stop loading
       setShowDeleteConfirmation(false);
       setTherapyToDelete(null);
     }
@@ -164,22 +212,22 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  const selectTherapyType = (type: 'past' | 'upcoming') => {
-    setShowPastTherapies(type === 'past');
+  const selectTherapyType = (type: "past" | "upcoming") => {
+    setShowPastTherapies(type === "past");
     toggleDropdown();
   };
 
   const handleRecTherapy = async (therepy_id: string) => {
     const recordingUrl = `https://app.contact.liveswitch.com/conversations/${therepy_id}`;
     try {
-      await Linking.openURL(recordingUrl); // Replaced expo-web-browser
+      await openInAppBrowser(recordingUrl);
     } catch (error) {
       handleError(error);
     }
   };
 
   const handleJoinSession = (joinUrl: string) => {
-    Linking.openURL(joinUrl); // Replaced expo-web-browser
+    openInAppBrowser(joinUrl);
   };
 
   const onRefresh = useCallback(async () => {
@@ -199,103 +247,155 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
 
   const handleUpdateTherapy = async (updatedTherapy: Therapy) => {
     try {
+      const liveSwitchToken = await AsyncStorage.getItem("liveSwitchToken");
+
+      // Wait for the response
       const response = await axiosInstance.patch(
         `/therepy/update/${updatedTherapy._id}`,
+        updatedTherapy, // Send the data directly, no need for JSON.stringify
         {
-          body: JSON.stringify(updatedTherapy),
-        },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.idToken}`,
+          },
+        }
       );
 
+      // Check if the response is successful
       if (response.status !== 200) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const updatedData = await response.data();
-      setTherapies(prevTherapies =>
-        prevTherapies?.map(therapy =>
+      // Get the updated data from response
+      const updatedData = response.data;
+
+      // Update the local state with the response data
+      setTherapies((prevTherapies) =>
+        prevTherapies?.map((therapy) =>
           therapy._id === updatedData.therapy._id
             ? updatedData.therapy
-            : therapy,
-        ),
+            : therapy
+        )
       );
+
+      // Close the edit modal
       setEditingTherapy(null);
-      showSuccessToast('Therapy updated successfully');
-      fetchTherapies();
+
+      // Show success message only after successful update
+      showSuccessToast("Therapy updated successfully");
+
+      // Refresh the therapies list
+      await fetchTherapies();
     } catch (error) {
       handleError(error);
+      showErrorToast("Failed to update therapy");
     }
+  };
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Therapy | null>(null);
+
+  const handleShowAppointmentDetails = (appointment: Therapy) => {
+    setSelectedAppointment(appointment);
+  };
+  const handleTherapyDone = (therapy: Therapy) => {
+    setSelectedTherapyId(therapy._id);
+    setRemarks(therapy.therepy_remarks || "");
+    setImprovements("");
+    setShowRemarksPopup(true);
   };
 
   const handleSaveRemarks = async () => {
     try {
       const response = await axiosInstance.patch(
-        `/therepy/update/${selectedTherapyId}`,
+        ` /therepy/update/${selectedTherapyId}`,
+
         {
           therepy_remarks: remarks,
           improvements: improvements,
         },
         {
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             Authorization: `Bearer ${session.idToken}`,
+            //auth: `Bearer ${session.tokens.accessToken}`,
           },
-        },
+        }
       );
 
       if (response.status !== 200) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      setTherapies(prevTherapies =>
-        prevTherapies?.map(therapy =>
+      // Update the local state
+      setTherapies((prevTherapies) =>
+        prevTherapies?.map((therapy) =>
           therapy._id === selectedTherapyId
             ? {
                 ...therapy,
                 therepy_remarks: remarks,
                 improvements: improvements,
               }
-            : therapy,
-        ),
+            : therapy
+        )
       );
 
       setShowRemarksPopup(false);
-      showSuccessToast('Remarks and improvements saved successfully');
+      showSuccessToast("Remarks and improvements saved successfully");
     } catch (error) {
       handleError(error);
     }
   };
 
-  const renderTherapyItem = ({item}: {item: Therapy}) => {
+  const animatedStyles = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: popupScale.value }],
+    };
+  });
+
+  const closeNewUserPopup = () => {
+    popupScale.value = withSpring(0);
+    setTimeout(() => setShowNewUserPopup(false), 300);
+  };
+
+  const renderTherapyItem = ({ item }: { item: Therapy }) => {
     const now = new Date();
+    const therapyDate = new Date(item.therepy_date);
     const therapyStartTime = new Date(
-      `${item.therepy_date}T${item.therepy_start_time}`,
+      `${item.therepy_date}T${item.therepy_start_time}`
     );
     const therapyEndTime = new Date(
-      `${item.therepy_date}T${item.therepy_end_time}`,
+      `${item.therepy_date}T${item.therepy_end_time}`
     );
-    const isUpcoming = therapyStartTime > now && item.status !== 'completed';
+
+    const isToday =
+      now.getFullYear() === therapyDate.getFullYear() &&
+      now.getMonth() === therapyDate.getMonth() &&
+      now.getDate() === therapyDate.getDate();
+
+    const isUpcoming = therapyStartTime > now && item.status !== "completed";
     const isOngoing =
       now >= therapyStartTime &&
       now <= therapyEndTime &&
-      item.status !== 'completed';
-    const isPast = now > therapyEndTime || item.status === 'completed';
+      item.status !== "completed";
+    const isPast = now > therapyEndTime || item.status === "completed";
     const canStart =
-      now >= therapyStartTime &&
-      now < therapyEndTime &&
-      item.status !== 'completed';
+      (isToday || (now >= therapyStartTime && now < therapyEndTime)) &&
+      item.status !== "completed";
 
     return (
       <View style={styles.therapyCard}>
-        {isUpcoming && (
+        {item.status !== "completed" && (
           <View style={styles.actionButtonsContainer}>
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => handleEditTherapy(item)}>
+              onPress={() => handleEditTherapy(item)}
+            >
               <MaterialIcons name="edit" size={24} color="#119FB3" />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.deleteButton}
-              onPress={() => handleDeleteTherapy(item)}>
+              onPress={() => handleDeleteTherapy(item)}
+            >
               <MaterialIcons name="delete" size={24} color="#FF6B6B" />
             </TouchableOpacity>
           </View>
@@ -312,6 +412,11 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
           <Text style={styles.therapyText}>
             End Time: {item.therepy_end_time}
           </Text>
+          {!isPast && (
+            <Text style={styles.therapyText}>
+              Remarks: {item.therepy_remarks}
+            </Text>
+          )}
         </View>
         <View style={styles.buttonContainer}>
           {!isPast && (
@@ -321,17 +426,19 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
                 styles.joinButton,
                 !canStart && styles.disabledButton,
               ]}
-              onPress={() => handleJoinSession(item.therepy_link)}
-              disabled={!canStart}>
+              onPress={() => handleShowAppointmentDetails(item)}
+              disabled={!canStart}
+            >
               <Text style={styles.buttonText}>
-                {canStart ? 'Start Therapy' : 'Upcoming'}
+                {canStart ? "Start Therapy" : "Upcoming"}
               </Text>
             </TouchableOpacity>
           )}
-          {isPast && (
+          {isPast && item.therepy_id && (
             <TouchableOpacity
               style={[styles.actionButton, styles.recordButton]}
-              onPress={() => handleRecTherapy(item.therepy_id)}>
+              onPress={() => handleRecTherapy(item.therepy_id)}
+            >
               <Text style={styles.buttonText}>Get Recording</Text>
             </TouchableOpacity>
           )}
@@ -342,47 +449,54 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
 
   return (
     <ImageBackground
-      source={require('../assets/bac2.jpg')}
-      style={styles.backgroundImage}>
+      source={require("../assets/bac2.jpg")}
+      style={styles.backgroundImage}
+    >
       <BackTabTop screenName="Sessions" />
       <View style={styles.container}>
         {error && <Text style={styles.error}>{error}</Text>}
+
         <TouchableOpacity
           onPress={toggleDropdown}
-          style={styles.dropdownButton}>
+          style={styles.dropdownButton}
+        >
           <Text style={styles.dropdownButtonText}>
-            {showPastTherapies ? 'Past Therapies' : 'Upcoming Therapies'}
+            {showPastTherapies ? "Past Sessions" : "Upcoming Sessions"}
           </Text>
           <Icon
-            name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
+            name={isDropdownOpen ? "chevron-up" : "chevron-down"}
             size={16}
             color="#FFFFFF"
           />
         </TouchableOpacity>
+
         {isDropdownOpen && (
           <View style={styles.dropdownContent}>
             <TouchableOpacity
-              onPress={() => selectTherapyType('past')}
-              style={styles.dropdownItem}>
-              <Text>Past Therapies</Text>
+              onPress={() => selectTherapyType("past")}
+              style={styles.dropdownItem}
+            >
+              <Text>Past Sessions</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => selectTherapyType('upcoming')}
-              style={styles.dropdownItem}>
-              <Text>Upcoming Therapies</Text>
+              onPress={() => selectTherapyType("upcoming")}
+              style={styles.dropdownItem}
+            >
+              <Text>Upcoming Sessions</Text>
             </TouchableOpacity>
           </View>
         )}
+
         {isLoading ? (
           <Text style={styles.loadingText}>Loading therapies...</Text>
         ) : (
           <FlatList
             data={showPastTherapies ? pastTherapies : upcomingTherapies}
-            keyExtractor={item => item._id}
+            keyExtractor={(item) => item._id}
             renderItem={renderTherapyItem}
             ListEmptyComponent={
               <Text style={styles.noTherapyText}>
-                No {showPastTherapies ? 'past' : 'upcoming'} therapies available
+                No {showPastTherapies ? "past" : "upcoming"} therapies available
               </Text>
             }
           />
@@ -399,10 +513,12 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
         animationType="fade"
         transparent={true}
         visible={showRemarksPopup}
-        onRequestClose={() => setShowRemarksPopup(false)}>
+        onRequestClose={() => setShowRemarksPopup(false)}
+      >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>Therapy Ended</Text>
+
             <Text style={styles.inputLabel}>Remarks:</Text>
             <TextInput
               style={styles.input}
@@ -412,6 +528,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
               onChangeText={setRemarks}
               placeholder="Enter remarks here"
             />
+
             <Text style={styles.inputLabel}>Improvements:</Text>
             <TextInput
               style={styles.input}
@@ -421,15 +538,18 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
               onChangeText={setImprovements}
               placeholder="Enter Improvements"
             />
+
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[styles.button, styles.buttonClose]}
-                onPress={() => setShowRemarksPopup(false)}>
+                onPress={() => setShowRemarksPopup(false)}
+              >
                 <Text style={styles.textStyle}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.buttonSave]}
-                onPress={handleSaveRemarks}>
+                onPress={handleSaveRemarks}
+              >
                 <Text style={styles.textStyle}>Save</Text>
               </TouchableOpacity>
             </View>
@@ -440,7 +560,8 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
         animationType="fade"
         transparent={true}
         visible={showDeleteConfirmation}
-        onRequestClose={() => setShowDeleteConfirmation(false)}>
+        onRequestClose={() => setShowDeleteConfirmation(false)}
+      >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>Confirm Deletion</Text>
@@ -450,64 +571,108 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[styles.button, styles.buttonClose]}
-                onPress={() => setShowDeleteConfirmation(false)}>
+                onPress={() => setShowDeleteConfirmation(false)}
+              >
                 <Text style={styles.textStyle}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.buttonDelete]}
-                onPress={confirmDeleteTherapy}>
-                <Text style={styles.textStyle}>Delete</Text>
+                onPress={confirmDeleteTherapy}
+                disabled={isDeleting} // Disable button during loading
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.textStyle}>Delete</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
+      <Modal
+        transparent={true}
+        visible={showNewUserPopup}
+        onRequestClose={closeNewUserPopup}
+      >
+        <View style={styles.centeredView}>
+          <Animated.View style={[styles.newUserPopup, animatedStyles]}>
+            <Text style={styles.newUserTitle}>Welcome!</Text>
+            <Text style={styles.newUserText}>
+              The patient is new here. Create your first therapy session to get
+              started!
+            </Text>
+            <TouchableOpacity
+              style={styles.createTherapyButton}
+              onPress={() => {
+                closeNewUserPopup();
+                // Navigate to create therapy screen or open create therapy modal
+                navigation.navigate("CreateTherapyPlan", {
+                  patientId: patientId,
+                });
+              }}
+            >
+              <Text style={styles.createTherapyButtonText}>
+                Create First Therapy
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </Modal>
+      {selectedAppointment && (
+        <View style={styles.fullScreenModal}>
+          <AppointmentDetails
+            appointment={selectedAppointment}
+            onClose={() => setSelectedAppointment(null)}
+          />
+        </View>
+      )}
     </ImageBackground>
   );
 };
 
-const windowWidth = Dimensions.get('window').width;
+const windowWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'rgba(17, 159, 179, 0.1)',
+    backgroundColor: "rgba(17, 159, 179, 0.1)",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 10,
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: {width: 1, height: 1},
+    textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.5)",
+    textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
     marginTop: 20,
   },
   fullScreenModal: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     zIndex: 1000,
   },
   error: {
-    color: '#FF6B6B',
+    color: "#FF6B6B",
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   actionButtonsContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     right: 10,
-    flexDirection: 'row',
+    flexDirection: "row",
     zIndex: 1,
   },
   editButton: {
@@ -520,23 +685,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   buttonDelete: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: "#FF6B6B",
   },
   doneButton: {
-    backgroundColor: '#119FB3',
+    backgroundColor: "#119FB3",
   },
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   newUserPopup: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 20,
     padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -544,79 +709,79 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    width: '85%',
+    width: "85%",
     maxWidth: 400,
   },
   newUserTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#119FB3',
+    fontWeight: "bold",
+    color: "#119FB3",
     marginBottom: 15,
   },
   newUserText: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 20,
-    color: '#333',
+    color: "#333",
   },
   createTherapyButton: {
-    backgroundColor: '#119FB3',
+    backgroundColor: "#119FB3",
     borderRadius: 10,
     padding: 10,
     elevation: 2,
   },
   createTherapyButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
     fontSize: 16,
   },
   loadingText: {
-    color: '#FFFFFF',
-    textAlign: 'center',
+    color: "#FFFFFF",
+    textAlign: "center",
     fontSize: 16,
   },
   buttonSave: {
-    backgroundColor: '#119FB3',
+    backgroundColor: "#119FB3",
   },
 
   therapyCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
     elevation: 4,
-    shadowColor: '#000000',
-    shadowOffset: {width: 0, height: 2},
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
   inputLabel: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     marginBottom: 5,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#119FB3',
+    borderColor: "#119FB3",
     borderRadius: 5,
     height: 40,
     marginBottom: 20,
-    width: '100%',
+    width: "100%",
     padding: 10,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
 
   therapyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
   },
   therapyType: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#119FB3',
+    fontWeight: "bold",
+    color: "#119FB3",
     marginLeft: 8,
   },
   therapyDetails: {
@@ -624,77 +789,77 @@ const styles = StyleSheet.create({
   },
   therapyText: {
     fontSize: 14,
-    color: '#333333',
+    color: "#333333",
     marginBottom: 4,
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
   },
   actionButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
-    width: windowWidth > 360 ? 150 : '50%',
+    width: windowWidth > 360 ? 150 : "50%",
     elevation: 2,
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   joinButton: {
-    backgroundColor: '#119FB3',
+    backgroundColor: "#119FB3",
   },
   recordButton: {
-    backgroundColor: '#2596be',
+    backgroundColor: "#2596be",
   },
   disabledButton: {
-    backgroundColor: '#A0A0A0',
+    backgroundColor: "#A0A0A0",
     opacity: 0.7,
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    textAlign: "center",
     fontSize: windowWidth > 360 ? 16 : 14,
   },
   noTherapyText: {
-    color: '#FFFFFF',
-    textAlign: 'center',
+    color: "#FFFFFF",
+    textAlign: "center",
     fontSize: 16,
     marginTop: 20,
   },
   dropdownButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(17, 159, 179, 0.8)',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "rgba(17, 159, 179, 0.8)",
     padding: 10,
     borderRadius: 5,
     marginBottom: 10,
   },
   dropdownButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   dropdownContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 5,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 10,
   },
   dropdownItem: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    borderBottomColor: "#EEEEEE",
   },
   modalView: {
     // margin: 20,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 20,
     padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -702,26 +867,26 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    width: '85%',
+    width: "85%",
     maxWidth: 400,
   },
 
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
-    color: '#119FB3',
+    color: "#119FB3",
   },
   modalText: {
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 16,
   },
   remarksText: {
     marginBottom: 15,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 14,
-    color: '#333',
+    color: "#333",
   },
   button: {
     borderRadius: 20,
@@ -730,13 +895,16 @@ const styles = StyleSheet.create({
     minWidth: 100,
   },
   buttonClose: {
-    backgroundColor: '#119FB3',
+    backgroundColor: "#119FB3",
   },
   textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 
 export default TherapyHistory;
+function showErrorToast(arg0: string) {
+  throw new Error("Function not implemented.");
+}

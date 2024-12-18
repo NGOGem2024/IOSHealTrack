@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSession} from '../context/SessionContext';
 
 const instance = axios.create({
-  baseURL: 'http://192.168.1.2:5000', // Adjust to your API URL
+  baseURL: 'https://healtrackapp-worker.up.railway.app', // Adjust to your API URL
 });
 
 instance.interceptors.request.use(

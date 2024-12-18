@@ -29,6 +29,7 @@ import axiosInstance from '../utils/axiosConfig';
 import AppointmentDetailsScreen from './AppointmentDetails';
 import NoAppointmentsPopup from './Noappointmentspopup';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import ActiveTherapyPlans from './Activeplans';
 
 interface DoctorInfo {
   _id: string;
@@ -43,9 +44,11 @@ interface DoctorInfo {
 }
 
 interface Appointment {
+  plan_id: string;
   _id: string;
+  patient_id: string;
   therepy_type: string;
-  therepy_link: string;
+  therepy_link?: string;
   therepy_start_time: string;
   therepy_date: string;
   patient_name?: string;
@@ -474,6 +477,9 @@ const DoctorDashboard: React.FC = () => {
           ) : (
             <NoAppointmentsPopup visible={true} />
           )}
+        </View>
+        <View style={styles.section}>
+          <ActiveTherapyPlans />
         </View>
       </ScrollView>
       {isAppointmentModalVisible && selectedAppointment && (

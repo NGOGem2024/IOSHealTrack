@@ -110,10 +110,32 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-
+ implementation project(':react-native-vector-icons')
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
     }
 }
+project.ext.vectoricons = [
+   iconFontNames: [
+  'AntDesign.ttf',
+  'Entypo.ttf',
+  'EvilIcons.ttf',
+  'Feather.ttf',
+  'FontAwesome.ttf',
+  'FontAwesome5_Brands.ttf',
+  'FontAwesome5_Regular.ttf',
+  'FontAwesome5_Solid.ttf',
+  'Foundation.ttf',
+  'Ionicons.ttf',
+  'MaterialIcons.ttf',
+  'MaterialCommunityIcons.ttf',
+  'Octicons.ttf',
+  'SimpleLineIcons.ttf',
+  'Zocial.ttf'
+]
+ // Add other icon fonts if needed
+]
+
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

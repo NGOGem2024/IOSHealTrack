@@ -1,0 +1,742 @@
+import React, {useState, useEffect, useCallback} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  ImageBackground,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  Dimensions,
+  Modal,
+  TextInput,
+  Linking, // Replaced expo-web-browser
+} from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome'; // Replaced @expo/vector-icons
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
+import {RootStackParamList} from '../types/types';
+import {useSession} from '../context/SessionContext';
+import EditTherapy from './Update';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {handleError, showSuccessToast} from '../utils/errorHandler';
+import axiosInstance from '../utils/axiosConfig';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
+import BackTabTop from './BackTopTab';
+import AppointmentDetails from './AppointmentDetails';
+
+interface Therapy {
+  _id: string;
+  patient_id: string;
+  therepy_id: string;
+  therepy_type: string;
+  therepy_remarks: string;
+  therepy_link: string;
+  therepy_date: string;
+  therepy_start_time: string; // Ensure correct typing
+  therepy_end_time?: string;
+  status?: string;
+  therepy_cost?: string;
+}
+
+type TherapyHistoryScreenProps = StackScreenProps<
+  RootStackParamList,
+  'UpdateTherapy'
+>;
+
+const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
+  navigation,
+  route,
+}) => {
+  const {session} = useSession();
+  const patientId = route.params?.patientId;
+
+  const [therapies, setTherapies] = useState<Therapy[] | undefined>(undefined);
+  const [pastTherapies, setPastTherapies] = useState<Therapy[]>([]);
+  const [upcomingTherapies, setUpcomingTherapies] = useState<Therapy[]>([]);
+  const [showPastTherapies, setShowPastTherapies] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [editingTherapy, setEditingTherapy] = useState<Therapy | null>(null);
+  const [showRemarksPopup, setShowRemarksPopup] = useState(false);
+  const [selectedTherapyId, setSelectedTherapyId] = useState('');
+  const [remarks, setRemarks] = useState('');
+  const [improvements, setImprovements] = useState('');
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [therapyToDelete, setTherapyToDelete] = useState<Therapy | null>(null);
+  const [showNewUserPopup, setShowNewUserPopup] = useState(false);
+  const popupScale = useSharedValue(0);
+
+  useEffect(() => {
+    if (!patientId) {
+      setError('No patient ID provided.');
+      return;
+    }
+    fetchTherapies();
+  }, [patientId, session]);
+
+  const fetchTherapies = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axiosInstance.get(`/therepy/${patientId}`, {
+        headers: {
+          Authorization: 'Bearer ' + session.idToken,
+        },
+      });
+      if (response.status === 404) {
+        setShowNewUserPopup(true);
+        popupScale.value = withSpring(1);
+        return;
+      }
+      if (response.status !== 200) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = response.data;
+      if (data.therepys && Array.isArray(data.therepys)) {
+        const now = new Date();
+        const past = data.therepys.filter((therapy: Therapy) => {
+          const therapyEndTime = new Date(
+            `${therapy.therepy_date}T${therapy.therepy_end_time}`,
+          );
+          return therapyEndTime < now || therapy.status === 'completed';
+        });
+        const upcoming = data.therepys.filter((therapy: Therapy) => {
+          const therapyEndTime = new Date(
+            `${therapy.therepy_date}T${therapy.therepy_end_time}`,
+          );
+          return therapyEndTime >= now && therapy.status !== 'completed';
+        });
+
+        setPastTherapies(past);
+        setUpcomingTherapies(upcoming);
+      } else {
+        setShowNewUserPopup(true);
+        popupScale.value = withSpring(1);
+        return;
+      }
+    } catch (error) {
+      handleError(error);
+      if (error instanceof Error && error.message === 'No therapies found') {
+        showSuccessToast('You are new. No therapies found.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteTherapy = (therapy: Therapy) => {
+    setTherapyToDelete(therapy);
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmDeleteTherapy = async () => {
+    if (!therapyToDelete) return;
+
+    try {
+      const response = await axiosInstance.delete(
+        `/therapy/delete/${therapyToDelete._id}`,
+      );
+      if (response.status !== 200) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      setUpcomingTherapies(prevTherapies =>
+        prevTherapies.filter(therapy => therapy._id !== therapyToDelete._id),
+      );
+      showSuccessToast('Therapy deleted successfully');
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setShowDeleteConfirmation(false);
+      setTherapyToDelete(null);
+    }
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const selectTherapyType = (type: 'past' | 'upcoming') => {
+    setShowPastTherapies(type === 'past');
+    toggleDropdown();
+  };
+
+  const handleRecTherapy = async (therepy_id: string) => {
+    const recordingUrl = `https://app.contact.liveswitch.com/conversations/${therepy_id}`;
+    try {
+      await Linking.openURL(recordingUrl); // Replaced expo-web-browser
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const handleJoinSession = (joinUrl: string) => {
+    Linking.openURL(joinUrl); // Replaced expo-web-browser
+  };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchTherapies();
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  const handleEditTherapy = (therapy: Therapy) => {
+    setEditingTherapy(therapy);
+  };
+
+  const handleUpdateTherapy = async (updatedTherapy: Therapy) => {
+    try {
+      const response = await axiosInstance.patch(
+        `/therepy/update/${updatedTherapy._id}`,
+        {
+          body: JSON.stringify(updatedTherapy),
+        },
+      );
+
+      if (response.status !== 200) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const updatedData = await response.data();
+      setTherapies(prevTherapies =>
+        prevTherapies?.map(therapy =>
+          therapy._id === updatedData.therapy._id
+            ? updatedData.therapy
+            : therapy,
+        ),
+      );
+      setEditingTherapy(null);
+      showSuccessToast('Therapy updated successfully');
+      fetchTherapies();
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const handleSaveRemarks = async () => {
+    try {
+      const response = await axiosInstance.patch(
+        `/therepy/update/${selectedTherapyId}`,
+        {
+          therepy_remarks: remarks,
+          improvements: improvements,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.idToken}`,
+          },
+        },
+      );
+
+      if (response.status !== 200) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      setTherapies(prevTherapies =>
+        prevTherapies?.map(therapy =>
+          therapy._id === selectedTherapyId
+            ? {
+                ...therapy,
+                therepy_remarks: remarks,
+                improvements: improvements,
+              }
+            : therapy,
+        ),
+      );
+
+      setShowRemarksPopup(false);
+      showSuccessToast('Remarks and improvements saved successfully');
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const renderTherapyItem = ({item}: {item: Therapy}) => {
+    const now = new Date();
+    const therapyStartTime = new Date(
+      `${item.therepy_date}T${item.therepy_start_time}`,
+    );
+    const therapyEndTime = new Date(
+      `${item.therepy_date}T${item.therepy_end_time}`,
+    );
+    const isUpcoming = therapyStartTime > now && item.status !== 'completed';
+    const isOngoing =
+      now >= therapyStartTime &&
+      now <= therapyEndTime &&
+      item.status !== 'completed';
+    const isPast = now > therapyEndTime || item.status === 'completed';
+    const canStart =
+      now >= therapyStartTime &&
+      now < therapyEndTime &&
+      item.status !== 'completed';
+
+    return (
+      <View style={styles.therapyCard}>
+        {isUpcoming && (
+          <View style={styles.actionButtonsContainer}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => handleEditTherapy(item)}>
+              <MaterialIcons name="edit" size={24} color="#119FB3" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDeleteTherapy(item)}>
+              <MaterialIcons name="delete" size={24} color="#FF6B6B" />
+            </TouchableOpacity>
+          </View>
+        )}
+        <View style={styles.therapyHeader}>
+          <MaterialIcons name="event" size={24} color="#119FB3" />
+          <Text style={styles.therapyType}>{item.therepy_type}</Text>
+        </View>
+        <View style={styles.therapyDetails}>
+          <Text style={styles.therapyText}>Date: {item.therepy_date}</Text>
+          <Text style={styles.therapyText}>
+            Start Time: {item.therepy_start_time}
+          </Text>
+          <Text style={styles.therapyText}>
+            End Time: {item.therepy_end_time}
+          </Text>
+        </View>
+        <View style={styles.buttonContainer}>
+          {!isPast && (
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                styles.joinButton,
+                !canStart && styles.disabledButton,
+              ]}
+              onPress={() => handleJoinSession(item.therepy_link)}
+              disabled={!canStart}>
+              <Text style={styles.buttonText}>
+                {canStart ? 'Start Therapy' : 'Upcoming'}
+              </Text>
+            </TouchableOpacity>
+          )}
+          {isPast && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.recordButton]}
+              onPress={() => handleRecTherapy(item.therepy_id)}>
+              <Text style={styles.buttonText}>Get Recording</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <ImageBackground
+      source={require('../assets/bac2.jpg')}
+      style={styles.backgroundImage}>
+      <BackTabTop screenName="Sessions" />
+      <View style={styles.container}>
+        {error && <Text style={styles.error}>{error}</Text>}
+        <TouchableOpacity
+          onPress={toggleDropdown}
+          style={styles.dropdownButton}>
+          <Text style={styles.dropdownButtonText}>
+            {showPastTherapies ? 'Past Therapies' : 'Upcoming Therapies'}
+          </Text>
+          <Icon
+            name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
+            size={16}
+            color="#FFFFFF"
+          />
+        </TouchableOpacity>
+        {isDropdownOpen && (
+          <View style={styles.dropdownContent}>
+            <TouchableOpacity
+              onPress={() => selectTherapyType('past')}
+              style={styles.dropdownItem}>
+              <Text>Past Therapies</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => selectTherapyType('upcoming')}
+              style={styles.dropdownItem}>
+              <Text>Upcoming Therapies</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {isLoading ? (
+          <Text style={styles.loadingText}>Loading therapies...</Text>
+        ) : (
+          <FlatList
+            data={showPastTherapies ? pastTherapies : upcomingTherapies}
+            keyExtractor={item => item._id}
+            renderItem={renderTherapyItem}
+            ListEmptyComponent={
+              <Text style={styles.noTherapyText}>
+                No {showPastTherapies ? 'past' : 'upcoming'} therapies available
+              </Text>
+            }
+          />
+        )}
+      </View>
+      {editingTherapy && (
+        <EditTherapy
+          therapy={editingTherapy}
+          onUpdate={handleUpdateTherapy}
+          onCancel={() => setEditingTherapy(null)}
+        />
+      )}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showRemarksPopup}
+        onRequestClose={() => setShowRemarksPopup(false)}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Therapy Ended</Text>
+            <Text style={styles.inputLabel}>Remarks:</Text>
+            <TextInput
+              style={styles.input}
+              multiline
+              numberOfLines={5}
+              value={remarks}
+              onChangeText={setRemarks}
+              placeholder="Enter remarks here"
+            />
+            <Text style={styles.inputLabel}>Improvements:</Text>
+            <TextInput
+              style={styles.input}
+              multiline
+              numberOfLines={4}
+              value={improvements}
+              onChangeText={setImprovements}
+              placeholder="Enter Improvements"
+            />
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setShowRemarksPopup(false)}>
+                <Text style={styles.textStyle}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonSave]}
+                onPress={handleSaveRemarks}>
+                <Text style={styles.textStyle}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showDeleteConfirmation}
+        onRequestClose={() => setShowDeleteConfirmation(false)}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Confirm Deletion</Text>
+            <Text style={styles.modalText}>
+              Are you sure you want to delete this therapy?
+            </Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setShowDeleteConfirmation(false)}>
+                <Text style={styles.textStyle}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonDelete]}
+                onPress={confirmDeleteTherapy}>
+                <Text style={styles.textStyle}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </ImageBackground>
+  );
+};
+
+const windowWidth = Dimensions.get('window').width;
+
+const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: 'rgba(17, 159, 179, 0.1)',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 10,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: {width: 1, height: 1},
+    textShadowRadius: 2,
+    marginTop: 20,
+  },
+  fullScreenModal: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'white',
+    zIndex: 1000,
+  },
+  error: {
+    color: '#FF6B6B',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  actionButtonsContainer: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    flexDirection: 'row',
+    zIndex: 1,
+  },
+  editButton: {
+    marginRight: 10,
+  },
+  deleteButton: {
+    marginLeft: 10,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  buttonDelete: {
+    backgroundColor: '#FF6B6B',
+  },
+  doneButton: {
+    backgroundColor: '#119FB3',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  newUserPopup: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    width: '85%',
+    maxWidth: 400,
+  },
+  newUserTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#119FB3',
+    marginBottom: 15,
+  },
+  newUserText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#333',
+  },
+  createTherapyButton: {
+    backgroundColor: '#119FB3',
+    borderRadius: 10,
+    padding: 10,
+    elevation: 2,
+  },
+  createTherapyButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  buttonSave: {
+    backgroundColor: '#119FB3',
+  },
+
+  therapyCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    elevation: 4,
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  inputLabel: {
+    alignSelf: 'flex-start',
+    marginBottom: 5,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#119FB3',
+    borderRadius: 5,
+    height: 40,
+    marginBottom: 20,
+    width: '100%',
+    padding: 10,
+    textAlignVertical: 'top',
+  },
+
+  therapyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  therapyType: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#119FB3',
+    marginLeft: 8,
+  },
+  therapyDetails: {
+    marginBottom: 12,
+  },
+  therapyText: {
+    fontSize: 14,
+    color: '#333333',
+    marginBottom: 4,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  actionButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    width: windowWidth > 360 ? 150 : '50%',
+    elevation: 2,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  joinButton: {
+    backgroundColor: '#119FB3',
+  },
+  recordButton: {
+    backgroundColor: '#2596be',
+  },
+  disabledButton: {
+    backgroundColor: '#A0A0A0',
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: windowWidth > 360 ? 16 : 14,
+  },
+  noTherapyText: {
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontSize: 16,
+    marginTop: 20,
+  },
+  dropdownButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'rgba(17, 159, 179, 0.8)',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  dropdownButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  dropdownContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 5,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  dropdownItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+  },
+  modalView: {
+    // margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    width: '85%',
+    maxWidth: 400,
+  },
+
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#119FB3',
+  },
+  modalText: {
+    marginBottom: 10,
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  remarksText: {
+    marginBottom: 15,
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#333',
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+    minWidth: 100,
+  },
+  buttonClose: {
+    backgroundColor: '#119FB3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+});
+
+export default TherapyHistory;

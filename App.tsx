@@ -1,26 +1,16 @@
 import React from 'react';
-import {SafeAreaView, Text, StyleSheet} from 'react-native';
+import {ThemeProvider} from './src/screens/ThemeContext';
+import {SessionProvider} from './src/context/SessionContext';
+import AppNavigator from './AppNavigatior';
+import Toast from 'react-native-toast-message';
 
-function App(): React.JSX.Element {
-  return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.text}>Hello World</Text>
-    </SafeAreaView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff', // White background
-  },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000', // Black text color
-  },
-});
+const App: React.FC = () => (
+  <SessionProvider>
+    <ThemeProvider>
+      <AppNavigator />
+    </ThemeProvider>
+    <Toast />
+  </SessionProvider>
+);
 
 export default App;

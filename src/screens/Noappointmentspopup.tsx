@@ -1,13 +1,16 @@
 import React from 'react';
 import {View, Text, StyleSheet, Animated} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {useTheme} from './ThemeContext';
+import {getTheme} from './Theme';
 
 interface NoAppointmentsPopupProps {
   visible: boolean;
 }
 
 const NoAppointmentsPopup: React.FC<NoAppointmentsPopupProps> = ({visible}) => {
-  const styles = getStyles();
+  const {theme} = useTheme();
+  const styles = getStyles(getTheme(theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark'));
   const scaleAnim = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -41,10 +44,10 @@ const NoAppointmentsPopup: React.FC<NoAppointmentsPopupProps> = ({visible}) => {
   );
 };
 
-const getStyles = () =>
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     noAppointmentsPopup: {
-      backgroundColor: 'white',
+      backgroundColor: theme.colors.card,
       borderRadius: 20,
       padding: 20,
       alignItems: 'center',
@@ -60,13 +63,13 @@ const getStyles = () =>
     noAppointmentsTitle: {
       fontSize: 22,
       fontWeight: 'bold',
-      color: '#119FB3',
+      color: theme.colors.text,
       marginTop: 10,
       marginBottom: 5,
     },
     noAppointmentsText: {
       fontSize: 16,
-      color: '#000000',
+      color: theme.colors.text,
       textAlign: 'center',
       marginTop: 5,
     },

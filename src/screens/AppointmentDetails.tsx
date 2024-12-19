@@ -12,15 +12,16 @@ import {
   Animated,
   Easing,
   BackHandler,
+  Linking,
 } from 'react-native';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
+import BackTabTop from './BackTopTab';
 import {useSession} from '../context/SessionContext';
 import axiosInstance from '../utils/axiosConfig';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../types/types';
-
+import {RootStackParamList} from '../types/types';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useNavigation} from '@react-navigation/native';
 
 interface AppointmentDetailsScreenProps {
   appointment: {
@@ -48,8 +49,6 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
     ),
   );
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-
-  // const { idToken } = useSession();
   const [isStarted, setIsStarted] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -98,12 +97,27 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
     };
   }, [isStarted, startTime, rotation]);
 
-  const handleJoinSession = (joinUrl: string) => {
-    // openBrowserAsync(joinUrl);
+  const handleJoinSession = async (joinUrl: string | undefined) => {
+    if (!joinUrl) {
+      Alert.alert('Error', 'No session URL provided');
+      return;
+    }
+
+    try {
+      const supported = await Linking.canOpenURL(joinUrl);
+      if (supported) {
+        await Linking.openURL(joinUrl);
+      } else {
+        Alert.alert('Error', 'Cannot open this URL');
+      }
+    } catch (error) {
+      console.error('Error opening URL:', error);
+      Alert.alert('Error', 'Failed to open session URL');
+    }
   };
 
   const handleStart = useCallback(async () => {
-    setLoading(true); // Start loading animation
+    setLoading(true);
     try {
       const response = await axiosInstance.post(
         `/therapy/start/${appointment._id}`,
@@ -113,7 +127,6 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
         {
           headers: {
             'Content-Type': 'application/json',
-            // Authorization: `Bearer ${idToken}`,
           },
         },
       );
@@ -128,17 +141,21 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
       console.error('Failed to start therapy session:', error);
       Alert.alert('Error', 'Failed to start therapy session.');
     } finally {
-      setLoading(false); // Stop loading animation
+      setLoading(false);
     }
   }, [appointment._id, previousRemarks]);
 
   const handleCancel = () => {
-    setPreviousRemarks(''); // Clear previous remarks
-    onClose(); // Close the appointment details screen
+    setPreviousRemarks('');
+    onClose();
+  };
+
+  const handleShowEndModal = () => {
+    setModalVisible(true);
   };
 
   const handleEnd = useCallback(async () => {
-    setLoading(true); // Start loading animation
+    setLoading(true);
     try {
       const response = await axiosInstance.post(
         `/therapy/end/${appointment._id}`,
@@ -148,14 +165,14 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
         {
           headers: {
             'Content-Type': 'application/json',
-            // Authorization: `Bearer ${idToken}`,
           },
         },
       );
 
       if (response.status === 200) {
-        setModalVisible(true); // Show post-session remarks modal
-        navigation.navigate("payment", {
+        setModalVisible(false);
+        onClose();
+        navigation.navigate('payment', {
           planId: appointment.plan_id,
           patientId: appointment.patient_id,
         });
@@ -166,9 +183,9 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
       console.error('Failed to end therapy session:', error);
       Alert.alert('Error', 'Failed to end therapy session.');
     } finally {
-      setLoading(false); // Stop loading animation
+      setLoading(false);
     }
-  }, [postRemarks]);
+  }, [appointment._id, postRemarks]);
 
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
@@ -179,14 +196,8 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
       .padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const closeModal = () => {
-    setModalVisible(false);
-    setPostRemarks('');
-    onClose(); // Close the appointment details screen
-  };
-
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.headerText}>Appointment Details</Text>
       <View style={styles.dateContainer}>
         {isStarted ? (
@@ -231,8 +242,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={styles.uploadButton}
-                  // onPress={() => handleJoinSession(appointment.therepy_link)}
-                >
+                  onPress={() => handleJoinSession(appointment.therepy_link)}>
                   <Text style={styles.uploadButtonText}>Upload Videos</Text>
                 </TouchableOpacity>
               </View>
@@ -262,17 +272,14 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
             {appointment.therepy_link && (
               <TouchableOpacity
                 style={styles.joinButton}
-                //  onPress={() => handleJoinSession(appointment.therepy_link)}
-              >
+                onPress={() => handleJoinSession(appointment.therepy_link)}>
                 <Text style={styles.buttonText}>Join Session</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={styles.endButton} onPress={handleEnd}>
-              {loading ? (
-                <ActivityIndicator size="small" color="#ffffff" />
-              ) : (
-                <Text style={styles.buttonText}>End Therapy</Text>
-              )}
+            <TouchableOpacity
+              style={styles.endButton}
+              onPress={handleShowEndModal}>
+              <Text style={styles.buttonText}>End Therapy</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -291,8 +298,12 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                 value={postRemarks}
                 placeholder="Enter post session remarks"
               />
-              <TouchableOpacity style={styles.modalButton} onPress={closeModal}>
-                <Text style={styles.buttonText}>Submit and Close</Text>
+              <TouchableOpacity style={styles.modalButton} onPress={handleEnd}>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Text style={styles.buttonText}>Submit and End Session</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -305,10 +316,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: 'white',
+      backgroundColor: theme.colors.background,
     },
     cancelButton: {
-      backgroundColor: '#e0e0e0', // Set the color for cancel button
+      backgroundColor: theme.colors.card, // Set the color for cancel button
       marginTop: 10,
       paddingVertical: 10,
       borderRadius: 10,
@@ -358,7 +369,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignItems: 'center',
     },
     buttonText: {
-      color: '#ffffff',
+      color: theme.colors.text,
       fontWeight: 'bold',
       fontSize: 16,
     },
@@ -413,7 +424,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     headerText: {
       fontSize: 20,
       fontWeight: 'bold',
-      color: 'black',
+      color: theme.colors.text,
       marginLeft: 16,
       marginTop: 20,
       marginBottom: 10,
@@ -429,7 +440,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       zIndex: 1,
     },
     card: {
-      backgroundColor: '#f0f0f0',
+      backgroundColor: theme.colors.card,
       borderRadius: 8,
       padding: 12,
       marginBottom: 16,

@@ -353,15 +353,16 @@ const DoctorDashboard: React.FC = () => {
         barStyle="light-content"
         backgroundColor="black"
         translucent={false}
-      />
+      /> 
+      <DashboardHeader />
+ 
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-        <DashboardHeader />
-        {doctorInfo && (
+              {doctorInfo && (
           <View style={styles.profileSection}>
             <Image
               source={require('../assets/profile.png')}
@@ -520,11 +521,18 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     dashboardHeader: {
       flexDirection: 'row',
       alignItems: 'center',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 1000,
       justifyContent: 'space-between',
       paddingVertical: 10,
       paddingHorizontal: 15,
       paddingTop: 10,
       backgroundColor: '#119FB3',
+      borderBottomColor: 'white',
+      borderBottomWidth: 1,
     },
     logoImage: {
       width: 120,
@@ -650,6 +658,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderBottomRightRadius: 150,
       elevation: 5,
       shadowColor: '#000',
+      marginTop: 50,
       shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.1,
       shadowRadius: 4,

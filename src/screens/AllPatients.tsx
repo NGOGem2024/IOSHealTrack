@@ -19,6 +19,8 @@ import {useSession} from '../context/SessionContext';
 import {handleError} from '../utils/errorHandler';
 import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
+import { useTheme } from './ThemeContext';
+import { getTheme } from './Theme';
 
 interface Props {
   navigation: NavigationProp<ParamListBase>;
@@ -34,6 +36,10 @@ interface Patient {
 }
 
 const AllPatients: React.FC<Props> = ({navigation}) => {
+  const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark')
+  );
   const {session} = useSession();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
@@ -292,7 +298,7 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
@@ -342,20 +348,20 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   loadingText: {
-    color: '#119FB3',
+    color: theme.colors.text,
     marginTop: 5,
     fontSize: 12,
     textAlign: 'center',
   },
   loadMoreButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.card,
     padding: 10,
     borderRadius: 5,
     alignItems: 'center',
     marginVertical: 10,
   },
   loadMoreButtonText: {
-    color: '#119FB3',
+    color: theme.colors.text,
     fontWeight: 'bold',
   },
   filtersContainer1: {
@@ -374,7 +380,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#ffffff',
+    color: theme.colors.text,
     textAlign: 'center',
   },
   picker: {
@@ -383,7 +389,7 @@ const styles = StyleSheet.create({
   },
   patientCard: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 1)',
+    backgroundColor: theme.colors.card,
     borderRadius: 8,
     padding: 10,
     marginBottom: 10,
@@ -409,7 +415,7 @@ const styles = StyleSheet.create({
   patientName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
+    color: theme.colors.text,
     textAlign: 'center',
   },
   addButton: {
@@ -428,7 +434,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+    backgroundColor: theme.colors.card,
   },
   header: {
     flexDirection: 'row',

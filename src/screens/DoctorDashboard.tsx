@@ -354,13 +354,14 @@ const DoctorDashboard: React.FC = () => {
         backgroundColor="black"
         translucent={false}
       />
+       <DashboardHeader />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-        <DashboardHeader />
+       
         {doctorInfo && (
           <View style={styles.profileSection}>
             <Image

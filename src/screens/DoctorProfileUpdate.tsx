@@ -19,6 +19,7 @@ import axios from 'axios';
 import {useSession} from '../context/SessionContext';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import instance from '../utils/axiosConfig';
+import BackTabTop from './BackTopTab';
 
 const {width} = Dimensions.get('window');
 
@@ -168,12 +169,11 @@ const DoctorProfileEdit: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <BackTabTop screenName='Doctor Profile'/>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Edit Profile</Text>
-        </View>
+        
 
         <View style={styles.profileImageContainer}>
           <Image source={profilePhoto} style={styles.profilePhoto} />
@@ -258,7 +258,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     header: {
       padding: 16,
-      paddingTop: 40,
       backgroundColor: '#119FB3',
     },
     headerText: {
@@ -279,8 +278,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     profileImageContainer: {
       alignItems: 'center',
-      marginTop: 5,
-      marginBottom: 30,
+      marginTop: 15,
+      marginBottom: 15,
     },
     profilePhoto: {
       width: 150,
@@ -313,7 +312,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontWeight: 'bold',
     },
     input: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.card,
       borderRadius: 10,
       padding: 12,
       fontSize: 16,
@@ -321,7 +320,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       elevation: 8,
     },
     disabledInput: {
-      backgroundColor: '#F0F0F0',
+      backgroundColor: theme.colors.card,
       color: '#888888',
     },
     saveButton: {

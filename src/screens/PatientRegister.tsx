@@ -1,20 +1,20 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
-  ImageBackground,
   KeyboardType,
   Platform,
   StyleSheet,
+  useColorScheme,
+  Appearance,
+  ImageBackground,
 } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
-import {GestureHandlerRootView, ScrollView} from 'react-native-gesture-handler';
-import axios from 'axios';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import * as Animatable from 'react-native-animatable';
 import {useSession} from '../context/SessionContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -26,6 +26,36 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 type PatientRegisterScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'PatientRegister'>;
+};
+
+// Define theme colors
+const theme = {
+  light: {
+    background: '#FFFFFF',
+    text: '#333333',
+    primary: '#119FB3',
+    cardBackground: '#FFFFFF',
+    inputBackground: '#FFFFFF',
+    inputText: '#333333',
+    inputBorder: '#D9D9D9',
+    placeholderText: '#666666',
+    mandatoryField: '#c30010',
+    optionalField: '#90EE90',
+    filledField: '#90EE90',
+  },
+  dark: {
+    background: '#121212',
+    text: '#FFFFFF',
+    primary: '#1FCAE8',
+    cardBackground: '#1E1E1E',
+    inputBackground: '#2C2C2C',
+    inputText: '#FFFFFF',
+    inputBorder: '#404040',
+    placeholderText: '#888888',
+    mandatoryField: '#FF6B6B',
+    optionalField: '#2E7D32',
+    filledField: '#2E7D32',
+  },
 };
 
 const initialPatientData = {
@@ -44,7 +74,7 @@ interface FieldStatus {
   patient_phone: boolean;
   referral_source: boolean;
   referral_details: boolean;
-  [key: string]: boolean; // Index signature to avoid TypeScript error
+  [key: string]: boolean;
 }
 
 const initialFieldStatus: FieldStatus = {
@@ -56,13 +86,24 @@ const initialFieldStatus: FieldStatus = {
   referral_details: false,
 };
 
-const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
-  navigation,
-}) => {
+const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => {
   const {session} = useSession();
   const [patientData, setPatientData] = useState(initialPatientData);
   const [isLoading, setIsLoading] = useState(false);
   const [fieldStatus, setFieldStatus] = useState(initialFieldStatus);
+  const [isDarkMode, setIsDarkMode] = useState(useColorScheme() === 'dark');
+
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({colorScheme}) => {
+      setIsDarkMode(colorScheme === 'dark');
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  const colors = theme[isDarkMode ? 'dark' : 'light'];
 
   const handleInputChange = (field: string, value: string) => {
     let newValue = value;
@@ -113,7 +154,6 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
 
     setIsLoading(true);
     try {
-      const liveSwitchToken = await AsyncStorage.getItem('liveSwitchToken');
       const formattedData = {
         ...patientData,
         patient_phone: '+91' + patientData.patient_phone,
@@ -149,12 +189,28 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
       'patient_phone',
       'referral_source',
     ].includes(field);
+
+    const baseStyle = {
+      backgroundColor: colors.inputBackground,
+      color: colors.inputText,
+      borderColor: colors.inputBorder,
+    };
+
     if (fieldStatus[field]) {
-      return [styles.input, styles.filledInput];
+      return [
+        styles.input,
+        {
+          ...baseStyle,
+          borderColor: colors.filledField,
+        },
+      ];
     }
     return [
       styles.input,
-      isMandatory ? styles.mandatoryInput : styles.optionalInput,
+      {
+        ...baseStyle,
+        borderColor: isMandatory ? colors.mandatoryField : colors.optionalField,
+      },
     ];
   };
 
@@ -169,6 +225,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
       <TextInput
         style={getInputStyle(field)}
         placeholder={placeholder}
+        placeholderTextColor={colors.placeholderText}
         value={value}
         onChangeText={text => handleInputChange(field, text)}
         keyboardType={keyboardType}
@@ -179,18 +236,30 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
 
   return (
     <ImageBackground
-      source={require('../assets/bac2.jpg')}
-      style={styles.backgroundImage}>
+    source={require("../assets/bac2.jpg")}
+    style={styles.backgroundImage}
+  >
       <BackTabTop screenName="Patient" />
       <KeyboardAwareScrollView
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={[styles.scrollContainer]}
         enableOnAndroid={true}
         enableAutomaticScroll={Platform.OS === 'ios'}
         extraScrollHeight={100}
         keyboardShouldPersistTaps="handled">
         <View style={styles.centerContainer}>
-          <Animatable.View animation="fadeInUp" style={styles.container}>
-            <Text style={styles.title}>Register Patient</Text>
+          <Animatable.View
+            animation="fadeInUp"
+            style={[
+              styles.container,
+              {
+                backgroundColor: colors.cardBackground,
+                shadowColor: isDarkMode ? '#000000' : '#000000',
+              },
+            ]}>
+            <Text style={[styles.title, {color: colors.primary}]}>
+              Register Patient
+            </Text>
+
             {renderInput(
               'First Name',
               patientData.patient_first_name,
@@ -211,54 +280,69 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
               'patient_email',
               'email-address',
             )}
-            {/* Phone input */}
+
             <Animatable.View animation="fadeInUp" style={styles.inputContainer}>
               <View
                 style={[
                   styles.phoneInputContainer,
                   getInputStyle('patient_phone'),
                 ]}>
-                <Text style={styles.phonePrefix}>+91</Text>
+                <Text style={{color: colors.text}}>+91</Text>
                 <TextInput
-                  style={styles.phoneInput}
+                  style={[styles.phoneInput, {color: colors.inputText}]}
                   placeholder="Contact No."
+                  placeholderTextColor={colors.placeholderText}
                   value={patientData.patient_phone}
-                  onChangeText={text =>
-                    handleInputChange('patient_phone', text)
-                  }
+                  onChangeText={text => handleInputChange('patient_phone', text)}
                   keyboardType="numeric"
                   maxLength={10}
                 />
               </View>
             </Animatable.View>
-            {/* Referral source picker */}
+
             <Animatable.View animation="fadeInUp" style={styles.inputContainer}>
-              <View style={getInputStyle('referral_source')}>
+              <View style={[getInputStyle('referral_source')]}>
                 <Picker
                   selectedValue={patientData.referral_source}
-                  style={styles.picker}
+                  style={[styles.picker, {color: colors.inputText}]}
+                  dropdownIconColor={colors.inputText}
                   onValueChange={itemValue =>
                     handleInputChange('referral_source', itemValue)
                   }>
-                  <Picker.Item label="Select Referral Source" value="" />
-                  <Picker.Item label="Social Media" value="Social Media" />
+                  <Picker.Item
+                    label="Select Referral Source"
+                    value=""
+                    color={colors.inputText}
+                  />
+                  <Picker.Item
+                    label="Social Media"
+                    value="Social Media"
+                    color={colors.inputText}
+                  />
                   <Picker.Item
                     label="Patient Reference"
                     value="Patient Reference"
+                    color={colors.inputText}
                   />
                   <Picker.Item
                     label="Hospital Reference"
                     value="Hospital Reference"
+                    color={colors.inputText}
                   />
                   <Picker.Item
                     label="Doctor Reference"
                     value="Doctor Reference"
+                    color={colors.inputText}
                   />
-                  <Picker.Item label="Other" value="Other" />
+                  <Picker.Item
+                    label="Other"
+                    value="Other"
+                    color={colors.inputText}
+                  />
                 </Picker>
               </View>
             </Animatable.View>
-            {/* Conditional referral details input */}
+
             {patientData.referral_source &&
               patientData.referral_source !== 'Social Media' && (
                 <Animatable.View
@@ -267,6 +351,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
                   <TextInput
                     style={getInputStyle('referral_details')}
                     placeholder="Referral Details"
+                    placeholderTextColor={colors.placeholderText}
                     value={patientData.referral_details}
                     onChangeText={text =>
                       handleInputChange('referral_details', text)
@@ -274,32 +359,54 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
                   />
                 </Animatable.View>
               )}
+
             {patientData.referral_source === 'Social Media' && (
-              <Animatable.View
-                animation="fadeInUp"
-                style={styles.inputContainer}>
-                <View style={getInputStyle('referral_details')}>
+              <Animatable.View animation="fadeInUp" style={styles.inputContainer}>
+                <View style={[getInputStyle('referral_details')]}>
                   <Picker
                     selectedValue={patientData.referral_details}
-                    style={styles.picker}
+                    style={[styles.picker, {color: colors.inputText}]}
+                    dropdownIconColor={colors.inputText}
                     onValueChange={itemValue =>
                       handleInputChange('referral_details', itemValue)
                     }>
                     <Picker.Item
                       label="Select Social Media Platform"
                       value=""
+                      color={colors.inputText}
                     />
-                    <Picker.Item label="Instagram" value="Instagram" />
-                    <Picker.Item label="Facebook" value="Facebook" />
-                    <Picker.Item label="WhatsApp" value="WhatsApp" />
-                    <Picker.Item label="YouTube" value="YouTube" />
-                    <Picker.Item label="Google" value="Google" />
+                    <Picker.Item
+                      label="Instagram"
+                      value="Instagram"
+                      color={colors.inputText}
+                    />
+                    <Picker.Item
+                      label="Facebook"
+                      value="Facebook"
+                      color={colors.inputText}
+                    />
+                    <Picker.Item
+                      label="WhatsApp"
+                      value="WhatsApp"
+                      color={colors.inputText}
+                    />
+                    <Picker.Item
+                      label="YouTube"
+                      value="YouTube"
+                      color={colors.inputText}
+                    />
+                    <Picker.Item
+                      label="Google"
+                      value="Google"
+                      color={colors.inputText}
+                    />
                   </Picker>
                 </View>
               </Animatable.View>
             )}
+
             <TouchableOpacity
-              style={styles.button}
+              style={[styles.button, {backgroundColor: colors.primary}]}
               onPress={handlePatientRegister}
               disabled={isLoading}>
               {isLoading ? (
@@ -308,19 +415,31 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
                 <Text style={styles.buttonText}>Register</Text>
               )}
             </TouchableOpacity>
+
             <TouchableOpacity
-              style={styles.backButton1}
+              style={[
+                styles.backButton1,
+                {
+                  backgroundColor: colors.cardBackground,
+                  borderColor: colors.primary,
+                },
+              ]}
               onPress={() => navigation.navigate('DoctorDashboard')}>
-              <Text style={styles.backButtonText1}>Back to Home</Text>
+              <Text style={[styles.backButtonText1, {color: colors.primary}]}>
+                Back to Home
+              </Text>
             </TouchableOpacity>
           </Animatable.View>
         </View>
       </KeyboardAwareScrollView>
-    </ImageBackground>
+      </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+  },
   input: {
     borderWidth: 1,
     borderRadius: 5,

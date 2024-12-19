@@ -69,7 +69,22 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     useState<ProfileInfo>(initialProfileState);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
+  const validatePhone = (phone: string): boolean => {
+    const cleanPhone = phone.replace(/[^\d+]/g, '');
+    const indianPhoneRegex = /^\+91[6-9]\d{9}$/;
+    const isValid = indianPhoneRegex.test(cleanPhone);
+    
+    setPhoneError(
+      isValid
+        ? null
+        : "Please enter a valid phone number starting with 6-9"
+    );
+    
+    return isValid;
+  };
+  
   useEffect(() => {
     if (session.idToken) {
       fetchDoctorInfo();
@@ -81,9 +96,30 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   const fetchDoctorInfo = async () => {
     if (!session.idToken) {
       return;
-    }
-
-    setIsLoading(true);
+    }const fetchDoctorInfo = async () => {
+      if (!session.idToken) {
+        return;
+      }
+  
+      setIsLoading(true);
+  
+      try {
+        const response = await axiosInstance.get<ProfileInfo>(
+          `/doctor/${doctorId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${session.idToken}`,
+            },
+          }
+        );
+        setProfileInfo(response.data);
+        setOriginalProfileInfo(response.data);
+      } catch (error) {
+        handleError(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
     try {
       const response = await axiosInstance.get<ProfileInfo>(
@@ -103,9 +139,29 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     }
   };
 
-  const handleInputChange = (field: keyof ProfileInfo, value: any) => {
-    setProfileInfo(prev => ({...prev, [field]: value}));
+  const handlePhoneChange = (value: string) => {
+    let formattedValue = value;
+    if (!value.startsWith('+91')) {
+      formattedValue = '+91 ' + value.replace(/[^\d]/g, '');
+    }
+    const maxLength = 14;
+    const truncatedValue = formattedValue.slice(0, maxLength);
+    const cleanValue = truncatedValue.replace(/[^\d+]/g, '');
+    const finalValue = cleanValue.length > 3 
+      ? `${cleanValue.slice(0, 3)} ${cleanValue.slice(3)}` 
+      : cleanValue;
+  
+    setProfileInfo((prev) => ({ ...prev, doctor_phone: finalValue }));
+    validatePhone(finalValue);
   };
+  const handleInputChange = (field: keyof ProfileInfo, value: any) => {
+    if (field === "doctor_phone") {
+      handlePhoneChange(value);
+    } else {
+      setProfileInfo((prev) => ({ ...prev, [field]: value }));
+    }
+  };
+
 
   const hasChanges = () => {
     return JSON.stringify(profileInfo) !== JSON.stringify(originalProfileInfo);
@@ -114,6 +170,14 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   const handleSave = async () => {
     if (!hasChanges()) {
       showSuccessToast('No changes were made to the profile.');
+      return;
+    }
+
+    if (!validatePhone(profileInfo.doctor_phone)) {
+      Alert.alert(
+        "Invalid Phone Number",
+        "Please enter a valid 10-digit Indian mobile number starting with 6-9"
+      );
       return;
     }
 
@@ -234,13 +298,18 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Phone</Text>
-            <TextInput
-              style={styles.input}
-              value={profileInfo.doctor_phone}
-              onChangeText={text => handleInputChange('doctor_phone', text)}
-            />
-          </View>
+          <Text style={styles.label}>Phone</Text>
+          <TextInput
+            style={[styles.input, phoneError && styles.inputError]}
+            value={profileInfo.doctor_phone}
+            onChangeText={(text) => handleInputChange("doctor_phone", text)}
+            keyboardType="phone-pad"
+            placeholder="+91 Enter 10-digit mobile number"
+            maxLength={14} // +91 + space + 10 digits
+          />
+          {phoneError && <Text style={styles.errorText}>{phoneError}</Text>}
+        </View>
+          
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Role</Text>
@@ -405,6 +474,15 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: '#FFFFFF',
       fontSize: 18,
       fontWeight: 'bold',
+    },
+    inputError: {
+      borderColor: "red",
+      borderWidth: 1,
+    },
+    errorText: {
+      color: "red",
+      fontSize: 12,
+      marginTop: 5,
     },
   });
 

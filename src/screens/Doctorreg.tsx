@@ -1,20 +1,19 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   Platform,
   ActivityIndicator,
-  ImageBackground,
   KeyboardAvoidingView,
+  useColorScheme,
+  Appearance,
 } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
 import {GestureHandlerRootView, ScrollView} from 'react-native-gesture-handler';
-import axios from 'axios';
 import * as Animatable from 'react-native-animatable';
 import {useSession} from '../context/SessionContext';
 import {Picker} from '@react-native-picker/picker';
@@ -28,6 +27,9 @@ type DoctorRegisterScreenProps = {
 
 const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
   const {session} = useSession();
+  const colorScheme = useColorScheme();
+  const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
+  
   const [doctorData, setDoctorData] = useState({
     doctor_first_name: '',
     doctor_last_name: '',
@@ -37,16 +39,58 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
     is_admin: false,
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [phoneError, setPhoneError] = useState(''); // New state for phone error
+  const [phoneError, setPhoneError] = useState('');
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({ colorScheme: newColorScheme }) => {
+      setIsDarkMode(newColorScheme === 'dark');
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  // Theme colors based on mode
+  const colors = {
+    background: isDarkMode ? '#121212' : '#FFFFFF',
+    text: isDarkMode ? '#FFFFFF' : '#333333',
+    primary: isDarkMode ? '#1FCAE8' : '#119FB3',
+    inputBackground: isDarkMode ? '#2C2C2C' : '#FFFFFF',
+    inputBorder: isDarkMode ? '#404040' : '#D9D9D9',
+    error: isDarkMode ? '#FF6B6B' : '#FF0000',
+    cardBackground: isDarkMode ? '#1E1E1E' : '#FFFFFF',
+    placeholderText: isDarkMode ? '#888888' : '#666666',
+    shadow: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.25)',
   };
+
+  // Themed styles
+  const themedStyles = StyleSheet.create({
+    mainContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    card: {
+      backgroundColor: colors.cardBackground,
+      borderColor: colors.inputBorder,
+      borderWidth: isDarkMode ? 1 : 0,
+      shadowColor: colors.shadow,
+    },
+    input: {
+      backgroundColor: colors.inputBackground,
+      borderColor: colors.inputBorder,
+      color: colors.text,
+    },
+    text: {
+      color: colors.text,
+    },
+    scrollContent: {
+      backgroundColor: colors.background,
+    },
+  });
 
   const handleDoctorRegister = async () => {
     setIsLoading(true);
-
     try {
       if (!doctorData.doctor_first_name || !doctorData.doctor_last_name) {
         throw new Error('First name and last name are required');
@@ -66,6 +110,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
           Authorization: `Bearer ${session.idToken}`,
         },
       });
+      
       showSuccessToast('Doctor registered successfully');
       setDoctorData({
         doctor_first_name: '',
@@ -84,117 +129,137 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
   };
 
   const handlePhoneChange = (text: string) => {
-    const numericText = text.replace(/^\+91/, ''); // Remove "+91" if it's present
-    if (/^\d{0,10}$/.test(numericText)) {
+    const numericText = text.replace(/[^0-9]/g, '');
+    if (numericText.length <= 10) {
       setDoctorData({
         ...doctorData,
         doctor_phone: numericText,
       });
       setPhoneError(
-        numericText.length < 10 ? 'Phone number must be 10 digits.' : '',
+        numericText.length === 10 ? '' : 'Phone number must be 10 digits.',
       );
     }
   };
 
   return (
-    <ImageBackground
-      source={require('../assets/bac2.jpg')}
-      style={styles.backgroundImage}>
+    <View style={themedStyles.mainContainer}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{flex: 1}}>
         <GestureHandlerRootView style={{flex: 1}}>
           <BackTabTop screenName="Doctor" />
-
+          
           <ScrollView
-            contentContainerStyle={styles.scrollContainer}
+            contentContainerStyle={[styles.scrollContainer, themedStyles.scrollContent]}
             keyboardShouldPersistTaps="handled">
-            <Animatable.View animation="fadeInUp" style={styles.container}>
-              <Text style={styles.title}>Register Doctor</Text>
-              <Animatable.View
-                animation="fadeInUp"
-                style={styles.inputContainer}>
+            <Animatable.View 
+              animation="fadeInUp"
+              style={[styles.container, themedStyles.card]}>
+              
+              <Text style={[styles.title, {color: colors.primary}]}>
+                Register Doctor
+              </Text>
+
+              {/* First Name */}
+              <Animatable.View animation="fadeInUp" style={styles.inputContainer}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, themedStyles.input]}
                   placeholder="First Name"
+                  placeholderTextColor={colors.placeholderText}
                   value={doctorData.doctor_first_name}
                   onChangeText={text =>
                     setDoctorData({...doctorData, doctor_first_name: text})
                   }
                 />
               </Animatable.View>
-              <Animatable.View
-                animation="fadeInUp"
-                delay={200}
-                style={styles.inputContainer}>
+
+              {/* Last Name */}
+              <Animatable.View animation="fadeInUp" delay={200} style={styles.inputContainer}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, themedStyles.input]}
                   placeholder="Last Name"
+                  placeholderTextColor={colors.placeholderText}
                   value={doctorData.doctor_last_name}
                   onChangeText={text =>
                     setDoctorData({...doctorData, doctor_last_name: text})
                   }
                 />
               </Animatable.View>
-              <Animatable.View
-                animation="fadeInUp"
-                delay={400}
-                style={styles.inputContainer}>
+
+              {/* Email */}
+              <Animatable.View animation="fadeInUp" delay={400} style={styles.inputContainer}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, themedStyles.input]}
                   placeholder="Email"
+                  placeholderTextColor={colors.placeholderText}
                   value={doctorData.doctor_email}
                   onChangeText={text =>
                     setDoctorData({...doctorData, doctor_email: text})
                   }
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                 />
               </Animatable.View>
-              <Animatable.View
-                animation="fadeInUp"
-                delay={600}
-                style={styles.inputContainer}>
+
+              {/* Phone */}
+              <Animatable.View animation="fadeInUp" delay={600} style={styles.inputContainer}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, themedStyles.input]}
                   placeholder="+91 Contact No."
-                  value={'+91' + doctorData.doctor_phone}
+                  placeholderTextColor={colors.placeholderText}
+                  value={doctorData.doctor_phone ? '+91' + doctorData.doctor_phone : ''}
                   onChangeText={handlePhoneChange}
                   keyboardType="numeric"
-                  maxLength={13} // Including the +91 prefix in the maxLength
+                  maxLength={13}
                 />
                 {phoneError ? (
-                  <Text style={styles.errorText}>{phoneError}</Text>
+                  <Text style={[styles.errorText, {color: colors.error}]}>
+                    {phoneError}
+                  </Text>
                 ) : null}
               </Animatable.View>
-              <Animatable.View
-                animation="fadeInUp"
-                delay={800}
-                style={styles.inputContainer}>
+
+              {/* Qualification */}
+              <Animatable.View animation="fadeInUp" delay={800} style={styles.inputContainer}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, themedStyles.input]}
                   placeholder="Qualification"
+                  placeholderTextColor={colors.placeholderText}
                   value={doctorData.qualification}
                   onChangeText={text =>
                     setDoctorData({...doctorData, qualification: text})
                   }
                 />
               </Animatable.View>
-              <Animatable.View
-                animation="fadeInUp"
-                delay={1000}
-                style={styles.inputContainer}>
-                <Text style={styles.labelText}>Role:</Text>
-                <Picker
-                  selectedValue={doctorData.is_admin}
-                  style={styles.picker}
-                  onValueChange={itemValue =>
-                    setDoctorData({...doctorData, is_admin: itemValue})
-                  }>
-                  <Picker.Item label="Doctor" value={false} />
-                  <Picker.Item label="Admin" value={true} />
-                </Picker>
+
+              {/* Role Picker */}
+              <Animatable.View animation="fadeInUp" delay={1000} style={styles.inputContainer}>
+                <Text style={[styles.labelText, themedStyles.text]}>Role:</Text>
+                <View style={[styles.pickerContainer, themedStyles.input]}>
+                  <Picker
+                    selectedValue={doctorData.is_admin}
+                    style={{color: colors.text}}
+                    dropdownIconColor={colors.text}
+                    onValueChange={itemValue =>
+                      setDoctorData({...doctorData, is_admin: itemValue})
+                    }>
+                    <Picker.Item 
+                      label="Doctor" 
+                      value={false} 
+                      color={colors.text}
+                    />
+                    <Picker.Item 
+                      label="Admin" 
+                      value={true}
+                      color={colors.text}
+                    />
+                  </Picker>
+                </View>
               </Animatable.View>
+
+              {/* Register Button */}
               <TouchableOpacity
-                style={styles.button}
+                style={[styles.button, {backgroundColor: colors.primary}]}
                 onPress={handleDoctorRegister}
                 disabled={isLoading}>
                 {isLoading ? (
@@ -203,35 +268,40 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
                   <Text style={styles.buttonText}>Register</Text>
                 )}
               </TouchableOpacity>
+
+              {/* Back Button */}
               <TouchableOpacity
-                style={styles.backButton1}
+                style={[
+                  styles.backButton,
+                  {
+                    backgroundColor: 'transparent',
+                    borderColor: colors.primary
+                  }
+                ]}
                 onPress={() => navigation.navigate('DoctorDashboard')}>
-                <Text style={styles.backButtonText1}>Back to Home</Text>
+                <Text style={[styles.backButtonText, {color: colors.primary}]}>
+                  Back to Home
+                </Text>
               </TouchableOpacity>
             </Animatable.View>
           </ScrollView>
         </GestureHandlerRootView>
       </KeyboardAvoidingView>
-    </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 16,
   },
   container: {
-    width: '90%',
+    width: '100%',
     padding: 20,
-    backgroundColor: '#FFFFFF',
     borderRadius: 10,
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -239,41 +309,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    marginTop: 10,
-  },
-  labelText: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: '#333333',
-  },
-  picker: {
-    borderWidth: 1,
-    borderColor: '#D9D9D9',
-    borderRadius: 5,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    paddingTop: 40,
-    backgroundColor: '#119FB3',
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
-    fontSize: 18,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#119FB3',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -281,39 +320,46 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
+    height: 50,
     borderWidth: 1,
-    borderColor: '#D9D9D9',
     borderRadius: 5,
-    padding: 10,
-    color: '#333333',
-    backgroundColor: '#FFFFFF',
+    padding: 12,
+    fontSize: 16,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  labelText: {
+    fontSize: 16,
+    marginBottom: 8,
   },
   button: {
-    backgroundColor: '#119FB3',
-    paddingVertical: 15,
+    height: 50,
     borderRadius: 5,
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
   },
   buttonText: {
     color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: 'bold',
   },
-  backButton1: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 10,
+  backButton: {
+    height: 50,
     borderRadius: 5,
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
     borderWidth: 1,
-    borderColor: '#119FB3',
   },
-  backButtonText1: {
-    color: '#119FB3',
+  backButtonText: {
+    fontSize: 16,
     fontWeight: 'bold',
   },
   errorText: {
-    color: 'red',
     marginTop: 5,
     fontSize: 14,
   },

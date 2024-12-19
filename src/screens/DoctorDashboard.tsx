@@ -353,16 +353,15 @@ const DoctorDashboard: React.FC = () => {
         barStyle="light-content"
         backgroundColor="black"
         translucent={false}
-      /> 
-      <DashboardHeader />
- 
+      />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-              {doctorInfo && (
+        <DashboardHeader />
+        {doctorInfo && (
           <View style={styles.profileSection}>
             <Image
               source={require('../assets/profile.png')}

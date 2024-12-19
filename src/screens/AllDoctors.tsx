@@ -20,6 +20,9 @@ import {RootStackNavProps} from '../types/types';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import BackTopTab from './BackTopTab';
 import instance from '../utils/axiosConfig';
+import {useTheme} from './ThemeContext';
+import {getTheme} from './Theme';
+
 
 interface Doctor {
   _id: string;
@@ -41,6 +44,7 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
   const [screenDimensions, setScreenDimensions] = useState(
     Dimensions.get('window'),
   );
+  
 
   useEffect(() => {
     const updateDimensions = ({window}: {window: ScaledSize}) => {
@@ -70,6 +74,13 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
           'Content-Type': 'application/json',
           Authorization: 'Bearer ' + session.idToken,
         },
+      });
+      const sortedDoctors = response.data.doctors.sort((a: Doctor, b: Doctor) => {
+        
+        if (a.is_admin === b.is_admin) {
+          return (a.doctor_last_name || '').localeCompare(b.doctor_last_name || '');
+        }
+        return a.is_admin ? -1 : 1;
       });
       setDoctors(response.data.doctors);
     } catch (error) {

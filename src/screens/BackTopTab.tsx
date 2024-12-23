@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet, Image, StatusBar} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Modal from 'react-native-modal';
@@ -25,7 +25,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   };
 
   return (
-    <View style={styles.header}>
+    <View style={styles.header}>    
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}>

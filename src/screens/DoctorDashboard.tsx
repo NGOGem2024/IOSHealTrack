@@ -15,6 +15,7 @@ import {
   TouchableWithoutFeedback,
   StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useTheme} from './ThemeContext';
@@ -73,10 +74,11 @@ type Item = {
 
 const DoctorDashboard: React.FC = () => {
   const {theme} = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = getStyles(
     getTheme(
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
-    ),
+    ),insets
   );
 
   const navigation = useNavigation<DashboardScreenNavigationProp>();
@@ -96,7 +98,6 @@ const DoctorDashboard: React.FC = () => {
     useState(false);
   const [noAppointmentsPopupVisible, setNoAppointmentsPopupVisible] =
     useState(false);
-
   const fetchDoctorInfo = async () => {
     if (!session.idToken) return;
     setDoctorLoading(true);
@@ -284,6 +285,11 @@ const DoctorDashboard: React.FC = () => {
 
     return (
       <View style={styles.dashboardHeader}>
+        <StatusBar
+        barStyle="light-content"
+        backgroundColor="black"
+        translucent={false}
+      />
         <Image
           source={require('../assets/logo3.png')}
           style={styles.logoImage}
@@ -328,7 +334,6 @@ const DoctorDashboard: React.FC = () => {
       <View style={styles.loadingContainer}>
         <StatusBar
           barStyle="light-content"
-          backgroundColor="black"
           translucent={false}
         />
         <ActivityIndicator size="large" color="#119FB3" />
@@ -349,11 +354,6 @@ const DoctorDashboard: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="black"
-        translucent={false}
-      />
        <DashboardHeader />
       <ScrollView
         style={styles.scrollView}
@@ -495,7 +495,7 @@ const DoctorDashboard: React.FC = () => {
   );
 };
 
-const getStyles = (theme: ReturnType<typeof getTheme>) =>
+const getStyles = (theme: ReturnType<typeof getTheme>,insets: any) =>
   StyleSheet.create({
     loadingContainer: {
       flex: 1,
@@ -522,14 +522,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flexDirection: 'row',
       alignItems: 'center',
       position: 'absolute',
-      top: 0,
+      top: insets.top, // Dynamically adjust top position
       left: 0,
       right: 0,
       zIndex: 1000,
       justifyContent: 'space-between',
       paddingVertical: 10,
       paddingHorizontal: 15,
-      paddingTop: 10,
       backgroundColor: '#119FB3',
       borderBottomColor: 'white',
       borderBottomWidth: 1,
@@ -658,7 +657,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderBottomRightRadius: 150,
       elevation: 5,
       shadowColor: '#000',
-      marginTop: 50,
+      marginTop:50,
       shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.1,
       shadowRadius: 4,

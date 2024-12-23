@@ -126,11 +126,6 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackTopTab screenName="Patient" />
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="black"
-        translucent={false}
-      />
 
       <ScrollView style={styles.container}>
         {/* Patient Information Card */}

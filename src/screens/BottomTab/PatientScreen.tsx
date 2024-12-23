@@ -30,13 +30,13 @@ import axiosInstance from '../../utils/axiosConfig';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getTheme } from '../Theme';
-import { useTheme } from '../ThemeContext';
+import {getTheme} from '../Theme';
+import {useTheme} from '../ThemeContext';
 
 type PatientScreenProps = StackScreenProps<RootStackParamList, 'Patient'>;
 
 interface TherapyPlan {
-  _id:  string;
+  _id: string;
   therapy_name: string;
   patient_diagnosis: string;
   patient_symptoms: string;
@@ -50,7 +50,7 @@ interface TherapyPlan {
 }
 const calculateTherapyProgress = (
   startDate: string,
-  endDate: string
+  endDate: string,
 ): number => {
   const start = new Date(startDate).getTime();
   const end = new Date(endDate).getTime();
@@ -83,10 +83,12 @@ interface PatientData {
 const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
   const {session} = useSession();
   const {patientId} = route.params;
-  const { theme } = useTheme();
-  const styles = getStyles( getTheme(
-          theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
-        ),);
+  const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
   const [patientData, setPatientData] = useState<PatientData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -112,7 +114,6 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
     fetchPatientData();
   }, [patientId, session.idToken, patientData]);
 
-  
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -169,11 +170,10 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             <TouchableOpacity
               style={styles.quickActionButton}
               onPress={() =>
-                navigation.navigate("UpdatePatient", {
+                navigation.navigate('UpdatePatient', {
                   patientId: patientId,
                 })
-              }
-            >
+              }>
               <MaterialCommunityIcons
                 name="square-edit-outline"
                 size={24}
@@ -185,11 +185,10 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             <TouchableOpacity
               style={styles.quickActionButton}
               onPress={() =>
-                navigation.navigate("CreateTherapyPlan", {
+                navigation.navigate('CreateTherapyPlan', {
                   patientId: patientId,
                 })
-              }
-            >
+              }>
               <Ionicons name="clipboard" size={24} color="#6A0DAD" />
               <Text style={styles.quickActionText}>Therapy Plan</Text>
             </TouchableOpacity>
@@ -197,11 +196,10 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             <TouchableOpacity
               style={styles.quickActionButton}
               onPress={() =>
-                navigation.navigate("CreateTherapy", {
+                navigation.navigate('CreateTherapy', {
                   patientId: patientId,
                 })
-              }
-            >
+              }>
               <MaterialCommunityIcons name="file" size={24} color="#6e54ef" />
               <Text style={styles.quickActionText}>Appointment</Text>
             </TouchableOpacity>
@@ -209,11 +207,10 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             <TouchableOpacity
               style={styles.quickActionButton}
               onPress={() =>
-                navigation.navigate("UpdateTherapy", {
+                navigation.navigate('UpdateTherapy', {
                   patientId: patientId,
                 })
-              }
-            >
+              }>
               <Ionicons name="medical" size={24} color="#55b55b" />
               <Text style={styles.quickActionText}>Sessions</Text>
             </TouchableOpacity>
@@ -230,31 +227,29 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
               .map((plan, index) => {
                 const progressPercentage = calculateTherapyProgress(
                   plan.therapy_start,
-                  plan.therapy_end
+                  plan.therapy_end,
                 );
 
                 return (
                   <TouchableOpacity
                     key={plan._id}
                     onPress={() =>
-                      navigation.navigate("planDetails", { planId: plan._id })
+                      navigation.navigate('planDetails', {planId: plan._id})
                     }
-                    style={styles.therapyPlanItem}
-                  >
+                    style={styles.therapyPlanItem}>
                     <View style={styles.therapyPlanHeader}>
                       <Text style={styles.therapyPlanTitle}>
                         {index === 0
-                          ? "Current Plan"
+                          ? 'Current Plan'
                           : `Past Plan ${index + 1}`}
                       </Text>
                       <TouchableOpacity
-                        onPress={(e) => {
+                        onPress={e => {
                           e.stopPropagation();
-                          navigation.navigate("EditTherapyPlan", {
+                          navigation.navigate('EditTherapyPlan', {
                             planId: plan._id,
                           });
-                        }}
-                      >
+                        }}>
                         <MaterialCommunityIcons
                           name="square-edit-outline"
                           size={24}
@@ -270,7 +265,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
                         {plan.patient_diagnosis}
                       </Text>
                       <Text style={styles.therapyPlanDetailText}>
-                        {new Date(plan.therapy_start).toLocaleDateString()} -{" "}
+                        {new Date(plan.therapy_start).toLocaleDateString()} -{' '}
                         {new Date(plan.therapy_end).toLocaleDateString()}
                       </Text>
 
@@ -279,7 +274,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
                         <View
                           style={[
                             styles.progressBar,
-                            { width: `${progressPercentage}%` },
+                            {width: `${progressPercentage}%`},
                           ]}
                         />
                         <Text style={styles.progressText}>
@@ -295,67 +290,67 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     therapyPlanDetails: {
-      flexDirection: "column",
+      flexDirection: 'column',
     },
     progressContainer: {
       marginTop: 8,
       height: 20,
-      backgroundColor: "#E0E0E0",
+      backgroundColor: '#E0E0E0',
       borderRadius: 10,
-      overflow: "hidden",
-      flexDirection: "row",
-      alignItems: "center",
+      overflow: 'hidden',
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     progressBar: {
-      height: "100%",
-      backgroundColor: "#119FB3",
+      height: '100%',
+      backgroundColor: '#119FB3',
       borderRadius: 10,
     },
     progressText: {
-      position: "absolute",
-      width: "100%",
-      textAlign: "center",
+      position: 'absolute',
+      width: '100%',
+      textAlign: 'center',
       fontSize: 12,
-      color: "white",
-      fontWeight: "bold",
+      color: 'white',
+      fontWeight: 'bold',
     },
     therapyPlanDetailText: {
       fontSize: 14,
-      color: "black",
+      color: 'black',
       marginBottom: 4,
     },
     safeArea: {
       flex: 1,
-      backgroundColor: "#119FB3",
+      backgroundColor: '#119FB3',
     },
     container: {
       flex: 1,
-      backgroundColor: "#119FB3",
+      backgroundColor: '#119FB3',
     },
     loadingContainer: {
       flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "#119FB3",
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#119FB3',
     },
     loadingText: {
       marginTop: 10,
       fontSize: 16,
-      color: "#FFFFFF",
+      color: '#FFFFFF',
     },
     errorContainer: {
       flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "#119FB3",
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#119FB3',
     },
     errorText: {
-      color: "#FFFFFF",
+      color: '#FFFFFF',
       fontSize: 16,
     },
     mainCard: {
@@ -365,8 +360,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       margin: 16,
       marginBottom: 8,
       elevation: 2,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 1},
       shadowOpacity: 0.05,
       shadowRadius: 2,
     },
@@ -377,28 +372,28 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       margin: 16,
       marginBottom: 8,
       elevation: 2,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 1},
       shadowOpacity: 0.05,
       shadowRadius: 2,
     },
     cardHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       marginBottom: 16,
     },
     patientName: {
       fontSize: 24,
-      fontWeight: "bold",
-      color: "#119FB3",
+      fontWeight: 'bold',
+      color: '#119FB3',
     },
     contactInfo: {
       marginTop: 8,
     },
     infoRow: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       marginBottom: 8,
     },
     infoText: {
@@ -408,17 +403,17 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     sectionTitle: {
       fontSize: 18,
-      fontWeight: "bold",
+      fontWeight: 'bold',
       color: theme.colors.text,
       marginBottom: 12,
     },
     quickActionsContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
     },
     quickActionButton: {
-      alignItems: "center",
-      justifyContent: "center",
+      alignItems: 'center',
+      justifyContent: 'center',
       padding: 8,
     },
     quickActionText: {
@@ -427,30 +422,33 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: theme.colors.text,
     },
     therapyPlanItem: {
-      backgroundColor: "rgb(240, 246, 255)",
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgb(240, 246, 255)'
+          : 'rgba(17, 159, 179, 0.1)', // Darker background for dark mode
       borderRadius: 8,
       padding: 12,
       marginBottom: 8,
-      borderColor: "#119FB3",
+      borderColor: '#119FB3',
       borderWidth: 1,
     },
     therapyPlanHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       marginBottom: 8,
     },
     therapyPlanTitle: {
       fontSize: 16,
-      fontWeight: "600",
-      color: "#119FB3",
+      fontWeight: '600',
+      color: theme.colors.text,
     },
     therapyPlanName: {
       fontSize: 16,
-      fontWeight: "bold",
+      fontWeight: 'bold',
       marginBottom: 8,
-      color: "black",
+      color: theme.colors.text,
     },
-});
+  });
 
 export default PatientScreen;

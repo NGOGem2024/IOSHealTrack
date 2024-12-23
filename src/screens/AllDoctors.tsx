@@ -37,6 +37,10 @@ interface Doctor {
 const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
   navigation,
 }) => {
+  const { theme } = useTheme();
+  const styles = getStyles( getTheme(
+        theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+      ),);
   const {session} = useSession();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -172,7 +176,8 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
@@ -202,7 +207,7 @@ const styles = StyleSheet.create({
     color: '#333333',
   },
   doctorCard: {
-    backgroundColor: 'rgba(255, 255, 255, 1)',
+    backgroundColor: theme.colors.card,
     borderRadius: 8,
     padding: 10,
     marginBottom: 10,
@@ -219,13 +224,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#333333',
+    color: theme.colors.text,
   },
   doctorInfo: {
     fontSize: 12,
     marginTop: 0,
     marginBottom: 0,
-    color: '#333333',
+    color:theme.colors.text,
     textAlign: 'left',
   },
   loadingContainer: {

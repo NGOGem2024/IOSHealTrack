@@ -468,6 +468,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderRadius: 8,
       padding: 8,
       height: 100,
+      color: theme.colors.text,
       textAlignVertical: 'top',
       marginBottom: 16,
     },
@@ -478,7 +479,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
-      backgroundColor: 'white',
+      backgroundColor: theme.colors.card,
       padding: 20,
       borderRadius: 10,
       width: '90%',
@@ -487,6 +488,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 18,
       fontWeight: 'bold',
       marginBottom: 10,
+      color: theme.colors.text,
       textAlign: 'center',
     },
     modalButton: {

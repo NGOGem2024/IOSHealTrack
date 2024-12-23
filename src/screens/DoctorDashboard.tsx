@@ -558,7 +558,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       maxHeight: '95%',
     },
     dropdown: {
-      backgroundColor: 'white',
+      backgroundColor: theme.colors.card,
       borderRadius: 5,
       padding: 10,
       marginTop: 44,

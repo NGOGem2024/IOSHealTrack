@@ -4,9 +4,15 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import {useSession} from '../context/SessionContext';
+import { useTheme } from './ThemeContext';
+import { getTheme } from './Theme';
 
 const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
+  const styles = getStyles( getTheme(
+        theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+      ),);
   const route = useRoute();
   const {session} = useSession();
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -68,7 +74,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ReturnType<typeof getTheme>) =>StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -107,7 +113,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   dropdown: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 10,
     padding: 10,
     marginTop: 60,

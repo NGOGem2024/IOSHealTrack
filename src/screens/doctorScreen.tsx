@@ -2,24 +2,26 @@ import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  StatusBar,
+  SafeAreaView,
 } from 'react-native';
 import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Octicons from 'react-native-vector-icons/Octicons';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Title} from 'react-native-paper';
 import {useSession} from '../context/SessionContext';
-import {handleError, showSuccessToast} from '../utils/errorHandler';
+import {handleError} from '../utils/errorHandler';
 import instance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
+import { getTheme } from './Theme';
+import { useTheme } from './ThemeContext';
 
 type DoctorScreenProps = StackScreenProps<RootStackParamList, 'Doctor'>;
 
@@ -47,6 +49,10 @@ interface Appointment {
 const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   const {session} = useSession();
   const {doctorId} = route.params;
+  const { theme } = useTheme();
+  const styles = getStyles(getTheme(
+    theme?.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark' || 'blue'
+  ));
   const [doctorData, setDoctorData] = useState<DoctorData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -77,265 +83,221 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#119FB3" />
+        <Text style={styles.loadingText}>Loading doctor information...</Text>
       </View>
     );
   }
 
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
+    <SafeAreaView style={styles.safeArea}>
       <BackTabTop screenName="Doctor" />
-      <ScrollView
-        style={styles.main}
-        contentContainerStyle={styles.mainContent}>
-        <View style={styles.profileContainer}>
-          {doctorData ? (
-            <>
-              <Title style={styles.doctorName}>
-                Dr. {doctorData.doctor_first_name} {doctorData.doctor_last_name}
-              </Title>
-              <View style={styles.content}>
-                <MaterialIcons name="email" size={20} color="white" />
-                <Text style={styles.mytext}> {doctorData.doctor_email}</Text>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="black"
+        translucent={false}
+      />
+
+      <ScrollView style={styles.container}>
+        {/* Doctor Information Card */}
+        <View style={styles.mainCard}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.doctorName}>
+              Dr. {doctorData?.doctor_first_name} {doctorData?.doctor_last_name}
+            </Text>
+            {doctorData?.is_admin && (
+              <View style={styles.adminBadge}>
+                <Text style={styles.adminBadgeText}>Admin</Text>
               </View>
-              <View style={styles.content}>
-                <MaterialIcons name="call" size={20} color="white" />
-                <Text style={styles.mytext}> {doctorData.doctor_phone}</Text>
+            )}
+          </View>
+
+          <View style={styles.contactInfo}>
+            {doctorData?.doctor_email && (
+              <View style={styles.infoRow}>
+                <MaterialIcons name="email" size={20} color="#119FB3" />
+                <Text style={styles.infoText}>{doctorData.doctor_email}</Text>
               </View>
-              <View style={styles.content}>
-                <AntDesign name="idcard" size={20} color="white" />
-                <Text style={styles.mytext}> {doctorData._id}</Text>
-              </View>
-              <View style={styles.content}>
-                <MaterialIcons name="business" size={20} color="white" />
-                <Text style={styles.mytext}>
-                  {doctorData.organization_name}
-                </Text>
-              </View>
-              <View style={styles.content}>
-                <MaterialCommunityIcons name="doctor" size={20} color="white" />
-                <Text style={styles.mytext}> {doctorData.qualification}</Text>
-              </View>
-              <View style={styles.content}>
-                <MaterialCommunityIcons
-                  name="account-group"
-                  size={20}
-                  color="white"
-                />
-                <Text style={styles.mytext}>
-                  patients: {doctorData.patients.length}
-                </Text>
-              </View>
-              <View style={styles.content}>
-                <MaterialCommunityIcons
-                  name="checkbox-marked-circle"
-                  size={20}
-                  color="white"
-                />
-                <Text style={styles.mytext}>Status: {doctorData.status}</Text>
-              </View>
-              {doctorData.is_admin && (
-                <View style={styles.adminBadge}>
-                  <Text style={styles.adminBadgeText}>Admin</Text>
-                </View>
-              )}
-            </>
-          ) : (
-            <Text>No doctor data available</Text>
-          )}
+            )}
+            <View style={styles.infoRow}>
+              <MaterialIcons name="call" size={20} color="#119FB3" />
+              <Text style={styles.infoText}>{doctorData?.doctor_phone}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <MaterialIcons name="business" size={20} color="#119FB3" />
+              <Text style={styles.infoText}>{doctorData?.organization_name}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons name="doctor" size={20} color="#119FB3" />
+              <Text style={styles.infoText}>{doctorData?.qualification}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons name="account-group" size={20} color="#119FB3" />
+              <Text style={styles.infoText}>Patients: {doctorData?.patients.length}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons name="checkbox-marked-circle" size={20} color="#119FB3" />
+              <Text style={styles.infoText}>Status: {doctorData?.status}</Text>
+            </View>
+          </View>
         </View>
-        <View style={styles.botscrview}>
-          <Text style={styles.headlist}>Doctor Actions</Text>
-          <View style={styles.container}>
-            {session.is_admin && (
+
+        {/* Quick Actions Card */}
+        {session.is_admin && (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <View style={styles.quickActionsContainer}>
               <TouchableOpacity
-                style={styles.linkContainer}
+                style={styles.quickActionButton}
                 onPress={() =>
                   navigation.navigate('UpdateDoctor', {
                     doctorId: doctorId,
                   })
-                }
-                disabled={!doctorData}>
-                <View style={styles.iconleft}>
-                  <MaterialCommunityIcons
-                    name="square-edit-outline"
-                    size={30}
-                    color="#65b6e7"
-                    style={styles.iconlist}
-                  />
-                  <Text style={styles.link}>Update Profile</Text>
-                </View>
-                <Octicons name="chevron-right" size={24} color="black" />
+                }>
+                <MaterialCommunityIcons
+                  name="square-edit-outline"
+                  size={24}
+                  color="#65b6e7"
+                />
+                <Text style={styles.quickActionText}>Update Profile</Text>
               </TouchableOpacity>
-            )}
-          </View>
-          {doctorData && doctorData.todayAppointments && (
-            <View style={styles.appointmentsContainer}>
-              <Text style={styles.appointmentsTitle}>Today's Appointments</Text>
-              {doctorData.todayAppointments.map(appointment => (
-                <View key={appointment._id} style={styles.appointmentCard}>
-                  <Text style={styles.appointmentText}>
-                    Patient: {appointment.patient_name}
-                  </Text>
-                  <Text style={styles.appointmentText}>
-                    Time: {appointment.therepy_start_time}
-                  </Text>
-                  <Text style={styles.appointmentText}>
-                    Type: {appointment.therepy_type}
-                  </Text>
-                </View>
-              ))}
             </View>
-          )}
-        </View>
+          </View>
+        )}
+
+        {/* Today's Appointments Card */}
+        {doctorData?.todayAppointments && doctorData.todayAppointments.length > 0 && (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Today's Appointments</Text>
+            {doctorData.todayAppointments.map(appointment => (
+              <View key={appointment._id} style={styles.appointmentCard}>
+                <Text style={styles.appointmentText}>
+                  Patient: {appointment.patient_name}
+                </Text>
+                <Text style={styles.appointmentText}>
+                  Time: {appointment.therepy_start_time}
+                </Text>
+                <Text style={styles.appointmentText}>
+                  Type: {appointment.therepy_type}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
-    </GestureHandlerRootView>
+    </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  main: {
+const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
+  safeArea: {
     flex: 1,
-    backgroundColor: '#119FB3',
-  },
-  mainContent: {
-    flexGrow: 1,
-  },
-  content: {
-    flexDirection: 'row',
-    margin: 3,
-  },
-  mytext: {
-    fontSize: 14,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  botscrview: {
-    backgroundColor: 'white',
-    width: '100%',
-    borderTopLeftRadius: 40,
-    marginTop: 20,
-    borderTopRightRadius: 40,
-    paddingTop: 20,
-    flexGrow: 1,
+    backgroundColor: "#119FB3",
   },
   container: {
-    padding: 20,
-    width: '100%',
-    alignItems: 'center',
-  },
-  link: {
-    fontSize: 16,
-    marginLeft: 15,
-    color: 'black',
-    fontWeight: 'bold',
-  },
-  linkContainer: {
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    height: 60,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    flexDirection: 'row',
-    marginBottom: 10,
-  },
-  iconleft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconlist: {
-    padding: 7,
-    borderRadius: 15,
-    backgroundColor: '#d6e6f2',
-  },
-  headlist: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    margin: 20,
-    marginBottom: 0,
-  },
-  appointmenticon: {
-    backgroundColor: '#d3edda',
-  },
-  patienticon: {
-    backgroundColor: '#dddaf2',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    paddingTop: 40,
-    backgroundColor: '#119FB3',
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
-    fontSize: 18,
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5FCFF',
   },
-  profileContainer: {
-    paddingLeft: 10,
-    alignItems: 'flex-start',
-    marginBottom: 20,
-  },
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  loadingText: {
     marginTop: 10,
-    borderWidth: 3,
-    borderColor: 'white',
+    color: '#119FB3',
+  },
+  mainCard: {
+    backgroundColor: theme.colors.card,
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
   doctorName: {
-    fontSize: 23,
-    color: 'white',
+    fontSize: 24,
     fontWeight: 'bold',
+    color: theme.colors.text,
   },
   adminBadge: {
-    backgroundColor: '#FFD700',
-    borderRadius: 10,
-    paddingHorizontal: 8,
+    backgroundColor: '#119FB3',
+    paddingHorizontal: 12,
     paddingVertical: 4,
-    marginTop: 5,
+    borderRadius: 16,
   },
   adminBadgeText: {
-    color: '#000000',
+    color: 'white',
     fontSize: 12,
     fontWeight: 'bold',
   },
-  appointmentsContainer: {
-    padding: 20,
-    backgroundColor: '#F4F4F4',
-    borderRadius: 10,
-    marginBottom: 20,
+  contactInfo: {
+    marginTop: 8,
   },
-  appointmentsTitle: {
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  infoText: {
+    marginLeft: 12,
+    fontSize: 16,
+    color: theme.colors.text,
+  },
+  card: {
+    backgroundColor:theme.colors.card,
+    margin: 16,
+    marginTop: 0,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: 'Black',
-    marginBottom: 10,
+    marginBottom: 16,
+    color: theme.colors.text,
+  },
+  quickActionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  quickActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    width: '100%',
+  },
+  quickActionText: {
+    marginLeft: 12,
+    fontSize: 16,
+    color: '#333',
   },
   appointmentCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#f5f5f5',
+    padding: 12,
     borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   appointmentText: {
     fontSize: 14,
     color: '#333',
-    marginBottom: 5,
+    marginBottom: 4,
   },
 });
 

@@ -152,6 +152,7 @@ const TabNavigator = () => (
         height: 60,
         paddingBottom: 5,
       },
+      tabBarHideOnKeyboard:true
     }}>
     <Tab.Screen
       name="HomeStackNavigator"

@@ -326,7 +326,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     therapyPlanDetailText: {
       fontSize: 14,
-      color: theme.colors.text,
+      color: "black",
       marginBottom: 4,
     },
     safeArea: {
@@ -431,6 +431,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderRadius: 8,
       padding: 12,
       marginBottom: 8,
+      borderColor: "#119FB3",
+      borderWidth: 1,
     },
     therapyPlanHeader: {
       flexDirection: "row",
@@ -447,6 +449,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 16,
       fontWeight: "bold",
       marginBottom: 8,
+      color: "black",
     },
 });
 

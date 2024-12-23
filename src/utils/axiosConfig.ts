@@ -1,9 +1,16 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSession} from '../context/SessionContext';
+import {Platform} from 'react-native';
 
 const instance = axios.create({
-  baseURL: 'https://healtrackapp-worker.up.railway.app', // Adjust to your API URL
+  baseURL: 'https://healtrackapp-worker.up.railway.app',
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'User-Agent': `HealTrack/${Platform.OS}`
+  },
 });
 
 instance.interceptors.request.use(
@@ -57,12 +64,28 @@ instance.interceptors.response.use(
     return response;
   },
   async error => {
-    if (error.response && error.response.status === 401) {
-      // Handle token expiration and logout logic
-      await AsyncStorage.removeItem('userToken');
-      // Optionally redirect to login screen
+    if (error.config && error.response && (error.response.status === 401 || error.response.status === 403)) {
+      // Handle token refresh here if needed
+      const originalRequest = error.config;
+      try {
+        // Attempt to refresh token or handle auth error
+        const newToken = await AsyncStorage.getItem('userToken');
+        if (newToken) {
+          originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+          return axios(originalRequest);
+        }
+      } catch (refreshError) {
+        console.error('Error refreshing token:', refreshError);
+      }
     }
+    
+    if (error.message === 'Network Error' || !error.response) {
+      console.error('Network error occurred:', error);
+      // You might want to show a user-friendly error message here
+    }
+    
     return Promise.reject(error);
   },
 );
+
 export default instance;

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useColorScheme } from 'react-native';
 import { 
   View, 
   Text, 
@@ -8,7 +9,7 @@ import {
   StyleSheet, 
   Dimensions 
 } from 'react-native';
-import MaterialIcons  from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -24,6 +25,8 @@ const TherapyCategoryDropdown: React.FC<TherapyCategoryDropdownProps> = ({
   items 
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const colorScheme = useColorScheme(); 
+  const isDarkMode = colorScheme === 'dark';
 
   const handleSelectCategory = (category: string) => {
     onValueChange(category);
@@ -35,24 +38,28 @@ const TherapyCategoryDropdown: React.FC<TherapyCategoryDropdownProps> = ({
       style={styles.categoryItem}
       onPress={() => handleSelectCategory(item)}
     >
-      <Text style={styles.categoryItemText}>{item}</Text>
+      <Text style={[styles.categoryItemText, isDarkMode && styles.textDark]}>{item}</Text>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
       <TouchableOpacity 
-        style={styles.dropdownButton}
+        style={[
+          styles.inputContainer,
+          isDarkMode && styles.balanceContainerDark,
+        ]}
         onPress={() => setModalVisible(true)}
       >
-        <MaterialIcons name="category" size={24} color="#119FB3" />
+        <MaterialIcons name="category" size={24} color={isDarkMode ? '#66D9E8' : '#119FB3'} />
         <Text style={[
           styles.dropdownButtonText, 
-          !value && styles.placeholderText
+          !value && styles.placeholderText,
+          isDarkMode && styles.textDark
         ]}>
           {value || 'Select Therapy Category'}
         </Text>
-        <MaterialIcons name="arrow-drop-down" size={24} color="#119FB3" />
+        <MaterialIcons name="arrow-drop-down" size={24} color={isDarkMode ? '#66D9E8' : '#119FB3'} />
       </TouchableOpacity>
 
       <Modal
@@ -62,19 +69,19 @@ const TherapyCategoryDropdown: React.FC<TherapyCategoryDropdownProps> = ({
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
+          <View style={[styles.modalContainer, isDarkMode && styles.balanceContainerDark]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Therapy Category</Text>
+              <Text style={[styles.modalTitle, isDarkMode && styles.textDark]}>Select Therapy Category</Text>
               <TouchableOpacity 
                 onPress={() => setModalVisible(false)}
                 style={styles.closeButton}
               >
-                <MaterialIcons name="close" size={24} color="#119FB3" />
+                <MaterialIcons name="close" size={24} color={isDarkMode ? '#66D9E8' : '#119FB3'} />
               </TouchableOpacity>
             </View>
             <FlatList
               data={items}
-              renderItem={CategoryItem}
+              renderItem={({ item }) => <CategoryItem item={item} />}
               keyExtractor={(item) => item}
               style={styles.categoryList}
             />
@@ -87,7 +94,20 @@ const TherapyCategoryDropdown: React.FC<TherapyCategoryDropdownProps> = ({
 
 const styles = StyleSheet.create({
   container: {
+    marginBottom: 0,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    paddingHorizontal: 15,
     marginBottom: 20,
+    elevation: 2,
+    height: 50,
+  },
+  balanceContainerDark: {
+    backgroundColor: '#333333',
   },
   dropdownButton: {
     flexDirection: 'row',
@@ -106,6 +126,9 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     color: '#A0A0A0',
+  },
+  textDark: {
+    color: '#FFFFFF',
   },
   modalOverlay: {
     flex: 1,

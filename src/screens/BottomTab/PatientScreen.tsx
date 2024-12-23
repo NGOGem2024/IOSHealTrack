@@ -427,7 +427,9 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: theme.colors.text,
     },
     therapyPlanItem: {
-      backgroundColor: "rgb(240, 246, 255)",
+      backgroundColor: theme.colors.card === '#FFFFFF' 
+        ? 'rgb(240, 246, 255)' 
+        : 'rgba(17, 159, 179, 0.1)', // Darker background for dark mode
       borderRadius: 8,
       padding: 12,
       marginBottom: 8,
@@ -441,12 +443,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     therapyPlanTitle: {
       fontSize: 16,
       fontWeight: "600",
-      color: "#119FB3",
+      color: theme.colors.text,
     },
     therapyPlanName: {
       fontSize: 16,
       fontWeight: "bold",
       marginBottom: 8,
+      color: theme.colors.text,
     },
 });
 

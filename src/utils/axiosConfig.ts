@@ -8,8 +8,8 @@ const instance = axios.create({
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'User-Agent': `HealTrack/${Platform.OS}`
+    Accept: 'application/json',
+    'User-Agent': `HealTrack/${Platform.OS}`,
   },
 });
 
@@ -64,7 +64,11 @@ instance.interceptors.response.use(
     return response;
   },
   async error => {
-    if (error.config && error.response && (error.response.status === 401 || error.response.status === 403)) {
+    if (
+      error.config &&
+      error.response &&
+      (error.response.status === 401 || error.response.status === 403)
+    ) {
       // Handle token refresh here if needed
       const originalRequest = error.config;
       try {
@@ -78,12 +82,12 @@ instance.interceptors.response.use(
         console.error('Error refreshing token:', refreshError);
       }
     }
-    
+
     if (error.message === 'Network Error' || !error.response) {
       console.error('Network error occurred:', error);
       // You might want to show a user-friendly error message here
     }
-    
+
     return Promise.reject(error);
   },
 );

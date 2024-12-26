@@ -11,6 +11,7 @@ import {
   useColorScheme,
   Appearance,
   ImageBackground,
+  SafeAreaView,
 } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
@@ -23,6 +24,7 @@ import {handleError, showSuccessToast} from '../utils/errorHandler';
 import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import CustomPicker from './patientpicker';
 
 type PatientRegisterScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'PatientRegister'>;
@@ -86,7 +88,9 @@ const initialFieldStatus: FieldStatus = {
   referral_details: false,
 };
 
-const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => {
+const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
+  navigation,
+}) => {
   const {session} = useSession();
   const [patientData, setPatientData] = useState(initialPatientData);
   const [isLoading, setIsLoading] = useState(false);
@@ -235,204 +239,174 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => 
   );
 
   return (
-    <ImageBackground
-    source={require("../assets/bac2.jpg")}
-    style={styles.backgroundImage}
-  >
-      <BackTabTop screenName="Patient" />
-      <KeyboardAwareScrollView
-        contentContainerStyle={[styles.scrollContainer]}
-        enableOnAndroid={true}
-        enableAutomaticScroll={Platform.OS === 'ios'}
-        extraScrollHeight={100}
-        keyboardShouldPersistTaps="handled">
-        <View style={styles.centerContainer}>
-          <Animatable.View
-            animation="fadeInUp"
-            style={[
-              styles.container,
-              {
-                backgroundColor: colors.cardBackground,
-                shadowColor: isDarkMode ? '#000000' : '#000000',
-              },
-            ]}>
-            <Text style={[styles.title, {color: colors.primary}]}>
-              Register Patient
-            </Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ImageBackground
+        source={require('../assets/bac2.jpg')}
+        style={styles.backgroundImage}>
+        <BackTabTop screenName="Patient" />
+        <KeyboardAwareScrollView
+          contentContainerStyle={[styles.scrollContainer]}
+          enableOnAndroid={true}
+          enableAutomaticScroll={Platform.OS === 'ios'}
+          extraScrollHeight={100}
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.centerContainer}>
+            <Animatable.View
+              animation="fadeInUp"
+              style={[
+                styles.container,
+                {
+                  backgroundColor: colors.cardBackground,
+                  shadowColor: isDarkMode ? '#000000' : '#000000',
+                },
+              ]}>
+              <Text style={[styles.title, {color: colors.primary}]}>
+                Register Patient
+              </Text>
 
-            {renderInput(
-              'First Name',
-              patientData.patient_first_name,
-              'patient_first_name',
-              'default',
-              true,
-            )}
-            {renderInput(
-              'Last Name',
-              patientData.patient_last_name,
-              'patient_last_name',
-              'default',
-              true,
-            )}
-            {renderInput(
-              'Email',
-              patientData.patient_email,
-              'patient_email',
-              'email-address',
-            )}
+              {renderInput(
+                'First Name',
+                patientData.patient_first_name,
+                'patient_first_name',
+                'default',
+                true,
+              )}
+              {renderInput(
+                'Last Name',
+                patientData.patient_last_name,
+                'patient_last_name',
+                'default',
+                true,
+              )}
+              {renderInput(
+                'Email',
+                patientData.patient_email,
+                'patient_email',
+                'email-address',
+              )}
 
-            <Animatable.View animation="fadeInUp" style={styles.inputContainer}>
-              <View
-                style={[
-                  styles.phoneInputContainer,
-                  getInputStyle('patient_phone'),
-                ]}>
-                <Text style={{color: colors.text}}>+91</Text>
-                <TextInput
-                  style={[styles.phoneInput, {color: colors.inputText}]}
-                  placeholder="Contact No."
-                  placeholderTextColor={colors.placeholderText}
-                  value={patientData.patient_phone}
-                  onChangeText={text => handleInputChange('patient_phone', text)}
-                  keyboardType="numeric"
-                  maxLength={10}
-                />
-              </View>
-            </Animatable.View>
+              <Animatable.View
+                animation="fadeInUp"
+                style={styles.inputContainer}>
+                <View
+                  style={[
+                    styles.phoneInputContainer,
+                    getInputStyle('patient_phone'),
+                  ]}>
+                  <Text style={{color: colors.text}}>+91</Text>
+                  <TextInput
+                    style={[styles.phoneInput, {color: colors.inputText}]}
+                    placeholder="Contact No."
+                    placeholderTextColor={colors.placeholderText}
+                    value={patientData.patient_phone}
+                    onChangeText={text =>
+                      handleInputChange('patient_phone', text)
+                    }
+                    keyboardType="numeric"
+                    maxLength={10}
+                  />
+                </View>
+              </Animatable.View>
 
-            <Animatable.View animation="fadeInUp" style={styles.inputContainer}>
-              <View style={[getInputStyle('referral_source')]}>
-                <Picker
-                  selectedValue={patientData.referral_source}
-                  style={[styles.picker, {color: colors.inputText}]}
-                  dropdownIconColor={colors.inputText}
-                  onValueChange={itemValue =>
-                    handleInputChange('referral_source', itemValue)
-                  }>
-                  <Picker.Item
-                    label="Select Referral Source"
-                    value=""
-                    color={colors.inputText}
+              <Animatable.View
+                animation="fadeInUp"
+                style={styles.inputContainer}>
+                <View style={[getInputStyle('referral_source')]}>
+                  <CustomPicker
+                    selectedValue={patientData.referral_source}
+                    onValueChange={itemValue =>
+                      handleInputChange('referral_source', itemValue)
+                    }
+                    items={[
+                      {label: 'Select Referral Source', value: ''},
+                      {label: 'Social Media', value: 'Social Media'},
+                      {label: 'Patient Reference', value: 'Patient Reference'},
+                      {
+                        label: 'Hospital Reference',
+                        value: 'Hospital Reference',
+                      },
+                      {label: 'Doctor Reference', value: 'Doctor Reference'},
+                      {label: 'Other', value: 'Other'},
+                    ]}
+                    placeholder="Select Referral Source"
+                    style={getInputStyle('referral_source')}
+                    textColor={colors.inputText}
                   />
-                  <Picker.Item
-                    label="Social Media"
-                    value="Social Media"
-                    color={colors.inputText}
-                  />
-                  <Picker.Item
-                    label="Patient Reference"
-                    value="Patient Reference"
-                    color={colors.inputText}
-                  />
-                  <Picker.Item
-                    label="Hospital Reference"
-                    value="Hospital Reference"
-                    color={colors.inputText}
-                  />
-                  <Picker.Item
-                    label="Doctor Reference"
-                    value="Doctor Reference"
-                    color={colors.inputText}
-                  />
-                  <Picker.Item
-                    label="Other"
-                    value="Other"
-                    color={colors.inputText}
-                  />
-                </Picker>
-              </View>
-            </Animatable.View>
+                </View>
+              </Animatable.View>
 
-            {patientData.referral_source &&
-              patientData.referral_source !== 'Social Media' && (
+              {patientData.referral_source &&
+                patientData.referral_source !== 'Social Media' && (
+                  <Animatable.View
+                    animation="fadeInUp"
+                    style={styles.inputContainer}>
+                    <TextInput
+                      style={getInputStyle('referral_details')}
+                      placeholder="Referral Details"
+                      placeholderTextColor={colors.placeholderText}
+                      value={patientData.referral_details}
+                      onChangeText={text =>
+                        handleInputChange('referral_details', text)
+                      }
+                    />
+                  </Animatable.View>
+                )}
+
+              {patientData.referral_source === 'Social Media' && (
                 <Animatable.View
                   animation="fadeInUp"
                   style={styles.inputContainer}>
-                  <TextInput
-                    style={getInputStyle('referral_details')}
-                    placeholder="Referral Details"
-                    placeholderTextColor={colors.placeholderText}
-                    value={patientData.referral_details}
-                    onChangeText={text =>
-                      handleInputChange('referral_details', text)
-                    }
-                  />
+                  <View style={[getInputStyle('referral_details')]}>
+                    <CustomPicker
+                      selectedValue={patientData.referral_details}
+                      onValueChange={itemValue =>
+                        handleInputChange('referral_details', itemValue)
+                      }
+                      items={[
+                        {label: 'Select Social Media Platform', value: ''},
+                        {label: 'Instagram', value: 'Instagram'},
+                        {label: 'Facebook', value: 'Facebook'},
+                        {label: 'WhatsApp', value: 'WhatsApp'},
+                        {label: 'YouTube', value: 'YouTube'},
+                        {label: 'Google', value: 'Google'},
+                      ]}
+                      placeholder="Select Social Media Platform"
+                      style={getInputStyle('referral_details')}
+                      textColor={colors.inputText}
+                    />
+                  </View>
                 </Animatable.View>
               )}
 
-            {patientData.referral_source === 'Social Media' && (
-              <Animatable.View animation="fadeInUp" style={styles.inputContainer}>
-                <View style={[getInputStyle('referral_details')]}>
-                  <Picker
-                    selectedValue={patientData.referral_details}
-                    style={[styles.picker, {color: colors.inputText}]}
-                    dropdownIconColor={colors.inputText}
-                    onValueChange={itemValue =>
-                      handleInputChange('referral_details', itemValue)
-                    }>
-                    <Picker.Item
-                      label="Select Social Media Platform"
-                      value=""
-                      color={colors.inputText}
-                    />
-                    <Picker.Item
-                      label="Instagram"
-                      value="Instagram"
-                      color={colors.inputText}
-                    />
-                    <Picker.Item
-                      label="Facebook"
-                      value="Facebook"
-                      color={colors.inputText}
-                    />
-                    <Picker.Item
-                      label="WhatsApp"
-                      value="WhatsApp"
-                      color={colors.inputText}
-                    />
-                    <Picker.Item
-                      label="YouTube"
-                      value="YouTube"
-                      color={colors.inputText}
-                    />
-                    <Picker.Item
-                      label="Google"
-                      value="Google"
-                      color={colors.inputText}
-                    />
-                  </Picker>
-                </View>
-              </Animatable.View>
-            )}
+              <TouchableOpacity
+                style={[styles.button, {backgroundColor: colors.primary}]}
+                onPress={handlePatientRegister}
+                disabled={isLoading}>
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.buttonText}>Register</Text>
+                )}
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.button, {backgroundColor: colors.primary}]}
-              onPress={handlePatientRegister}
-              disabled={isLoading}>
-              {isLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Text style={styles.buttonText}>Register</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.backButton1,
-                {
-                  backgroundColor: colors.cardBackground,
-                  borderColor: colors.primary,
-                },
-              ]}
-              onPress={() => navigation.navigate('DoctorDashboard')}>
-              <Text style={[styles.backButtonText1, {color: colors.primary}]}>
-                Back to Home
-              </Text>
-            </TouchableOpacity>
-          </Animatable.View>
-        </View>
-      </KeyboardAwareScrollView>
+              <TouchableOpacity
+                style={[
+                  styles.backButton1,
+                  {
+                    backgroundColor: colors.cardBackground,
+                    borderColor: colors.primary,
+                  },
+                ]}
+                onPress={() => navigation.navigate('DoctorDashboard')}>
+                <Text style={[styles.backButtonText1, {color: colors.primary}]}>
+                  Back to Home
+                </Text>
+              </TouchableOpacity>
+            </Animatable.View>
+          </View>
+        </KeyboardAwareScrollView>
       </ImageBackground>
+    </SafeAreaView>
   );
 };
 
@@ -446,6 +420,10 @@ const styles = StyleSheet.create({
     padding: 10,
     color: '#333333',
     backgroundColor: '#FFFFFF',
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'black',
   },
   phoneInput: {
     flex: 1,

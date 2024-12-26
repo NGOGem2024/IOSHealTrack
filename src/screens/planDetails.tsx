@@ -206,36 +206,38 @@ const TherapyPlanDetails: React.FC = () => {
         </View>
 
         <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.sectionTitle}>Payment Details</Text>
-          <TouchableOpacity
-            style={styles.paymentInfoButton}
-            onPress={() => navigation.navigate("payment", {
-              planId: planId,
-              patientId: planDetails.therapy_plan.patient_id,
-            })}>
-            <MaterialCommunityIcons
-              name="information-outline"
-              size={24}
-              color="#119FB3"
-            />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.paymentInfo}>
-          <View style={styles.infoRow}>
-            <Text style={styles.paymentLabel}>Total Amount:</Text>
-            <Text style={styles.paymentValue}>₹{plan.total_amount}</Text>
+          <View style={styles.cardHeader}>
+            <Text style={styles.sectionTitle}>Payment Details</Text>
+            <TouchableOpacity
+              style={styles.paymentInfoButton}
+              onPress={() =>
+                navigation.navigate('payment', {
+                  planId: planId,
+                  patientId: patientId || '',
+                })
+              }>
+              <MaterialCommunityIcons
+                name="information-outline"
+                size={24}
+                color="#119FB3"
+              />
+            </TouchableOpacity>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.paymentLabel}>Received:</Text>
-            <Text style={styles.paymentValue}>₹{plan.received_amount}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.paymentLabel}>Balance:</Text>
-            <Text style={[styles.paymentValue, styles.balance]}>
-              ₹{plan.balance}
-            </Text>
-          </View>
+          <View style={styles.paymentInfo}>
+            <View style={styles.infoRow}>
+              <Text style={styles.paymentLabel}>Total Amount:</Text>
+              <Text style={styles.paymentValue}>₹{plan.total_amount}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.paymentLabel}>Received:</Text>
+              <Text style={styles.paymentValue}>₹{plan.received_amount}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.paymentLabel}>Balance:</Text>
+              <Text style={[styles.paymentValue, styles.balance]}>
+                ₹{plan.balance}
+              </Text>
+            </View>
             {plan.extra_addons && plan.extra_addons.length > 0 && (
               <View style={styles.extraAddonsSection}>
                 <View style={styles.infoRow}>
@@ -339,9 +341,10 @@ const TherapyPlanDetails: React.FC = () => {
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     paymentInfo: {
-      backgroundColor: theme.colors.card === '#FFFFFF' 
-        ? 'rgb(240, 246, 255)' 
-        : 'rgba(17, 159, 179, 0.1)', // Darker background for dark mode
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgb(240, 246, 255)'
+          : 'rgba(17, 159, 179, 0.1)', // Darker background for dark mode
       padding: 12,
       borderRadius: 8,
     },

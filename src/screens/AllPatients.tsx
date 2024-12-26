@@ -11,6 +11,8 @@ import {
   Dimensions,
   ScaledSize,
   TextInput,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {NavigationProp, ParamListBase} from '@react-navigation/native';
@@ -19,8 +21,9 @@ import {useSession} from '../context/SessionContext';
 import {handleError} from '../utils/errorHandler';
 import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
-import { useTheme } from './ThemeContext';
-import { getTheme } from './Theme';
+import {useTheme} from './ThemeContext';
+import {getTheme} from './Theme';
+import CustomPicker from './customepicker';
 
 interface Props {
   navigation: NavigationProp<ParamListBase>;
@@ -38,7 +41,9 @@ interface Patient {
 const AllPatients: React.FC<Props> = ({navigation}) => {
   const {theme} = useTheme();
   const styles = getStyles(
-    getTheme(theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark')
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
   );
   const {session} = useSession();
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -68,7 +73,17 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
       subscription.remove();
     };
   }, []);
+  const filterOptions = [
+    {label: 'All', value: 'all'},
+    {label: 'One Week', value: 'oneWeek'},
+    {label: 'One Month', value: 'oneMonth'},
+    {label: 'One Year', value: 'oneYear'},
+  ];
 
+  const sortOptions = [
+    {label: 'Sort by Date', value: 'date'},
+    {label: 'Sort by Name', value: 'name'},
+  ];
   useEffect(() => {
     fetchPatients();
   }, [session]);
@@ -207,6 +222,11 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
   if (isLoading && page === 1) {
     return (
       <View style={styles.loadingContainer}>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor="black"
+          translucent={false}
+        />
         <ActivityIndicator size="large" color="#119FB3" />
       </View>
     );
@@ -226,237 +246,241 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
   );
 
   return (
-    <ImageBackground
-      source={require('../assets/bac2.jpg')}
-      style={styles.backgroundImage}>
-      <BackTabTop screenName="Patients" />
-      <View style={[styles.container, {height: screenDimensions.height * 0.9}]}>
-        <TouchableOpacity
-          style={styles.searchContainer}
-          onPress={handleSearch}
-          activeOpacity={1}>
-          <TextInput
-            style={styles.searchBar}
-            placeholder="Search by name"
-            placeholderTextColor="rgba(255, 255, 255, 0.8)"
-            editable={false}
-          />
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <Icon
-              name="search"
-              size={18}
-              color="#333333"
-              style={styles.searchIcon}
-            />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="black"
+        translucent={false}
+      />
+      <ImageBackground
+        source={require('../assets/bac2.jpg')}
+        style={styles.backgroundImage}>
+        <BackTabTop screenName="Patients" />
+        <View
+          style={[styles.container, {height: screenDimensions.height * 0.9}]}>
+          <TouchableOpacity
+            style={styles.searchContainer}
+            onPress={handleSearch}
+            activeOpacity={0.7}>
+            <View style={styles.searchInputWrapper}>
+              <Icon
+                name="search"
+                size={18}
+                color="#333333"
+                style={styles.searchIcon}
+              />
+              <Text style={styles.searchPlaceholder}>Search by name</Text>
+            </View>
           </TouchableOpacity>
-        </TouchableOpacity>
-
-        <View style={styles.filtersContainer1}>
-          <View style={styles.filterContainer}>
-            <Picker
-              style={styles.picker}
-              selectedValue={filterOption}
-              onValueChange={(itemValue: React.SetStateAction<string>) =>
-                setFilterOption(itemValue)
-              }>
-              <Picker.Item label="All" value="all" />
-              <Picker.Item label="One Week" value="oneWeek" />
-              <Picker.Item label="One Month" value="oneMonth" />
-              <Picker.Item label="One Year" value="oneYear" />
-            </Picker>
+          <View style={styles.filtersContainer1}>
+            <View style={styles.filterContainer}>
+              <CustomPicker
+                selectedValue={filterOption}
+                onValueChange={value => setFilterOption(value)}
+                items={filterOptions}
+              />
+            </View>
+            <View style={styles.filterContainer}>
+              <CustomPicker
+                selectedValue={sortOption}
+                onValueChange={value => setSortOption(value)}
+                items={sortOptions}
+              />
+            </View>
           </View>
-          <View style={styles.filterContainer}>
-            <Picker
-              style={styles.picker}
-              selectedValue={sortOption}
-              onValueChange={(itemValue: React.SetStateAction<string>) =>
-                setSortOption(itemValue)
-              }>
-              <Picker.Item label="Sort by Date" value="date" />
-              <Picker.Item label="Sort by Name" value="name" />
-            </Picker>
-          </View>
+          <FlatList
+            data={filteredPatients}
+            keyExtractor={item => item._id}
+            renderItem={renderPatientItem}
+            numColumns={2}
+            columnWrapperStyle={styles.row}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            ListFooterComponent={renderFooter}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.1}
+          />
+          <TouchableOpacity onPress={handleAddPatient} style={styles.addButton}>
+            <Icon name="plus" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
-        <FlatList
-          data={filteredPatients}
-          keyExtractor={item => item._id}
-          renderItem={renderPatientItem}
-          numColumns={2}
-          columnWrapperStyle={styles.row}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          ListFooterComponent={renderFooter}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.1}
-        />
-        <TouchableOpacity onPress={handleAddPatient} style={styles.addButton}>
-          <Icon name="plus" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
-    </ImageBackground>
+      </ImageBackground>
+    </SafeAreaView>
   );
 };
 
-const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#119FB3',
-  },
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: '#119FB3',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 16,
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: {width: 1, height: 1},
-    textShadowRadius: 2,
-  },
-  searchBar: {
-    flex: 1,
-    marginRight: 8,
-    fontSize: 16,
-    color: '#ffffff',
-  },
-  searchIcon: {
-    marginLeft: 8,
-    marginRight: 8,
-    color: '#333333',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderRadius: 20,
-    padding: 10,
-    marginBottom: 16,
-  },
-  loadingIndicator: {},
-  footerContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  loadingText: {
-    color: theme.colors.text,
-    marginTop: 5,
-    fontSize: 12,
-    textAlign: 'center',
-  },
-  loadMoreButton: {
-    backgroundColor: theme.colors.card,
-    padding: 10,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  loadMoreButtonText: {
-    color: theme.colors.text,
-    fontWeight: 'bold',
-  },
-  filtersContainer1: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  filterContainer: {
-    flex: 1,
-    marginRight: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderRadius: 20,
-    padding: 0,
-  },
-  filterLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    color: theme.colors.text,
-    textAlign: 'center',
-  },
-  picker: {
-    backgroundColor: 'transparent',
-    color: 'grey',
-  },
-  patientCard: {
-    flex: 1,
-    backgroundColor: theme.colors.card,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
-    elevation: 4,
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: 'black',
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  leftCard: {
-    marginRight: 5,
-  },
-  rightCard: {
-    marginLeft: 5,
-  },
-  row: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  patientName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: theme.colors.text,
-    textAlign: 'center',
-  },
-  addButton: {
-    backgroundColor: '#119FB3',
-    borderRadius: 50,
-    width: 50,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    elevation: 3,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.card,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    backgroundColor: '#119FB3',
-    justifyContent: 'space-between',
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginLeft: 5,
-    fontSize: 18,
-  },
-  searchButton: {
-    padding: 10,
-  },
-});
+    container: {
+      flex: 1,
+      padding: 16,
+      backgroundColor: '#119FB3',
+    },
+    backgroundImage: {
+      flex: 1,
+      resizeMode: 'cover',
+    },
+    scrollView: {
+      flex: 1,
+      backgroundColor: '#119FB3',
+    },
+    searchContainer: {
+      backgroundColor: 'rgba(255, 255, 255, 0.5)',
+      borderRadius: 20,
+      marginBottom: 16,
+      height: 50,
+      justifyContent: 'center',
+    },
+    searchInputWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+    },
+    searchIcon: {
+      marginRight: 12,
+    },
+    searchPlaceholder: {
+      fontSize: 16,
+      color: 'rgba(255, 255, 255, 0.8)',
+      flex: 1,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      marginBottom: 16,
+      textAlign: 'center',
+      textShadowColor: 'rgba(0, 0, 0, 0.5)',
+      textShadowOffset: {width: 1, height: 1},
+      textShadowRadius: 2,
+    },
+    searchBar: {
+      flex: 1,
+      marginRight: 8,
+      fontSize: 16,
+      color: '#ffffff',
+    },
+    loadingIndicator: {},
+    footerContainer: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      marginVertical: 10,
+    },
+    loadingText: {
+      color: theme.colors.text,
+      marginTop: 5,
+      fontSize: 12,
+      textAlign: 'center',
+    },
+    loadMoreButton: {
+      backgroundColor: theme.colors.card,
+      padding: 10,
+      borderRadius: 5,
+      alignItems: 'center',
+      marginVertical: 10,
+    },
+    loadMoreButtonText: {
+      color: theme.colors.text,
+      fontWeight: 'bold',
+    },
+    filtersContainer1: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    filterContainer: {
+      flex: 1,
+      marginRight: 8,
+      borderRadius: 20,
+      overflow: 'hidden',
+      backgroundColor: theme.colors.card, // Changed from rgba to solid white
+    },
+    filterLabel: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginBottom: 4,
+      color: theme.colors.text,
+      textAlign: 'center',
+    },
+    picker: {
+      backgroundColor: 'transparent',
+      color: 'grey',
+    },
+    patientCard: {
+      flex: 1,
+      backgroundColor: theme.colors.card,
+      borderRadius: 8,
+      padding: 10,
+      marginBottom: 10,
+      elevation: 4,
+      shadowColor: '#000000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+    leftCard: {
+      marginRight: 5,
+    },
+    rightCard: {
+      marginLeft: 5,
+    },
+    row: {
+      flex: 1,
+      justifyContent: 'space-between',
+    },
+    patientName: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      textAlign: 'center',
+    },
+    addButton: {
+      backgroundColor: '#119FB3',
+      borderRadius: 50,
+      width: 50,
+      height: 50,
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'absolute',
+      bottom: 20,
+      right: 20,
+      elevation: 3,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors.card,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      backgroundColor: '#119FB3',
+      justifyContent: 'space-between',
+    },
+    backButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+    },
+    backButtonText: {
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+      marginLeft: 5,
+      fontSize: 18,
+    },
+    searchButton: {
+      padding: 10,
+    },
+  });
 
 export default AllPatients;

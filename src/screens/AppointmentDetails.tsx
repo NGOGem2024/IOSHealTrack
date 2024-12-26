@@ -13,6 +13,7 @@ import {
   Easing,
   BackHandler,
   Linking,
+  SafeAreaView,
 } from 'react-native';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
@@ -197,6 +198,8 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
   };
 
   return (
+    <SafeAreaView style={styles.safeArea}>
+        
     <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.headerText}>Appointment Details</Text>
       <View style={styles.dateContainer}>
@@ -310,6 +313,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
         </Modal>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 };
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
@@ -317,6 +321,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: '#119FB3',
     },
     cancelButton: {
       backgroundColor: theme.colors.card, // Set the color for cancel button

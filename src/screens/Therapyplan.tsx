@@ -10,13 +10,13 @@ import {
   ActivityIndicator,
   ScrollView,
   useColorScheme,
+  SafeAreaView,
 } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
 import axios from 'axios';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Picker} from '@react-native-picker/picker';
-import {useSession} from '../context/SessionContext';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
@@ -24,6 +24,7 @@ import TherapyCategoryDropdown from './TherapyCategoryDropdown';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {useSession} from '../context/SessionContext';
 
 type CreateTherapyPlanProps = NativeStackScreenProps<
   RootStackParamList,
@@ -42,7 +43,7 @@ type DatePickerFieldProps = {
   onPress: () => void;
   onChange: (event: any, selectedDate?: Date) => void;
   disabled?: boolean;
-  isDarkMode?:boolean;
+  isDarkMode?: boolean;
 };
 
 type DropdownProps = {
@@ -69,6 +70,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     per_session_amount: '', // Added per session amount
     estimated_sessions: '', // Added estimated number of sessions
   });
+  const {session} = useSession();
   const {patientId} = route.params;
   const colorScheme = useColorScheme(); // Get current color scheme
   const isDarkMode = colorScheme === 'dark';
@@ -168,11 +170,14 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     if (!therapyPlan.therapy_name.trim()) {
       newErrors.therapy_name = 'Therapy name is required';
     }
-    if (!therapyPlan.patient_symptoms.trim()) {
-      newErrors.patient_symptoms = 'Patient symptoms are required';
-    }
-    if (!therapyPlan.patient_diagnosis.trim()) {
-      newErrors.patient_diagnosis = 'Patient diagnosis is required';
+    if (!session.is_admin) {
+      // Only validate these fields if the user is not an admin
+      if (!therapyPlan.patient_symptoms.trim()) {
+        newErrors.patient_symptoms = 'Patient symptoms are required';
+      }
+      if (!therapyPlan.patient_diagnosis.trim()) {
+        newErrors.patient_diagnosis = 'Patient diagnosis is required';
+      }
     }
     if (!therapyPlan.therapy_category) {
       newErrors.therapy_category = 'Therapy category is required';
@@ -280,349 +285,355 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
   }, [therapyPlan.total_amount, therapyPlan.received_amount]);
 
   return (
-    <ScrollView
-      style={[styles.scrollView, isDarkMode && styles.scrollViewDark]}
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{flexGrow: 1}}
-      showsVerticalScrollIndicator={false}>
-      <BackTabTop screenName="Plan" />
-      <Animated.View
-        style={[
-          styles.container,
-          isDarkMode && styles.containerDark,
-          {
-            opacity: fadeAnim,
-            transform: [{translateY: slideAnim}],
-          },
-        ]}>
-        <Text style={[styles.title, isDarkMode && styles.titleDark]}>
-          Create Therapy Plan
-        </Text>
-        <TherapyCategoryDropdown
-          value={therapyPlan.therapy_category}
-          onValueChange={itemValue =>
-            setTherapyPlan({...therapyPlan, therapy_category: itemValue})
-          }
-          items={categories}
-        />
-        {errors.therapy_category && (
-          <Text style={styles.errorText}>{errors.therapy_category}</Text>
-        )}
-        <View
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        style={[styles.scrollView, isDarkMode && styles.scrollViewDark]}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{flexGrow: 1}}
+        showsVerticalScrollIndicator={false}>
+        <BackTabTop screenName="Plan" />
+        <Animated.View
           style={[
-            styles.inputContainer,
-            isDarkMode && styles.balanceContainerDark,
+            styles.container,
+            isDarkMode && styles.containerDark,
+            {
+              opacity: fadeAnim,
+              transform: [{translateY: slideAnim}],
+            },
           ]}>
-          <MaterialIcons
-            name="edit"
-            size={24}
-            color={isDarkMode ? '#66D9E8' : '#119FB3'}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Therapy Name"
-            value={therapyPlan.therapy_name}
-            onChangeText={text =>
-              setTherapyPlan({...therapyPlan, therapy_name: text})
-            }
-            keyboardType="default"
-            placeholderTextColor="#A0A0A0"
-          />
-        </View>
-
-        {errors.therapy_name && (
-          <Text style={styles.errorText}>{errors.therapy_name}</Text>
-        )}
-        <View
-          style={[
-            styles.inputContainer,
-            isDarkMode && styles.balanceContainerDark,
-          ]}>
-          <MaterialIcons
-            name="healing"
-            size={24}
-            color={isDarkMode ? '#66D9E8' : '#119FB3'}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Patient Symptoms"
-            value={therapyPlan.patient_symptoms} // Corrected here
-            onChangeText={text =>
-              setTherapyPlan({...therapyPlan, patient_symptoms: text})
-            }
-            keyboardType="default"
-            placeholderTextColor="#A0A0A0"
-          />
-        </View>
-        {errors.patient_symptoms && (
-          <Text style={styles.errorText}>{errors.patient_symptoms}</Text>
-        )}
-        <View
-          style={[
-            styles.inputContainer,
-            isDarkMode && styles.balanceContainerDark,
-          ]}>
-          <MaterialIcons
-            name="local-hospital"
-            size={24}
-            color={isDarkMode ? '#66D9E8' : '#119FB3'}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Patient Diagnosis"
-            value={therapyPlan.patient_diagnosis} // Corrected here
-            onChangeText={
-              text => setTherapyPlan({...therapyPlan, patient_diagnosis: text}) // Updates patient_diagnosis
-            }
-            keyboardType="default"
-            placeholderTextColor="#A0A0A0"
-          />
-        </View>
-        {errors.patient_diagnosis && (
-          <Text style={styles.errorText}>{errors.patient_diagnosis}</Text>
-        )}
-
-        <View style={styles.dateTimeRow}>
-          <DatePickerField
-            label="Start Date"
-            date={startDate}
-            showDatePicker={showStartDatePicker}
-            onPress={showStartDatepicker}
-            onChange={onChangeStartDate}
-            isDarkMode={isDarkMode}
-          />
-
-          <DatePickerField
-            label="End Date"
-            date={endDate}
-            showDatePicker={showEndDatePicker}
-            onPress={showEndDatepicker}
-            onChange={onChangeEndDate}
-            isDarkMode={isDarkMode}
-          />
-        </View>
-        {errors.date && <Text style={styles.errorText}>{errors.date}</Text>}
-
-        <View
-          style={[
-            styles.durationContainer,
-            isDarkMode && styles.durationContainerDark,
-          ]}>
-          <MaterialIcons
-            name="timer"
-            size={24}
-            color={isDarkMode ? '#66D9E8' : '#119FB3'}
-          />
-          <Text style={[styles.durationValue, isDarkMode && styles.textDark]}>
-            Duration: {therapyPlan.therapy_duration}
+          <Text style={[styles.title, isDarkMode && styles.titleDark]}>
+            Create Therapy Plan
           </Text>
-        </View>
-        <View style={styles.paymentTypeContainer}>
-          <Text style={[styles.inputLabel, isDarkMode && styles.labelDark]}>
-            Payment Type
-          </Text>
-          <View style={styles.radioGroup}>
-            {paymentTypes.map(type => (
-              <TouchableOpacity
-                key={type.value}
-                style={[
-                  styles.radioButton,
-                  isDarkMode && styles.radioButtonDark,
-                  therapyPlan.payment_type === type.value &&
-                    styles.radioButtonSelected,
-                  therapyPlan.payment_type === type.value &&
-                    isDarkMode &&
-                    styles.radioButtonSelectedDark,
-                ]}
-                onPress={() =>
-                  setTherapyPlan({...therapyPlan, payment_type: type.value})
-                }>
-                <View
-                  style={[
-                    styles.radio,
-                    isDarkMode && {borderColor: '#66D9E8'},
-                  ]}>
-                  {therapyPlan.payment_type === type.value && (
-                    <View
-                      style={[
-                        styles.radioSelected,
-                        isDarkMode && {backgroundColor: '#66D9E8'},
-                      ]}
-                    />
-                  )}
-                </View>
-                <Text
-                  style={[styles.radioLabel, isDarkMode && styles.textDark]}>
-                  {type.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-        
-        <View style={styles.labeledInputContainer}>
-          <Text style={styles.inputLabel}>Estimated Sessions</Text>
+          <TherapyCategoryDropdown
+            value={therapyPlan.therapy_category}
+            onValueChange={itemValue =>
+              setTherapyPlan({...therapyPlan, therapy_category: itemValue})
+            }
+            items={categories}
+          />
+          {errors.therapy_category && (
+            <Text style={styles.errorText}>{errors.therapy_category}</Text>
+          )}
           <View
             style={[
               styles.inputContainer,
               isDarkMode && styles.balanceContainerDark,
             ]}>
             <MaterialIcons
-              name="event-repeat"
+              name="edit"
               size={24}
               color={isDarkMode ? '#66D9E8' : '#119FB3'}
             />
             <TextInput
               style={styles.input}
-              placeholder="Enter estimated sessions"
-              value={therapyPlan.estimated_sessions}
-              onChangeText={text => {
-                setTherapyPlan(prev => ({
-                  ...prev,
-                  estimated_sessions: text,
-                  total_amount:
-                    text && prev.per_session_amount
-                      ? (
-                          parseFloat(text) * parseFloat(prev.per_session_amount)
-                        ).toFixed(2)
-                      : prev.total_amount,
-                }));
-              }}
-              keyboardType="numeric"
-              placeholderTextColor="#A0A0A0"
-            />
-          </View>
-        </View>
-
-        {therapyPlan.payment_type === 'recurring' && (
-          <>
-            <View style={styles.labeledInputContainer}>
-              <Text style={styles.inputLabel}>Amount Per Session</Text>
-              <View
-                style={[
-                  styles.inputContainer,
-                  isDarkMode && styles.balanceContainerDark,
-                ]}>
-                <FontAwesome
-                  name="rupee"
-                  size={24}
-                  color={isDarkMode ? '#66D9E8' : '#119FB3'}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter amount per session"
-                  value={therapyPlan.per_session_amount}
-                  onChangeText={text => {
-                    setTherapyPlan(prev => ({
-                      ...prev,
-                      per_session_amount: text,
-                      total_amount:
-                        text && prev.estimated_sessions
-                          ? (
-                              parseFloat(text) *
-                              parseFloat(prev.estimated_sessions)
-                            ).toFixed(2)
-                          : prev.total_amount,
-                    }));
-                  }}
-                  keyboardType="numeric"
-                  placeholderTextColor="#A0A0A0"
-                />
-              </View>
-              {errors.per_session_amount && (
-                <Text style={styles.errorText}>
-                  {errors.per_session_amount}
-                </Text>
-              )}
-            </View>
-          </>
-        )}
-
-        <View style={styles.labeledInputContainer}>
-          <Text style={styles.inputLabel}>Total Amount</Text>
-          <View
-            style={[
-              styles.inputContainer,
-              isDarkMode && styles.balanceContainerDark,
-            ]}>
-            <FontAwesome
-              name="rupee"
-              size={24}
-              color={isDarkMode ? '#66D9E8' : '#119FB3'}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Enter total amount"
-              value={therapyPlan.total_amount}
+              placeholder="Therapy Name"
+              value={therapyPlan.therapy_name}
               onChangeText={text =>
-                setTherapyPlan({...therapyPlan, total_amount: text})
+                setTherapyPlan({...therapyPlan, therapy_name: text})
               }
-              keyboardType="numeric"
+              keyboardType="default"
               placeholderTextColor="#A0A0A0"
             />
           </View>
-        </View>
-        {errors.total_amount && (
-          <Text style={styles.errorText}>{errors.total_amount}</Text>
-        )}
 
-        <View style={styles.labeledInputContainer}>
-          <Text style={styles.inputLabel}>Received Amount</Text>
-          <View
-            style={[
-              styles.inputContainer,
-              isDarkMode && styles.balanceContainerDark,
-            ]}>
-            <FontAwesome
-              name="rupee"
-              size={24}
-              color={isDarkMode ? '#66D9E8' : '#119FB3'}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Enter received amount"
-              value={therapyPlan.received_amount}
-              onChangeText={text =>
-                setTherapyPlan({...therapyPlan, received_amount: text})
-              }
-              keyboardType="numeric"
-              placeholderTextColor="#A0A0A0"
-            />
-          </View>
-        </View>
-        {errors.received_amount && (
-          <Text style={styles.errorText}>{errors.received_amount}</Text>
-        )}
-
-        <View
-          style={[
-            styles.balanceContainer,
-            isDarkMode && styles.balanceContainerDark,
-          ]}>
-          <MaterialIcons
-            name="account-balance"
-            size={24}
-            color={isDarkMode ? '#66D9E8' : '#119FB3'}
-          />
-          <Text style={[styles.balanceValue, isDarkMode && styles.textDark]}>
-            Balance: {therapyPlan.balance} Rs
-          </Text>
-        </View>
-
-        {errors.submit && <Text style={styles.errorText}>{errors.submit}</Text>}
-
-        <TouchableOpacity
-          style={[styles.saveButton, isDarkMode && styles.saveButtonDark]}
-          onPress={handleCreateTherapyPlan}
-          disabled={isLoading}>
-          {isLoading ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text style={styles.saveButtonText}>Create Plan</Text>
+          {errors.therapy_name && (
+            <Text style={styles.errorText}>{errors.therapy_name}</Text>
           )}
-        </TouchableOpacity>
-      </Animated.View>
-    </ScrollView>
+          <View
+            style={[
+              styles.inputContainer,
+              isDarkMode && styles.balanceContainerDark,
+            ]}>
+            <MaterialIcons
+              name="healing"
+              size={24}
+              color={isDarkMode ? '#66D9E8' : '#119FB3'}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Patient Symptoms"
+              value={therapyPlan.patient_symptoms} // Corrected here
+              onChangeText={text =>
+                setTherapyPlan({...therapyPlan, patient_symptoms: text})
+              }
+              keyboardType="default"
+              placeholderTextColor="#A0A0A0"
+            />
+          </View>
+          {errors.patient_symptoms && (
+            <Text style={styles.errorText}>{errors.patient_symptoms}</Text>
+          )}
+          <View
+            style={[
+              styles.inputContainer,
+              isDarkMode && styles.balanceContainerDark,
+            ]}>
+            <MaterialIcons
+              name="local-hospital"
+              size={24}
+              color={isDarkMode ? '#66D9E8' : '#119FB3'}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Patient Diagnosis"
+              value={therapyPlan.patient_diagnosis} // Corrected here
+              onChangeText={
+                text =>
+                  setTherapyPlan({...therapyPlan, patient_diagnosis: text}) // Updates patient_diagnosis
+              }
+              keyboardType="default"
+              placeholderTextColor="#A0A0A0"
+            />
+          </View>
+          {errors.patient_diagnosis && (
+            <Text style={styles.errorText}>{errors.patient_diagnosis}</Text>
+          )}
+
+          <View style={styles.dateTimeRow}>
+            <DatePickerField
+              label="Start Date"
+              date={startDate}
+              showDatePicker={showStartDatePicker}
+              onPress={showStartDatepicker}
+              onChange={onChangeStartDate}
+              isDarkMode={isDarkMode}
+            />
+
+            <DatePickerField
+              label="End Date"
+              date={endDate}
+              showDatePicker={showEndDatePicker}
+              onPress={showEndDatepicker}
+              onChange={onChangeEndDate}
+              isDarkMode={isDarkMode}
+            />
+          </View>
+          {errors.date && <Text style={styles.errorText}>{errors.date}</Text>}
+
+          <View
+            style={[
+              styles.durationContainer,
+              isDarkMode && styles.durationContainerDark,
+            ]}>
+            <MaterialIcons
+              name="timer"
+              size={24}
+              color={isDarkMode ? '#66D9E8' : '#119FB3'}
+            />
+            <Text style={[styles.durationValue, isDarkMode && styles.textDark]}>
+              Duration: {therapyPlan.therapy_duration}
+            </Text>
+          </View>
+          <View style={styles.paymentTypeContainer}>
+            <Text style={[styles.inputLabel, isDarkMode && styles.labelDark]}>
+              Payment Type
+            </Text>
+            <View style={styles.radioGroup}>
+              {paymentTypes.map(type => (
+                <TouchableOpacity
+                  key={type.value}
+                  style={[
+                    styles.radioButton,
+                    isDarkMode && styles.radioButtonDark,
+                    therapyPlan.payment_type === type.value &&
+                      styles.radioButtonSelected,
+                    therapyPlan.payment_type === type.value &&
+                      isDarkMode &&
+                      styles.radioButtonSelectedDark,
+                  ]}
+                  onPress={() =>
+                    setTherapyPlan({...therapyPlan, payment_type: type.value})
+                  }>
+                  <View
+                    style={[
+                      styles.radio,
+                      isDarkMode && {borderColor: '#66D9E8'},
+                    ]}>
+                    {therapyPlan.payment_type === type.value && (
+                      <View
+                        style={[
+                          styles.radioSelected,
+                          isDarkMode && {backgroundColor: '#66D9E8'},
+                        ]}
+                      />
+                    )}
+                  </View>
+                  <Text
+                    style={[styles.radioLabel, isDarkMode && styles.textDark]}>
+                    {type.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.labeledInputContainer}>
+            <Text style={styles.inputLabel}>Estimated Sessions</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                isDarkMode && styles.balanceContainerDark,
+              ]}>
+              <MaterialIcons
+                name="event-repeat"
+                size={24}
+                color={isDarkMode ? '#66D9E8' : '#119FB3'}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter estimated sessions"
+                value={therapyPlan.estimated_sessions}
+                onChangeText={text => {
+                  setTherapyPlan(prev => ({
+                    ...prev,
+                    estimated_sessions: text,
+                    total_amount:
+                      text && prev.per_session_amount
+                        ? (
+                            parseFloat(text) *
+                            parseFloat(prev.per_session_amount)
+                          ).toFixed(2)
+                        : prev.total_amount,
+                  }));
+                }}
+                keyboardType="numeric"
+                placeholderTextColor="#A0A0A0"
+              />
+            </View>
+          </View>
+
+          {therapyPlan.payment_type === 'recurring' && (
+            <>
+              <View style={styles.labeledInputContainer}>
+                <Text style={styles.inputLabel}>Amount Per Session</Text>
+                <View
+                  style={[
+                    styles.inputContainer,
+                    isDarkMode && styles.balanceContainerDark,
+                  ]}>
+                  <FontAwesome
+                    name="rupee"
+                    size={24}
+                    color={isDarkMode ? '#66D9E8' : '#119FB3'}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter amount per session"
+                    value={therapyPlan.per_session_amount}
+                    onChangeText={text => {
+                      setTherapyPlan(prev => ({
+                        ...prev,
+                        per_session_amount: text,
+                        total_amount:
+                          text && prev.estimated_sessions
+                            ? (
+                                parseFloat(text) *
+                                parseFloat(prev.estimated_sessions)
+                              ).toFixed(2)
+                            : prev.total_amount,
+                      }));
+                    }}
+                    keyboardType="numeric"
+                    placeholderTextColor="#A0A0A0"
+                  />
+                </View>
+                {errors.per_session_amount && (
+                  <Text style={styles.errorText}>
+                    {errors.per_session_amount}
+                  </Text>
+                )}
+              </View>
+            </>
+          )}
+
+          <View style={styles.labeledInputContainer}>
+            <Text style={styles.inputLabel}>Total Amount</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                isDarkMode && styles.balanceContainerDark,
+              ]}>
+              <FontAwesome
+                name="rupee"
+                size={24}
+                color={isDarkMode ? '#66D9E8' : '#119FB3'}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter total amount"
+                value={therapyPlan.total_amount}
+                onChangeText={text =>
+                  setTherapyPlan({...therapyPlan, total_amount: text})
+                }
+                keyboardType="numeric"
+                placeholderTextColor="#A0A0A0"
+              />
+            </View>
+          </View>
+          {errors.total_amount && (
+            <Text style={styles.errorText}>{errors.total_amount}</Text>
+          )}
+
+          <View style={styles.labeledInputContainer}>
+            <Text style={styles.inputLabel}>Received Amount</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                isDarkMode && styles.balanceContainerDark,
+              ]}>
+              <FontAwesome
+                name="rupee"
+                size={24}
+                color={isDarkMode ? '#66D9E8' : '#119FB3'}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter received amount"
+                value={therapyPlan.received_amount}
+                onChangeText={text =>
+                  setTherapyPlan({...therapyPlan, received_amount: text})
+                }
+                keyboardType="numeric"
+                placeholderTextColor="#A0A0A0"
+              />
+            </View>
+          </View>
+          {errors.received_amount && (
+            <Text style={styles.errorText}>{errors.received_amount}</Text>
+          )}
+
+          <View
+            style={[
+              styles.balanceContainer,
+              isDarkMode && styles.balanceContainerDark,
+            ]}>
+            <MaterialIcons
+              name="account-balance"
+              size={24}
+              color={isDarkMode ? '#66D9E8' : '#119FB3'}
+            />
+            <Text style={[styles.balanceValue, isDarkMode && styles.textDark]}>
+              Balance: {therapyPlan.balance} Rs
+            </Text>
+          </View>
+
+          {errors.submit && (
+            <Text style={styles.errorText}>{errors.submit}</Text>
+          )}
+
+          <TouchableOpacity
+            style={[styles.saveButton, isDarkMode && styles.saveButtonDark]}
+            onPress={handleCreateTherapyPlan}
+            disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.saveButtonText}>Create Plan</Text>
+            )}
+          </TouchableOpacity>
+        </Animated.View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -650,13 +661,16 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
   showDatePicker,
   onPress,
   onChange,
-  isDarkMode
+  isDarkMode,
 }) => (
   <View style={styles.dateTimeBlock}>
     <Text style={styles.dateTimeLabel}>{label}</Text>
-    <TouchableOpacity style={[styles.dateTimeContainer, isDarkMode && styles.saveButtonDark1]} onPress={onPress}>
-      
-      <Text style={[styles.dateTimeText, isDarkMode && styles.textDark]}>{date.toLocaleDateString()}</Text>
+    <TouchableOpacity
+      style={[styles.dateTimeContainer, isDarkMode && styles.saveButtonDark1]}
+      onPress={onPress}>
+      <Text style={[styles.dateTimeText, isDarkMode && styles.textDark]}>
+        {date.toLocaleDateString()}
+      </Text>
       <FontAwesome name="calendar" size={24} color="#119FB3" />
     </TouchableOpacity>
     {showDatePicker && (
@@ -671,8 +685,8 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
 );
 
 const styles = StyleSheet.create({
-  saveButtonDark1:{
-backgroundColor: '#333333'
+  saveButtonDark1: {
+    backgroundColor: '#333333',
   },
   scrollViewDark: {
     backgroundColor: '#1A1A1A',
@@ -739,6 +753,10 @@ backgroundColor: '#333333'
   dateTimeBlock: {
     flex: 1,
     marginHorizontal: 2,
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'black',
   },
   dateTimeLabel: {
     fontSize: 16,
@@ -818,8 +836,8 @@ backgroundColor: '#333333'
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 10,
-    padding: 15,
-    flex: 0.48,
+    padding: 10,
+    flex: 0.49,
     elevation: 2,
   },
   radioButtonSelected: {

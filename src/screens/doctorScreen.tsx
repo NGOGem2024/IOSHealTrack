@@ -20,8 +20,8 @@ import {useSession} from '../context/SessionContext';
 import {handleError} from '../utils/errorHandler';
 import instance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
-import { getTheme } from './Theme';
-import { useTheme } from './ThemeContext';
+import {getTheme} from './Theme';
+import {useTheme} from './ThemeContext';
 
 type DoctorScreenProps = StackScreenProps<RootStackParamList, 'Doctor'>;
 
@@ -49,10 +49,18 @@ interface Appointment {
 const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   const {session} = useSession();
   const {doctorId} = route.params;
-  const { theme } = useTheme();
-  const styles = getStyles(getTheme(
-    theme?.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark' || 'blue'
-  ));
+  const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(
+      (theme?.name as
+        | 'purple'
+        | 'blue'
+        | 'green'
+        | 'orange'
+        | 'pink'
+        | 'dark') || 'blue',
+    ),
+  );
   const [doctorData, setDoctorData] = useState<DoctorData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -124,18 +132,30 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
             </View>
             <View style={styles.infoRow}>
               <MaterialIcons name="business" size={20} color="#119FB3" />
-              <Text style={styles.infoText}>{doctorData?.organization_name}</Text>
+              <Text style={styles.infoText}>
+                {doctorData?.organization_name}
+              </Text>
             </View>
             <View style={styles.infoRow}>
               <MaterialCommunityIcons name="doctor" size={20} color="#119FB3" />
               <Text style={styles.infoText}>{doctorData?.qualification}</Text>
             </View>
             <View style={styles.infoRow}>
-              <MaterialCommunityIcons name="account-group" size={20} color="#119FB3" />
-              <Text style={styles.infoText}>Patients: {doctorData?.patients.length}</Text>
+              <MaterialCommunityIcons
+                name="account-group"
+                size={20}
+                color="#119FB3"
+              />
+              <Text style={styles.infoText}>
+                Patients: {doctorData?.patients.length}
+              </Text>
             </View>
             <View style={styles.infoRow}>
-              <MaterialCommunityIcons name="checkbox-marked-circle" size={20} color="#119FB3" />
+              <MaterialCommunityIcons
+                name="checkbox-marked-circle"
+                size={20}
+                color="#119FB3"
+              />
               <Text style={styles.infoText}>Status: {doctorData?.status}</Text>
             </View>
           </View>
@@ -165,140 +185,142 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
         )}
 
         {/* Today's Appointments Card */}
-        {doctorData?.todayAppointments && doctorData.todayAppointments.length > 0 && (
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Today's Appointments</Text>
-            {doctorData.todayAppointments.map(appointment => (
-              <View key={appointment._id} style={styles.appointmentCard}>
-                <Text style={styles.appointmentText}>
-                  Patient: {appointment.patient_name}
-                </Text>
-                <Text style={styles.appointmentText}>
-                  Time: {appointment.therepy_start_time}
-                </Text>
-                <Text style={styles.appointmentText}>
-                  Type: {appointment.therepy_type}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
+        {doctorData?.todayAppointments &&
+          doctorData.todayAppointments.length > 0 && (
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Today's Appointments</Text>
+              {doctorData.todayAppointments.map(appointment => (
+                <View key={appointment._id} style={styles.appointmentCard}>
+                  <Text style={styles.appointmentText}>
+                    Patient: {appointment.patient_name}
+                  </Text>
+                  <Text style={styles.appointmentText}>
+                    Time: {appointment.therepy_start_time}
+                  </Text>
+                  <Text style={styles.appointmentText}>
+                    Type: {appointment.therepy_type}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#119FB3",
-  },
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    color: '#119FB3',
-  },
-  mainCard: {
-    backgroundColor: theme.colors.card,
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  doctorName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.text,
-  },
-  adminBadge: {
-    backgroundColor: '#119FB3',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
-  },
-  adminBadgeText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  contactInfo: {
-    marginTop: 8,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  infoText: {
-    marginLeft: 12,
-    fontSize: 16,
-    color: theme.colors.text,
-  },
-  card: {
-    backgroundColor:theme.colors.card,
-    margin: 16,
-    marginTop: 0,
-    padding: 16,
-    borderRadius: 12,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: theme.colors.text,
-  },
-  quickActionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  quickActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    width: '100%',
-  },
-  quickActionText: {
-    marginLeft: 12,
-    fontSize: 16,
-    color: '#333',
-  },
-  appointmentCard: {
-    backgroundColor: '#f5f5f5',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  appointmentText: {
-    fontSize: 14,
-    color: '#333',
-    marginBottom: 4,
-  },
-});
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: '#119FB3',
+    },
+    container: {
+      flex: 1,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      marginTop: 10,
+      color: '#119FB3',
+    },
+    mainCard: {
+      backgroundColor: theme.colors.card,
+      margin: 16,
+      padding: 16,
+      borderRadius: 12,
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    doctorName: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+    },
+    adminBadge: {
+      backgroundColor: '#119FB3',
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 16,
+    },
+    adminBadgeText: {
+      color: 'white',
+      fontSize: 12,
+      fontWeight: 'bold',
+    },
+    contactInfo: {
+      marginTop: 8,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    infoText: {
+      marginLeft: 12,
+      fontSize: 16,
+      color: theme.colors.text,
+    },
+    card: {
+      backgroundColor: theme.colors.card,
+      margin: 16,
+      marginTop: 0,
+      padding: 16,
+      borderRadius: 12,
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 16,
+      color: theme.colors.text,
+    },
+    quickActionsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+    },
+    quickActionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#f5f5f5',
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 8,
+      width: '100%',
+    },
+    quickActionText: {
+      marginLeft: 12,
+      fontSize: 16,
+      color: '#333',
+    },
+    appointmentCard: {
+      backgroundColor: '#f5f5f5',
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 8,
+    },
+    appointmentText: {
+      fontSize: 14,
+      color: '#333',
+      marginBottom: 4,
+    },
+  });
 
 export default DoctorScreen;

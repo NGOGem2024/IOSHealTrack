@@ -6,13 +6,17 @@ import Modal from 'react-native-modal';
 import {useSession} from '../context/SessionContext';
 import { useTheme } from './ThemeContext';
 import { getTheme } from './Theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 
 const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   const navigation = useNavigation();
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+
   const styles = getStyles( getTheme(
         theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
-      ),);
+      ),insets);
   const route = useRoute();
   const {session} = useSession();
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -74,14 +78,13 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   );
 };
 
-const getStyles = (theme: ReturnType<typeof getTheme>) =>StyleSheet.create({
+const getStyles = (theme: ReturnType<typeof getTheme>,insets: any) =>StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 10,
     paddingHorizontal: 15,
-    paddingTop: 20,
     backgroundColor: '#119FB3',
     borderBottomWidth: 1,
     borderBottomColor: 'white',

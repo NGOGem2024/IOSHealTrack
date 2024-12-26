@@ -169,12 +169,10 @@ const DoctorProfileEdit: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <BackTabTop screenName='Doctor Profile'/>
+      <BackTabTop screenName="Doctor Profile" />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}>
-        
-
         <View style={styles.profileImageContainer}>
           <Image source={profilePhoto} style={styles.profilePhoto} />
           <TouchableOpacity style={styles.editImageButton}>
@@ -191,6 +189,7 @@ const DoctorProfileEdit: React.FC = () => {
               onChangeText={text =>
                 handleInputChange('doctor_first_name', text)
               }
+              placeholderTextColor={theme.colors.text + '80'}
             />
           </View>
 
@@ -200,6 +199,7 @@ const DoctorProfileEdit: React.FC = () => {
               style={styles.input}
               value={profileInfo.doctor_last_name}
               onChangeText={text => handleInputChange('doctor_last_name', text)}
+              placeholderTextColor={theme.colors.text + '80'}
             />
           </View>
 
@@ -209,6 +209,7 @@ const DoctorProfileEdit: React.FC = () => {
               style={styles.input}
               value={profileInfo.qualification}
               onChangeText={text => handleInputChange('qualification', text)}
+              placeholderTextColor={theme.colors.text + '80'}
             />
           </View>
 
@@ -218,6 +219,7 @@ const DoctorProfileEdit: React.FC = () => {
               style={[styles.input, styles.disabledInput]}
               value={profileInfo.organization_name}
               editable={false}
+              placeholderTextColor={theme.colors.text + '80'}
             />
           </View>
 
@@ -227,6 +229,7 @@ const DoctorProfileEdit: React.FC = () => {
               style={styles.input}
               value={profileInfo.doctor_phone}
               onChangeText={text => handleInputChange('doctor_phone', text)}
+              placeholderTextColor={theme.colors.text + '80'}
             />
           </View>
 
@@ -255,6 +258,29 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     scrollView: {
       flex: 1,
       backgroundColor: '#119FB3',
+    },
+    input: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 10,
+      padding: 12,
+      fontSize: 16,
+      color: theme.colors.text,
+      borderWidth: 1,
+      borderColor: '#119FB3', // Using the app's primary color for borders
+      elevation: 2, // Reduced elevation to make borders more visible
+      shadowColor: '#000', // Adding shadow properties for iOS
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 1.41,
+    },
+    disabledInput: {
+      backgroundColor: theme.colors.card,
+      color: '#888888',
+      borderColor: '#CCCCCC', // Lighter border color for disabled inputs
+      elevation: 0, // Remove elevation for disabled inputs
     },
     header: {
       padding: 16,
@@ -310,18 +336,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: '#119FB3',
       marginBottom: 5,
       fontWeight: 'bold',
-    },
-    input: {
-      backgroundColor: theme.colors.card,
-      borderRadius: 10,
-      padding: 12,
-      fontSize: 16,
-      color: theme.colors.text,
-      elevation: 8,
-    },
-    disabledInput: {
-      backgroundColor: theme.colors.card,
-      color: '#888888',
     },
     saveButton: {
       backgroundColor: '#119FB3',

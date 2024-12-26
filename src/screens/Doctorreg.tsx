@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   useColorScheme,
   Appearance,
+  SafeAreaView,
 } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
@@ -29,7 +30,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
   const {session} = useSession();
   const colorScheme = useColorScheme();
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
-  
+
   const [doctorData, setDoctorData] = useState({
     doctor_first_name: '',
     doctor_last_name: '',
@@ -42,9 +43,11 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
   const [phoneError, setPhoneError] = useState('');
 
   useEffect(() => {
-    const subscription = Appearance.addChangeListener(({ colorScheme: newColorScheme }) => {
-      setIsDarkMode(newColorScheme === 'dark');
-    });
+    const subscription = Appearance.addChangeListener(
+      ({colorScheme: newColorScheme}) => {
+        setIsDarkMode(newColorScheme === 'dark');
+      },
+    );
 
     return () => {
       subscription.remove();
@@ -110,7 +113,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
           Authorization: `Bearer ${session.idToken}`,
         },
       });
-      
+
       showSuccessToast('Doctor registered successfully');
       setDoctorData({
         doctor_first_name: '',
@@ -142,156 +145,188 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
   };
 
   return (
-    <View style={themedStyles.mainContainer}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{flex: 1}}>
-        <GestureHandlerRootView style={{flex: 1}}>
-          <BackTabTop screenName="Doctor" />
-          
-          <ScrollView
-            contentContainerStyle={[styles.scrollContainer, themedStyles.scrollContent]}
-            keyboardShouldPersistTaps="handled">
-            <Animatable.View 
-              animation="fadeInUp"
-              style={[styles.container, themedStyles.card]}>
-              
-              <Text style={[styles.title, {color: colors.primary}]}>
-                Register Doctor
-              </Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={themedStyles.mainContainer}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{flex: 1}}>
+          <GestureHandlerRootView style={{flex: 1}}>
+            <BackTabTop screenName="Doctor" />
 
-              {/* First Name */}
-              <Animatable.View animation="fadeInUp" style={styles.inputContainer}>
-                <TextInput
-                  style={[styles.input, themedStyles.input]}
-                  placeholder="First Name"
-                  placeholderTextColor={colors.placeholderText}
-                  value={doctorData.doctor_first_name}
-                  onChangeText={text =>
-                    setDoctorData({...doctorData, doctor_first_name: text})
-                  }
-                />
-              </Animatable.View>
-
-              {/* Last Name */}
-              <Animatable.View animation="fadeInUp" delay={200} style={styles.inputContainer}>
-                <TextInput
-                  style={[styles.input, themedStyles.input]}
-                  placeholder="Last Name"
-                  placeholderTextColor={colors.placeholderText}
-                  value={doctorData.doctor_last_name}
-                  onChangeText={text =>
-                    setDoctorData({...doctorData, doctor_last_name: text})
-                  }
-                />
-              </Animatable.View>
-
-              {/* Email */}
-              <Animatable.View animation="fadeInUp" delay={400} style={styles.inputContainer}>
-                <TextInput
-                  style={[styles.input, themedStyles.input]}
-                  placeholder="Email"
-                  placeholderTextColor={colors.placeholderText}
-                  value={doctorData.doctor_email}
-                  onChangeText={text =>
-                    setDoctorData({...doctorData, doctor_email: text})
-                  }
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </Animatable.View>
-
-              {/* Phone */}
-              <Animatable.View animation="fadeInUp" delay={600} style={styles.inputContainer}>
-                <TextInput
-                  style={[styles.input, themedStyles.input]}
-                  placeholder="+91 Contact No."
-                  placeholderTextColor={colors.placeholderText}
-                  value={doctorData.doctor_phone ? '+91' + doctorData.doctor_phone : ''}
-                  onChangeText={handlePhoneChange}
-                  keyboardType="numeric"
-                  maxLength={13}
-                />
-                {phoneError ? (
-                  <Text style={[styles.errorText, {color: colors.error}]}>
-                    {phoneError}
-                  </Text>
-                ) : null}
-              </Animatable.View>
-
-              {/* Qualification */}
-              <Animatable.View animation="fadeInUp" delay={800} style={styles.inputContainer}>
-                <TextInput
-                  style={[styles.input, themedStyles.input]}
-                  placeholder="Qualification"
-                  placeholderTextColor={colors.placeholderText}
-                  value={doctorData.qualification}
-                  onChangeText={text =>
-                    setDoctorData({...doctorData, qualification: text})
-                  }
-                />
-              </Animatable.View>
-
-              {/* Role Picker */}
-              <Animatable.View animation="fadeInUp" delay={1000} style={styles.inputContainer}>
-                <Text style={[styles.labelText, themedStyles.text]}>Role:</Text>
-                <View style={[styles.pickerContainer, themedStyles.input]}>
-                  <Picker
-                    selectedValue={doctorData.is_admin}
-                    style={{color: colors.text}}
-                    dropdownIconColor={colors.text}
-                    onValueChange={itemValue =>
-                      setDoctorData({...doctorData, is_admin: itemValue})
-                    }>
-                    <Picker.Item 
-                      label="Doctor" 
-                      value={false} 
-                      color={colors.text}
-                    />
-                    <Picker.Item 
-                      label="Admin" 
-                      value={true}
-                      color={colors.text}
-                    />
-                  </Picker>
-                </View>
-              </Animatable.View>
-
-              {/* Register Button */}
-              <TouchableOpacity
-                style={[styles.button, {backgroundColor: colors.primary}]}
-                onPress={handleDoctorRegister}
-                disabled={isLoading}>
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.buttonText}>Register</Text>
-                )}
-              </TouchableOpacity>
-
-              {/* Back Button */}
-              <TouchableOpacity
-                style={[
-                  styles.backButton,
-                  {
-                    backgroundColor: 'transparent',
-                    borderColor: colors.primary
-                  }
-                ]}
-                onPress={() => navigation.navigate('DoctorDashboard')}>
-                <Text style={[styles.backButtonText, {color: colors.primary}]}>
-                  Back to Home
+            <ScrollView
+              contentContainerStyle={[
+                styles.scrollContainer,
+                themedStyles.scrollContent,
+              ]}
+              keyboardShouldPersistTaps="handled">
+              <Animatable.View
+                animation="fadeInUp"
+                style={[styles.container, themedStyles.card]}>
+                <Text style={[styles.title, {color: colors.primary}]}>
+                  Register Doctor
                 </Text>
-              </TouchableOpacity>
-            </Animatable.View>
-          </ScrollView>
-        </GestureHandlerRootView>
-      </KeyboardAvoidingView>
-    </View>
+
+                {/* First Name */}
+                <Animatable.View
+                  animation="fadeInUp"
+                  style={styles.inputContainer}>
+                  <TextInput
+                    style={[styles.input, themedStyles.input]}
+                    placeholder="First Name"
+                    placeholderTextColor={colors.placeholderText}
+                    value={doctorData.doctor_first_name}
+                    onChangeText={text =>
+                      setDoctorData({...doctorData, doctor_first_name: text})
+                    }
+                  />
+                </Animatable.View>
+
+                {/* Last Name */}
+                <Animatable.View
+                  animation="fadeInUp"
+                  delay={200}
+                  style={styles.inputContainer}>
+                  <TextInput
+                    style={[styles.input, themedStyles.input]}
+                    placeholder="Last Name"
+                    placeholderTextColor={colors.placeholderText}
+                    value={doctorData.doctor_last_name}
+                    onChangeText={text =>
+                      setDoctorData({...doctorData, doctor_last_name: text})
+                    }
+                  />
+                </Animatable.View>
+
+                {/* Email */}
+                <Animatable.View
+                  animation="fadeInUp"
+                  delay={400}
+                  style={styles.inputContainer}>
+                  <TextInput
+                    style={[styles.input, themedStyles.input]}
+                    placeholder="Email"
+                    placeholderTextColor={colors.placeholderText}
+                    value={doctorData.doctor_email}
+                    onChangeText={text =>
+                      setDoctorData({...doctorData, doctor_email: text})
+                    }
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </Animatable.View>
+
+                {/* Phone */}
+                <Animatable.View
+                  animation="fadeInUp"
+                  delay={600}
+                  style={styles.inputContainer}>
+                  <TextInput
+                    style={[styles.input, themedStyles.input]}
+                    placeholder="+91 Contact No."
+                    placeholderTextColor={colors.placeholderText}
+                    value={
+                      doctorData.doctor_phone
+                        ? '+91' + doctorData.doctor_phone
+                        : ''
+                    }
+                    onChangeText={handlePhoneChange}
+                    keyboardType="numeric"
+                    maxLength={13}
+                  />
+                  {phoneError ? (
+                    <Text style={[styles.errorText, {color: colors.error}]}>
+                      {phoneError}
+                    </Text>
+                  ) : null}
+                </Animatable.View>
+
+                {/* Qualification */}
+                <Animatable.View
+                  animation="fadeInUp"
+                  delay={800}
+                  style={styles.inputContainer}>
+                  <TextInput
+                    style={[styles.input, themedStyles.input]}
+                    placeholder="Qualification"
+                    placeholderTextColor={colors.placeholderText}
+                    value={doctorData.qualification}
+                    onChangeText={text =>
+                      setDoctorData({...doctorData, qualification: text})
+                    }
+                  />
+                </Animatable.View>
+
+                {/* Role Picker */}
+                <Animatable.View
+                  animation="fadeInUp"
+                  delay={1000}
+                  style={styles.inputContainer}>
+                  <Text style={[styles.labelText, themedStyles.text]}>
+                    Role:
+                  </Text>
+                  <View style={[styles.pickerContainer, themedStyles.input]}>
+                    <Picker
+                      selectedValue={doctorData.is_admin}
+                      style={{color: colors.text}}
+                      dropdownIconColor={colors.text}
+                      onValueChange={itemValue =>
+                        setDoctorData({...doctorData, is_admin: itemValue})
+                      }>
+                      <Picker.Item
+                        label="Doctor"
+                        value={false}
+                        color={colors.text}
+                      />
+                      <Picker.Item
+                        label="Admin"
+                        value={true}
+                        color={colors.text}
+                      />
+                    </Picker>
+                  </View>
+                </Animatable.View>
+
+                {/* Register Button */}
+                <TouchableOpacity
+                  style={[styles.button, {backgroundColor: colors.primary}]}
+                  onPress={handleDoctorRegister}
+                  disabled={isLoading}>
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.buttonText}>Register</Text>
+                  )}
+                </TouchableOpacity>
+
+                {/* Back Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.backButton,
+                    {
+                      backgroundColor: 'transparent',
+                      borderColor: colors.primary,
+                    },
+                  ]}
+                  onPress={() => navigation.navigate('DoctorDashboard')}>
+                  <Text
+                    style={[styles.backButtonText, {color: colors.primary}]}>
+                    Back to Home
+                  </Text>
+                </TouchableOpacity>
+              </Animatable.View>
+            </ScrollView>
+          </GestureHandlerRootView>
+        </KeyboardAvoidingView>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'black',
+  },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',

@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  SafeAreaView,
 } from 'react-native';
 import {StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
@@ -177,75 +178,77 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
   );
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.flex}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
-      <ScrollView
-        style={styles.scrollView}
-        keyboardShouldPersistTaps="always"
-        contentContainerStyle={styles.scrollContent}>
-        <BackTabTop screenName="Patient" />
-        <Animated.View style={[styles.container, {opacity: fadeAnim}]}>
-          <Text style={styles.title}>Update Patient</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.flex}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
+        <ScrollView
+          style={styles.scrollView}
+          keyboardShouldPersistTaps="always"
+          contentContainerStyle={styles.scrollContent}>
+          <BackTabTop screenName="Patient" />
+          <Animated.View style={[styles.container, {opacity: fadeAnim}]}>
+            <Text style={styles.title}>Update Patient</Text>
 
-          {renderInputField(
-            'patient_first_name',
-            'First Name',
-            <Icon name="person" size={24} color="#119FB3" />,
-          )}
-
-          {renderInputField(
-            'patient_last_name',
-            'Last Name',
-            <Icon name="person" size={24} color="#119FB3" />,
-          )}
-
-          {renderInputField(
-            'patient_email',
-            'Email',
-            <Icon name="email" size={24} color="#119FB3" />,
-          )}
-
-          {renderInputField(
-            'patient_phone',
-            'Contact No',
-            <Icon name="phone" size={24} color="#119FB3" />,
-            'numeric',
-          )}
-
-          {renderInputField(
-            'patient_address1',
-            'Address 1',
-            <Icon name="location-on" size={24} color="#119FB3" />,
-          )}
-
-          {renderInputField(
-            'patient_address2',
-            'Address 2',
-            <Icon name="location-on" size={24} color="#119FB3" />,
-          )}
-
-          {renderInputField(
-            'patient_age',
-            'Age',
-            <Icon name="tag" size={24} color="#119FB3" />,
-            'numeric',
-          )}
-
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={handlePatientUpdate}
-            disabled={isLoading}>
-            {isLoading ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={styles.saveButtonText}>Save</Text>
+            {renderInputField(
+              'patient_first_name',
+              'First Name',
+              <Icon name="person" size={24} color="#119FB3" />,
             )}
-          </TouchableOpacity>
-        </Animated.View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+            {renderInputField(
+              'patient_last_name',
+              'Last Name',
+              <Icon name="person" size={24} color="#119FB3" />,
+            )}
+
+            {renderInputField(
+              'patient_email',
+              'Email',
+              <Icon name="email" size={24} color="#119FB3" />,
+            )}
+
+            {renderInputField(
+              'patient_phone',
+              'Contact No',
+              <Icon name="phone" size={24} color="#119FB3" />,
+              'numeric',
+            )}
+
+            {renderInputField(
+              'patient_address1',
+              'Address 1',
+              <Icon name="location-on" size={24} color="#119FB3" />,
+            )}
+
+            {renderInputField(
+              'patient_address2',
+              'Address 2',
+              <Icon name="location-on" size={24} color="#119FB3" />,
+            )}
+
+            {renderInputField(
+              'patient_age',
+              'Age',
+              <Icon name="tag" size={24} color="#119FB3" />,
+              'numeric',
+            )}
+
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handlePatientUpdate}
+              disabled={isLoading}>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.saveButtonText}>Save</Text>
+              )}
+            </TouchableOpacity>
+          </Animated.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -297,6 +300,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 20,
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'black',
   },
   saveButtonText: {
     color: '#FFFFFF',

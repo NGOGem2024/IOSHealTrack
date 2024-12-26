@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
 import {
   NavigationProp,
@@ -17,6 +18,7 @@ import axios from 'axios';
 import {useSession} from '../context/SessionContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import axiosInstance from '../utils/axiosConfig';
+import BackTabTop from './BackTopTab';
 
 interface Patient {
   _id: string;
@@ -35,8 +37,18 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [noResultsMessage, setNoResultsMessage] = useState('');
+  const searchInputRef = useRef<TextInput>(null);
 
   const {session} = useSession();
+
+  useEffect(() => {
+    // Auto-focus the search input when component mounts
+    const focusTimeout = setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 100); // Small delay to ensure component is fully mounted
+
+    return () => clearTimeout(focusTimeout);
+  }, []);
 
   useEffect(() => {
     if (searchQuery.length > 2) {
@@ -49,7 +61,7 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
 
   const handleSearch = async () => {
     setIsLoading(true);
-    setNoResultsMessage(''); // Clear any previous message
+    setNoResultsMessage('');
     try {
       const response = await axiosInstance.get(
         `/search/patient?query=${searchQuery}`,
@@ -63,7 +75,6 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
       setSearchResults(response.data.patients);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
-        // Handle 404 Not Found
         setSearchResults([]);
         setNoResultsMessage('No patients found with this name.');
       } else {
@@ -92,43 +103,52 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchBar}
-          placeholder="Search by name"
-          placeholderTextColor="rgba(255, 255, 255, 0.8)"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
-          <Icon
-            name="search"
-            size={20}
-            color="#333333"
-            style={styles.searchIcon}
+    <SafeAreaView style={styles.safeArea}>
+      <BackTabTop screenName="Search" />
+      <View style={styles.container}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            ref={searchInputRef}
+            style={styles.searchBar}
+            placeholder="Search by name"
+            placeholderTextColor="rgba(255, 255, 255, 0.8)"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus={true}
           />
-        </TouchableOpacity>
+          <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
+            <Icon
+              name="search"
+              size={20}
+              color="#333333"
+              style={styles.searchIcon}
+            />
+          </TouchableOpacity>
+        </View>
+        {isLoading ? (
+          <ActivityIndicator size="large" color="white" />
+        ) : (
+          <FlatList
+            data={searchResults}
+            renderItem={renderPatientItem}
+            keyExtractor={item => item._id}
+            ListEmptyComponent={
+              noResultsMessage ? (
+                <Text style={styles.emptyText}>{noResultsMessage}</Text>
+              ) : null
+            }
+          />
+        )}
       </View>
-      {isLoading ? (
-        <ActivityIndicator size="large" color="white" />
-      ) : (
-        <FlatList
-          data={searchResults}
-          renderItem={renderPatientItem}
-          keyExtractor={item => item._id}
-          ListEmptyComponent={
-            noResultsMessage ? (
-              <Text style={styles.emptyText}>{noResultsMessage}</Text>
-            ) : null
-          }
-        />
-      )}
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'black',
+  },
   container: {
     flex: 1,
     padding: 16,

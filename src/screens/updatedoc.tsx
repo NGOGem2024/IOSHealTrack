@@ -23,6 +23,8 @@ import {Picker} from '@react-native-picker/picker';
 import {RadioButton} from 'react-native-paper';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import axiosInstance from '../utils/axiosConfig';
+import BackTabTop from './BackTopTab';
+import {CustomPicker, CustomRadioGroup} from './customradio';
 
 const {width} = Dimensions.get('window');
 
@@ -75,16 +77,14 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     const cleanPhone = phone.replace(/[^\d+]/g, '');
     const indianPhoneRegex = /^\+91[6-9]\d{9}$/;
     const isValid = indianPhoneRegex.test(cleanPhone);
-    
+
     setPhoneError(
-      isValid
-        ? null
-        : "Please enter a valid phone number starting with 6-9"
+      isValid ? null : 'Please enter a valid phone number starting with 6-9',
     );
-    
+
     return isValid;
   };
-  
+
   useEffect(() => {
     if (session.idToken) {
       fetchDoctorInfo();
@@ -96,13 +96,14 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   const fetchDoctorInfo = async () => {
     if (!session.idToken) {
       return;
-    }const fetchDoctorInfo = async () => {
+    }
+    const fetchDoctorInfo = async () => {
       if (!session.idToken) {
         return;
       }
-  
+
       setIsLoading(true);
-  
+
       try {
         const response = await axiosInstance.get<ProfileInfo>(
           `/doctor/${doctorId}`,
@@ -110,7 +111,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
             headers: {
               Authorization: `Bearer ${session.idToken}`,
             },
-          }
+          },
         );
         setProfileInfo(response.data);
         setOriginalProfileInfo(response.data);
@@ -147,21 +148,21 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     const maxLength = 14;
     const truncatedValue = formattedValue.slice(0, maxLength);
     const cleanValue = truncatedValue.replace(/[^\d+]/g, '');
-    const finalValue = cleanValue.length > 3 
-      ? `${cleanValue.slice(0, 3)} ${cleanValue.slice(3)}` 
-      : cleanValue;
-  
-    setProfileInfo((prev) => ({ ...prev, doctor_phone: finalValue }));
+    const finalValue =
+      cleanValue.length > 3
+        ? `${cleanValue.slice(0, 3)} ${cleanValue.slice(3)}`
+        : cleanValue;
+
+    setProfileInfo(prev => ({...prev, doctor_phone: finalValue}));
     validatePhone(finalValue);
   };
   const handleInputChange = (field: keyof ProfileInfo, value: any) => {
-    if (field === "doctor_phone") {
+    if (field === 'doctor_phone') {
       handlePhoneChange(value);
     } else {
-      setProfileInfo((prev) => ({ ...prev, [field]: value }));
+      setProfileInfo(prev => ({...prev, [field]: value}));
     }
   };
-
 
   const hasChanges = () => {
     return JSON.stringify(profileInfo) !== JSON.stringify(originalProfileInfo);
@@ -175,8 +176,8 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
 
     if (!validatePhone(profileInfo.doctor_phone)) {
       Alert.alert(
-        "Invalid Phone Number",
-        "Please enter a valid 10-digit Indian mobile number starting with 6-9"
+        'Invalid Phone Number',
+        'Please enter a valid 10-digit Indian mobile number starting with 6-9',
       );
       return;
     }
@@ -244,13 +245,10 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <BackTabTop screenName="Edit Doctor" />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Edit Profile</Text>
-        </View>
-
         <View style={styles.profileImageContainer}>
           <Image source={profilePhoto} style={styles.profilePhoto} />
           <TouchableOpacity style={styles.editImageButton}>
@@ -298,53 +296,41 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           </View>
 
           <View style={styles.inputGroup}>
-          <Text style={styles.label}>Phone</Text>
-          <TextInput
-            style={[styles.input, phoneError && styles.inputError]}
-            value={profileInfo.doctor_phone}
-            onChangeText={(text) => handleInputChange("doctor_phone", text)}
-            keyboardType="phone-pad"
-            placeholder="+91 Enter 10-digit mobile number"
-            maxLength={14} // +91 + space + 10 digits
-          />
-          {phoneError && <Text style={styles.errorText}>{phoneError}</Text>}
-        </View>
-          
+            <Text style={styles.label}>Phone</Text>
+            <TextInput
+              style={[styles.input, phoneError && styles.inputError]}
+              value={profileInfo.doctor_phone}
+              onChangeText={text => handleInputChange('doctor_phone', text)}
+              keyboardType="phone-pad"
+              placeholder="+91 Enter 10-digit mobile number"
+              maxLength={14} // +91 + space + 10 digits
+            />
+            {phoneError && <Text style={styles.errorText}>{phoneError}</Text>}
+          </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Role</Text>
-            <Picker
+            <CustomPicker
               selectedValue={profileInfo.is_admin}
-              style={styles.picker}
-              onValueChange={itemValue =>
-                handleInputChange('is_admin', itemValue)
-              }>
-              <Picker.Item label="Doctor" value={false} />
-              <Picker.Item label="Admin" value={true} />
-            </Picker>
+              onValueChange={value => handleInputChange('is_admin', value)}
+              label="Role"
+              style={styles.input}
+              textColor={theme.colors.text}
+            />
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Status</Text>
-            <View style={styles.radioButtonContainer}>
-              <RadioButton
-                value="active"
-                status={
-                  profileInfo.status === 'active' ? 'checked' : 'unchecked'
-                }
-                onPress={() => handleInputChange('status', 'active')}
-              />
-              <Text style={styles.labelText}>Active</Text>
-
-              <RadioButton
-                value="inactive"
-                status={
-                  profileInfo.status === 'inactive' ? 'checked' : 'unchecked'
-                }
-                onPress={() => handleInputChange('status', 'inactive')}
-              />
-              <Text style={styles.labelText}>Inactive</Text>
-            </View>
+            <CustomRadioGroup
+              value={profileInfo.status}
+              onValueChange={value => handleInputChange('status', value)}
+              options={[
+                {label: 'Active', value: 'active'},
+                {label: 'Inactive', value: 'inactive'},
+              ]}
+              label="Status"
+              textColor={theme.colors.text}
+            />
           </View>
 
           <TouchableOpacity
@@ -378,6 +364,41 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       paddingTop: 40,
       backgroundColor: '#119FB3',
     },
+    input: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 10,
+      padding: 12,
+      fontSize: 16,
+      color: theme.colors.text,
+      borderWidth: 1,
+      borderColor: '#119FB3',
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 1.41,
+    },
+    disabledInput: {
+      backgroundColor: '#F0F0F0',
+      color: '#888888',
+      borderColor: '#CCCCCC',
+      elevation: 0,
+    },
+    picker: {
+      borderWidth: 1,
+      borderColor: '#119FB3',
+      borderRadius: 10,
+      color: theme.colors.text,
+      backgroundColor: theme.colors.card,
+      padding: 12,
+    },
+    inputError: {
+      borderColor: 'red',
+      borderWidth: 1,
+    },
     headerText: {
       fontSize: 24,
       fontWeight: 'bold',
@@ -396,7 +417,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     profileImageContainer: {
       alignItems: 'center',
-      marginTop: 5,
+      marginTop: 15,
       marginBottom: 30,
     },
     profilePhoto: {
@@ -434,24 +455,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginBottom: 5,
       color: '#333333',
     },
-    input: {
-      backgroundColor: '#FFFFFF',
-      borderRadius: 10,
-      padding: 12,
-      fontSize: 16,
-      color: theme.colors.text,
-      elevation: 8,
-    },
-    disabledInput: {
-      backgroundColor: '#F0F0F0',
-      color: '#888888',
-    },
-    picker: {
-      borderWidth: 1,
-      borderColor: '#D9D9D9',
-      borderRadius: 5,
-      backgroundColor: '#FFFFFF',
-    },
+
     radioButtonContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -475,12 +479,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 18,
       fontWeight: 'bold',
     },
-    inputError: {
-      borderColor: "red",
-      borderWidth: 1,
-    },
     errorText: {
-      color: "red",
+      color: 'red',
       fontSize: 12,
       marginTop: 5,
     },

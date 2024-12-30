@@ -11,18 +11,24 @@ import {
   TextInput,
   StatusBar,
   Platform,
-  SafeAreaView,
 } from 'react-native';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
+import {useSession} from '../context/SessionContext';
 import axiosInstance from '../utils/axiosConfig';
-import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
+import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
 import BackTabTop from './BackTopTab';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import PaymentModal from './PaymentModal';
+import EditPaymentModal from './EditPaymentModal';
 
-type PaymentPageProps = StackScreenProps<RootStackParamList, 'payment'>;
+type PaymentPageProps = {
+  navigation: StackNavigationProp<RootStackParamList, 'payment'>;
+  route: {
+    params: {planId: string; patientId?: string; preloadedData?: any};
+  };
+};
 interface Addon {
   name: string;
   amount: number;
@@ -53,6 +59,7 @@ interface PaymentInfo {
     date: string;
     type: string;
     session_number: number;
+    addon_services?: Addon[];
   }>;
 }
 
@@ -72,16 +79,12 @@ const PaymentDetailsScreen: React.FC<PaymentPageProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
   const [isCloseModalVisible, setIsCloseModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<any>(null);
 
   useEffect(() => {
     fetchPaymentInfo();
   }, []);
-  interface PaymentModalProps {
-    visible: boolean;
-    onClose: () => void;
-    onSubmit: (amount: number, type: string, addons?: Addon[]) => void;
-    currentSession: number;
-  }
 
   const fetchPaymentInfo = async () => {
     try {
@@ -97,6 +100,7 @@ const PaymentDetailsScreen: React.FC<PaymentPageProps> = ({
       setLoading(false);
     }
   };
+
   const handleRecordPayment = async (
     amount: number,
     type: string,
@@ -130,12 +134,85 @@ const PaymentDetailsScreen: React.FC<PaymentPageProps> = ({
     }
   };
 
+  const handleEditPayment = async (
+    amount: number,
+    type: string,
+    addons: Addon[] = [],
+  ) => {
+    try {
+      if (!selectedPayment) return;
+
+      setLoading(true);
+      const response = await axiosInstance.put(
+        `/plans/${planId}/payments/${selectedPayment.date}`,
+        {
+          amount,
+          type,
+          addon_services: addons.map(addon => ({
+            name: addon.name,
+            amount: addon.amount,
+          })),
+        },
+      );
+
+      if (response.status === 200) {
+        showSuccessToast('Payment Updated Successfully');
+        await fetchPaymentInfo(); // Refresh payment info
+      } else {
+        Alert.alert('Error', 'Failed to update payment');
+      }
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setLoading(false);
+      setIsEditModalVisible(false);
+      setSelectedPayment(null);
+    }
+  };
+
+  const handleDeletePayment = async (payment: any) => {
+    Alert.alert(
+      'Delete Payment',
+      'Are you sure you want to delete this payment?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              const response = await axiosInstance.delete(
+                `/plans/${planId}/payments/${payment.date}`,
+              );
+
+              if (response.status === 200) {
+                showSuccessToast('Payment Deleted Successfully');
+                await fetchPaymentInfo(); // Refresh payment info
+              } else {
+                Alert.alert('Error', 'Failed to delete payment');
+              }
+            } catch (error) {
+              handleError(error);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const formatCurrency = (amount: number) => {
     return `₹${Number(amount).toLocaleString('en-IN')}`;
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -164,104 +241,107 @@ const PaymentDetailsScreen: React.FC<PaymentPageProps> = ({
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.safeAreaContainer}>
-        {/* <StatusBar barStyle="light-content" translucent={false} />
+    <View style={styles.safeAreaContainer}>
+      {/* <StatusBar barStyle="light-content" translucent={false} />
       <View style={styles.fixedHeader}>
         <Text style={styles.headerText}>Payment Details</Text>
       </View> */}
-        <BackTabTop screenName="Payment Details" />
-        <View style={styles.contentContainer}>
-          <ScrollView
-            style={styles.container}
-            contentContainerStyle={styles.scrollViewContent}
-            showsVerticalScrollIndicator={true}>
-            {/* Summary Card */}
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>{paymentInfo.therapy_name}</Text>
-              <View style={styles.rowContainer}>
-                <View style={styles.amountBox}>
-                  <Text style={styles.amountLabel}>Total Amount</Text>
-                  <Text style={styles.amountValue}>
-                    {formatCurrency(paymentInfo.payment_summary.total_amount)}
-                  </Text>
-                </View>
-                <View style={styles.amountBox}>
-                  <Text style={styles.amountLabel}>Balance</Text>
-                  <Text style={[styles.amountValue, {color: '#e74c3c'}]}>
-                    {formatCurrency(paymentInfo.payment_summary.balance)}
-                  </Text>
-                </View>
+      <BackTabTop screenName="Payment Details" />
+      <View style={styles.contentContainer}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={true}>
+          {/* Summary Card */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{paymentInfo.therapy_name}</Text>
+            <View style={styles.rowContainer}>
+              <View style={styles.amountBox}>
+                <Text style={styles.amountLabel}>Total Amount</Text>
+                <Text style={styles.amountValue}>
+                  {formatCurrency(paymentInfo.payment_summary.total_amount)}
+                </Text>
               </View>
-              {paymentInfo.payment_summary.addons_amount > 0 && (
-                <View style={styles.addonsContainer}>
-                  <Text style={styles.addonsLabel}>Additional Services</Text>
-                  <Text style={styles.addonsValue}>
-                    {formatCurrency(paymentInfo.payment_summary.addons_amount)}
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            {/* Session Details */}
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Session Information</Text>
-              <View style={styles.sessionGrid}>
-                <View style={styles.sessionItem}>
-                  <Text style={styles.sessionLabel}>Total Sessions</Text>
-                  <Text style={styles.sessionValue}>
-                    {paymentInfo.session_info.estimated_sessions}
-                  </Text>
-                </View>
-                <View style={styles.sessionItem}>
-                  <Text style={styles.sessionLabel}>Completed</Text>
-                  <Text style={styles.sessionValue}>
-                    {paymentInfo.session_info.completed_sessions}
-                  </Text>
-                </View>
-                <View style={styles.sessionItem}>
-                  <Text style={styles.sessionLabel}>Remaining</Text>
-                  <Text style={styles.sessionValue}>
-                    {paymentInfo.session_info.remaining_sessions}
-                  </Text>
-                </View>
-                <View style={styles.sessionItem}>
-                  <Text style={styles.sessionLabel}>Per Session</Text>
-                  <Text style={styles.sessionValue}>
-                    {formatCurrency(
-                      paymentInfo.session_info.per_session_amount,
-                    )}
-                  </Text>
-                </View>
+              <View style={styles.amountBox}>
+                <Text style={styles.amountLabel}>Balance</Text>
+                <Text style={[styles.amountValue, {color: '#e74c3c'}]}>
+                  {formatCurrency(paymentInfo.payment_summary.balance)}
+                </Text>
               </View>
             </View>
-
-            {/* Payment Structure */}
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Payment Structure</Text>
-              <View style={styles.paymentTypeContainer}>
-                <Text style={styles.paymentTypeLabel}>Payment Type:</Text>
-                <View style={styles.paymentTypeBadge}>
-                  <Text style={styles.paymentTypeText}>
-                    {paymentInfo.payment_structure.payment_type}
-                  </Text>
-                </View>
+            {paymentInfo.payment_summary.addons_amount > 0 && (
+              <View style={styles.addonsContainer}>
+                <Text style={styles.addonsLabel}>Additional Services</Text>
+                <Text style={styles.addonsValue}>
+                  {formatCurrency(paymentInfo.payment_summary.addons_amount)}
+                </Text>
               </View>
-              {paymentInfo.payment_structure.next_payment_due && (
-                <View style={styles.nextPaymentContainer}>
-                  <Text style={styles.nextPaymentLabel}>Next Payment Due:</Text>
-                  <Text style={styles.nextPaymentDate}>
-                    {formatDate(paymentInfo.payment_structure.next_payment_due)}
-                  </Text>
-                </View>
-              )}
-            </View>
+            )}
+          </View>
 
-            {/* Payment History */}
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Payment History</Text>
-              {paymentInfo.payment_history.map((payment, index) => (
-                <View key={index} style={styles.paymentHistoryItem}>
+          {/* Session Details */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Session Information</Text>
+            <View style={styles.sessionGrid}>
+              <View style={styles.sessionItem}>
+                <Text style={styles.sessionLabel}>Total Sessions</Text>
+                <Text style={styles.sessionValue}>
+                  {paymentInfo.session_info.estimated_sessions}
+                </Text>
+              </View>
+              <View style={styles.sessionItem}>
+                <Text style={styles.sessionLabel}>Completed</Text>
+                <Text style={styles.sessionValue}>
+                  {paymentInfo.session_info.completed_sessions}
+                </Text>
+              </View>
+              <View style={styles.sessionItem}>
+                <Text style={styles.sessionLabel}>Remaining</Text>
+                <Text style={styles.sessionValue}>
+                  {paymentInfo.session_info.remaining_sessions}
+                </Text>
+              </View>
+              <View style={styles.sessionItem}>
+                <Text style={styles.sessionLabel}>Per Session</Text>
+                <Text style={styles.sessionValue}>
+                  {formatCurrency(paymentInfo.session_info.per_session_amount)}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Payment Structure */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Payment Structure</Text>
+            <View style={styles.paymentTypeContainer}>
+              <Text style={styles.paymentTypeLabel}>Payment Type:</Text>
+              <View style={styles.paymentTypeBadge}>
+                <Text style={styles.paymentTypeText}>
+                  {paymentInfo.payment_structure.payment_type}
+                </Text>
+              </View>
+            </View>
+            {paymentInfo.payment_structure.next_payment_due && (
+              <View style={styles.nextPaymentContainer}>
+                <Text style={styles.nextPaymentLabel}>Next Payment Due:</Text>
+                <Text style={styles.nextPaymentDate}>
+                  {formatDate(paymentInfo.payment_structure.next_payment_due)}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Payment History */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Payment History</Text>
+            {paymentInfo.payment_history.map((payment, index) => (
+              <View key={index} style={styles.paymentHistoryItem}>
+                <TouchableOpacity
+                  style={styles.paymentHistoryContent}
+                  onPress={() => {
+                    setSelectedPayment(payment);
+                    setIsEditModalVisible(true);
+                  }}>
                   <View style={styles.paymentHistoryLeft}>
                     <Text style={styles.paymentHistorySession}>
                       {payment.payment_number &&
@@ -279,76 +359,102 @@ const PaymentDetailsScreen: React.FC<PaymentPageProps> = ({
                       {payment.type}
                     </Text>
                   </View>
-                </View>
-              ))}
-            </View>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.button, styles.closeButton]}
-                onPress={() => setIsCloseModalVisible(true)}>
-                <Text style={styles.buttonText}>Close</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.recordPaymentButton]}
-                onPress={() => setIsPaymentModalVisible(true)}>
-                <Text style={styles.buttonText}>Record Payment</Text>
-              </TouchableOpacity>
-            </View>
-
-            <PaymentModal
-              visible={isPaymentModalVisible}
-              onClose={() => setIsPaymentModalVisible(false)}
-              onSubmit={handleRecordPayment}
-              currentSession={paymentInfo.session_info.completed_sessions}
-              paymentInfo={paymentInfo}
-            />
-            <Modal
-              visible={isCloseModalVisible}
-              animationType="fade"
-              transparent={true}
-              onRequestClose={() => setIsCloseModalVisible(false)}>
-              <View style={styles.modalContainer}>
-                <View style={styles.modalContent}>
-                  <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>
-                      What would you like to do?
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => setIsCloseModalVisible(false)}
-                      style={styles.closeButton1}>
-                      <Text style={styles.closeButtonText}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => {
-                      setIsCloseModalVisible(false);
-                      navigation.navigate('DoctorDashboard'); // Replace with your dashboard route
-                    }}>
-                    <Text style={styles.buttonText}>Go to Dashboard</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => {
-                      setIsCloseModalVisible(false);
-                      navigation.navigate('CreateTherapy', {
-                        patientId: patientId,
-                      }); // Replace with your appointment route
-                    }}>
-                    <Text style={styles.buttonText}>Set up an Appointment</Text>
-                  </TouchableOpacity>
-                </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDeletePayment(payment)}>
+                  <Text style={styles.deleteButtonText}>×</Text>
+                </TouchableOpacity>
               </View>
-            </Modal>
-          </ScrollView>
-        </View>
+            ))}
+          </View>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, styles.closeButton]}
+              onPress={() => setIsCloseModalVisible(true)}>
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.recordPaymentButton]}
+              onPress={() => setIsPaymentModalVisible(true)}>
+              <Text style={styles.buttonText}>Record Payment</Text>
+            </TouchableOpacity>
+          </View>
+
+          <PaymentModal
+            visible={isPaymentModalVisible}
+            onClose={() => setIsPaymentModalVisible(false)}
+            onSubmit={handleRecordPayment}
+            currentSession={paymentInfo.session_info.completed_sessions}
+            paymentInfo={paymentInfo}
+          />
+          <EditPaymentModal
+            visible={isEditModalVisible}
+            onClose={() => {
+              setIsEditModalVisible(false);
+              setSelectedPayment(null);
+            }}
+            onSubmit={handleEditPayment}
+            paymentData={
+              selectedPayment
+                ? {
+                    amount: selectedPayment.amount,
+                    type: selectedPayment.type,
+                    addon_services: selectedPayment.addon_services || [],
+                  }
+                : {
+                    amount: 0,
+                    type: 'CASH',
+                    addon_services: [],
+                  }
+            }
+          />
+          <Modal
+            visible={isCloseModalVisible}
+            animationType="fade"
+            transparent={true}
+            onRequestClose={() => setIsCloseModalVisible(false)}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <TouchableOpacity
+                    onPress={() => setIsCloseModalVisible(false)}
+                    style={styles.closeButton1}>
+                    <Text style={styles.closeButtonText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.modalTitle}>
+                  What would you like to do?
+                </Text>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => {
+                    setIsCloseModalVisible(false);
+                    navigation.navigate('DoctorDashboard');
+                  }}>
+                  <Text style={styles.buttonText}>Go to Dashboard</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => {
+                    setIsCloseModalVisible(false);
+                    navigation.navigate('CreateTherapy', {
+                      patientId: patientId,
+                    });
+                  }}>
+                  <Text style={styles.buttonText}>Set up an Appointment</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        </ScrollView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
-const getStyles = (theme: ReturnType<typeof getTheme>) => {
-  const baseStyles = StyleSheet.create({
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
+  StyleSheet.create({
     contentContainer: {
       flex: 1,
       backgroundColor: 'white',
@@ -376,10 +482,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) => {
       paddingHorizontal: 16,
       paddingTop: 20,
       paddingBottom: 30,
-    },
-    safeArea: {
-      flex: 1,
-      backgroundColor: 'black',
     },
     container: {
       flex: 1,
@@ -444,29 +546,32 @@ const getStyles = (theme: ReturnType<typeof getTheme>) => {
       backgroundColor: 'white',
       borderRadius: 12,
       padding: 20,
-      width: '70%',
+      width: '80%',
       maxWidth: 400,
+      position: 'relative',
     },
     modalHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      position: 'absolute',
+      top: 12,
+      right: 12,
+      zIndex: 1,
     },
     modalTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
+      fontSize: 20,
+      fontWeight: '600',
       color: '#2c3e50',
-      marginBottom: 10,
+      marginTop: 28,
+      marginBottom: 18,
+      textAlign: 'center',
     },
     actionButton: {
       backgroundColor: '#119FB3',
-      padding: 12,
+      padding: 14,
       borderRadius: 8,
       alignItems: 'center',
       marginVertical: 8,
       width: '100%',
     },
-
     modalSubtitle: {
       fontSize: 16,
       color: '#6c757d',
@@ -476,11 +581,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>) => {
       color: 'white',
       fontSize: 16,
       fontWeight: 'bold',
+      textAlign: 'center',
     },
     closeButtonText: {
       fontSize: 20,
       color: '#6c757d',
-      marginBottom: 10,
+      lineHeight: 20,
     },
     input: {
       borderWidth: 1,
@@ -535,20 +641,22 @@ const getStyles = (theme: ReturnType<typeof getTheme>) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       paddingHorizontal: 20,
+      paddingVertical: 10,
+      alignItems: 'center',
     },
     button: {
       flex: 1,
-      padding: 15,
+      height: 48,
       borderRadius: 15,
+      justifyContent: 'center', // Center content vertically
       alignItems: 'center',
       marginHorizontal: 10,
       // Shadow for iOS
-      shadowColor: '#fff',
-      shadowOffset: {width: 0, height: 4},
-      shadowOpacity: 1,
-      shadowRadius: 20,
-      // Shadow for Android
-      elevation: 10,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
     },
     recordPaymentButton: {
       backgroundColor: '#119FB3',
@@ -558,6 +666,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) => {
     },
     closeButton1: {
       padding: 8,
+      borderRadius: 20,
     },
     loadingContainer: {
       flex: 1,
@@ -749,10 +858,20 @@ const getStyles = (theme: ReturnType<typeof getTheme>) => {
       color: '#6c757d',
       marginTop: 2,
     },
+    paymentHistoryContent: {
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    deleteButton: {
+      padding: 10,
+      marginLeft: 10,
+    },
+    deleteButtonText: {
+      color: '#e74c3c',
+      fontSize: 20,
+      fontWeight: 'bold',
+    },
   });
-  return {
-    ...baseStyles,
-    ...getStyles,
-  };
-};
 export default PaymentDetailsScreen;

@@ -494,7 +494,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
         throw new Error('Please log in to book an appointment.');
       }
 
-      if (!selectedSlot) {
+      if (selectedSlot === null || selectedSlot === undefined) {
         throw new Error('Please select a time slot for the appointment.');
       }
       if (!selectedDoctor) {

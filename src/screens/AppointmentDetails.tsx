@@ -199,120 +199,131 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-        
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-      <Text style={styles.headerText}>Appointment Details</Text>
-      <View style={styles.dateContainer}>
-        {isStarted ? (
-          <Text style={styles.dateText}>{`${appointment.patient_name}`}</Text>
-        ) : (
-          <Text style={styles.dateText}>
-            {new Date(appointment.therepy_date).toDateString()}
-          </Text>
-        )}
-      </View>
+      <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+        <Text style={styles.headerText}>Appointment Details</Text>
+        <View style={styles.dateContainer}>
+          {isStarted ? (
+            <Text style={styles.dateText}>{`${appointment.patient_name}`}</Text>
+          ) : (
+            <Text style={styles.dateText}>
+              {new Date(appointment.therepy_date).toDateString()}
+            </Text>
+          )}
+        </View>
 
-      <View style={styles.detailsContainer}>
-        {!isStarted && (
-          <>
-            <View style={styles.card}>
-              <Text style={styles.detailTitle}>Patient Name</Text>
-              <Text style={styles.detailText}>{appointment.patient_name}</Text>
-            </View>
-
-            <View style={styles.card}>
-              <Text style={styles.detailTitle}>Therapy Type</Text>
-              <Text style={styles.detailText}>{appointment.therepy_type}</Text>
-            </View>
-
-            <View style={styles.card}>
-              <Text style={styles.detailTitle}>Therapy Start Time</Text>
-              <Text style={styles.detailText}>
-                {appointment.therepy_start_time}
-              </Text>
-            </View>
-
-            <Text style={styles.detailTitle}>Pre-Session Remarks</Text>
-            <TextInput
-              style={styles.remarksInput}
-              multiline
-              numberOfLines={4}
-              onChangeText={setPreviousRemarks}
-              value={previousRemarks}
-              placeholder="Enter previous session remarks"
-            />
-            {appointment.therepy_link && (
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={styles.uploadButton}
-                  onPress={() => handleJoinSession(appointment.therepy_link)}>
-                  <Text style={styles.uploadButtonText}>Upload Videos</Text>
-                </TouchableOpacity>
+        <View style={styles.detailsContainer}>
+          {!isStarted && (
+            <>
+              <View style={styles.card}>
+                <Text style={styles.detailTitle}>Patient Name</Text>
+                <Text style={styles.detailText}>
+                  {appointment.patient_name}
+                </Text>
               </View>
-            )}
-            <TouchableOpacity style={styles.startButton} onPress={handleStart}>
-              {loading ? (
-                <ActivityIndicator size="small" color="#ffffff" />
-              ) : (
-                <Text style={styles.buttonText}>Start Therapy</Text>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={handleCancel}>
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
-          </>
-        )}
 
-        {isStarted && (
-          <View style={styles.timerContainer}>
-            <Animated.View style={styles.timerRing}>
-              <View style={styles.timerInnerRing}>
-                <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
+              <View style={styles.card}>
+                <Text style={styles.detailTitle}>Therapy Type</Text>
+                <Text style={styles.detailText}>
+                  {appointment.therepy_type}
+                </Text>
               </View>
-            </Animated.View>
-            {appointment.therepy_link && (
-              <TouchableOpacity
-                style={styles.joinButton}
-                onPress={() => handleJoinSession(appointment.therepy_link)}>
-                <Text style={styles.buttonText}>Join Session</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={styles.endButton}
-              onPress={handleShowEndModal}>
-              <Text style={styles.buttonText}>End Therapy</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        <Modal
-          visible={isModalVisible}
-          transparent={true}
-          animationType="slide">
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Post-Session Remarks</Text>
+
+              <View style={styles.card}>
+                <Text style={styles.detailTitle}>Therapy Start Time</Text>
+                <Text style={styles.detailText}>
+                  {appointment.therepy_start_time}
+                </Text>
+              </View>
+
+              <Text style={styles.detailTitle}>Pre-Session Remarks</Text>
               <TextInput
                 style={styles.remarksInput}
                 multiline
                 numberOfLines={4}
-                onChangeText={setPostRemarks}
-                value={postRemarks}
-                placeholder="Enter post session remarks"
+                onChangeText={setPreviousRemarks}
+                value={previousRemarks}
+                placeholder="Enter previous session remarks"
               />
-              <TouchableOpacity style={styles.modalButton} onPress={handleEnd}>
+              {appointment.therepy_link && (
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.uploadButton}
+                    onPress={() => handleJoinSession(appointment.therepy_link)}>
+                    <Text style={styles.uploadButtonText}>Upload Videos</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              <TouchableOpacity
+                style={styles.startButton}
+                onPress={handleStart}>
                 {loading ? (
                   <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
-                  <Text style={styles.buttonText}>Submit and End Session</Text>
+                  <Text style={styles.buttonText}>Start Therapy</Text>
                 )}
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleCancel}>
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {isStarted && (
+            <View style={styles.timerContainer}>
+              <Animated.View style={styles.timerRing}>
+                <View style={styles.timerInnerRing}>
+                  <Text style={styles.timerText}>
+                    {formatTime(elapsedTime)}
+                  </Text>
+                </View>
+              </Animated.View>
+              {appointment.therepy_link && (
+                <TouchableOpacity
+                  style={styles.joinButton}
+                  onPress={() => handleJoinSession(appointment.therepy_link)}>
+                  <Text style={styles.buttonText}>Join Session</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={styles.endButton}
+                onPress={handleShowEndModal}>
+                <Text style={styles.buttonText}>End Therapy</Text>
+              </TouchableOpacity>
             </View>
-          </View>
-        </Modal>
-      </View>
-    </ScrollView>
+          )}
+          <Modal
+            visible={isModalVisible}
+            transparent={true}
+            animationType="slide">
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Post-Session Remarks</Text>
+                <TextInput
+                  style={styles.remarksInput}
+                  multiline
+                  numberOfLines={4}
+                  onChangeText={setPostRemarks}
+                  value={postRemarks}
+                  placeholder="Enter post session remarks"
+                />
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={handleEnd}>
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <Text style={styles.buttonText}>
+                      Submit and End Session
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

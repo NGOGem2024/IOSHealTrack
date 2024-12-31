@@ -15,7 +15,7 @@ import {
   TouchableWithoutFeedback,
   StatusBar,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useTheme} from './ThemeContext';
@@ -78,7 +78,8 @@ const DoctorDashboard: React.FC = () => {
   const styles = getStyles(
     getTheme(
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
-    ),insets
+    ),
+    insets,
   );
 
   const navigation = useNavigation<DashboardScreenNavigationProp>();
@@ -286,10 +287,10 @@ const DoctorDashboard: React.FC = () => {
     return (
       <View style={styles.dashboardHeader}>
         <StatusBar
-        barStyle="light-content"
-        backgroundColor="black"
-        translucent={false}
-      />
+          barStyle="light-content"
+          backgroundColor="black"
+          translucent={false}
+        />
         <Image
           source={require('../assets/logo3.png')}
           style={styles.logoImage}
@@ -332,10 +333,7 @@ const DoctorDashboard: React.FC = () => {
   if (doctorLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar
-          barStyle="light-content"
-          translucent={false}
-        />
+        <StatusBar barStyle="light-content" translucent={false} />
         <ActivityIndicator size="large" color="#119FB3" />
         <Text style={styles.loadingText}>Loading Doctor Dashboard...</Text>
       </View>
@@ -354,14 +352,13 @@ const DoctorDashboard: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-       <DashboardHeader />
+      <DashboardHeader />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-       
         {doctorInfo && (
           <View style={styles.profileSection}>
             <Image
@@ -495,7 +492,7 @@ const DoctorDashboard: React.FC = () => {
   );
 };
 
-const getStyles = (theme: ReturnType<typeof getTheme>,insets: any) =>
+const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
   StyleSheet.create({
     loadingContainer: {
       flex: 1,
@@ -657,7 +654,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>,insets: any) =>
       borderBottomRightRadius: 150,
       elevation: 5,
       shadowColor: '#000',
-      marginTop:50,
+      marginTop: 50,
       shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.1,
       shadowRadius: 4,

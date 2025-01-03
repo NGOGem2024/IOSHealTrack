@@ -13,8 +13,8 @@ import {
   Easing,
   BackHandler,
   Linking,
-  SafeAreaView,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
 import BackTabTop from './BackTopTab';
@@ -23,6 +23,8 @@ import axiosInstance from '../utils/axiosConfig';
 import {RootStackParamList} from '../types/types';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 interface AppointmentDetailsScreenProps {
   appointment: {
@@ -38,6 +40,16 @@ interface AppointmentDetailsScreenProps {
   };
   onClose: () => void;
 }
+
+interface AppointmentState {
+  isStarted: boolean;
+  startTime: string | null;
+  elapsedTime: number;
+  previousRemarks: string;
+  postRemarks: string;
+  isCompleted: boolean;
+}
+const MAX_SESSION_TIME = 10800; // 3 hours in seconds
 
 const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
   appointment,
@@ -58,19 +70,101 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [rotation] = useState(new Animated.Value(0));
+  const [isCompleted, setIsCompleted] = useState(false);
+  useEffect(() => {
+    const checkTimeLimit = async () => {
+      if (startTime) {
+        const elapsed = Math.floor(
+          (new Date().getTime() - new Date(startTime).getTime()) / 1000,
+        );
+        if (elapsed >= MAX_SESSION_TIME) {
+          await handleTimeExceeded();
+        }
+      }
+    };
+    checkTimeLimit();
+  }, []);
+  const handleTimeExceeded = async () => {
+    setIsStarted(false);
+    setStartTime(null);
+    setElapsedTime(0);
+    await clearAppointmentState();
+    Alert.alert(
+      'Session Expired',
+      'The session has exceeded the 3-hour limit and has been automatically ended.',
+    );
+  };
+  // Load saved state on component mount
+  useEffect(() => {
+    loadAppointmentState();
+  }, []);
 
+  // Save state when important values change
+  useEffect(() => {
+    saveAppointmentState();
+  }, [isStarted, startTime, elapsedTime, previousRemarks, postRemarks]);
+
+  // Handle back button
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       handleBackPress,
     );
-
     return () => backHandler.remove();
   }, []);
 
   const handleBackPress = () => {
+    saveAppointmentState();
     onClose();
     return true;
+  };
+
+  // Load saved state from AsyncStorage
+  const loadAppointmentState = async () => {
+    try {
+      const savedState = await AsyncStorage.getItem(
+        `appointment_${appointment._id}`,
+      );
+      if (savedState) {
+        const state: AppointmentState = JSON.parse(savedState);
+        setIsStarted(state.isStarted);
+        setStartTime(state.startTime ? new Date(state.startTime) : null);
+        setElapsedTime(state.elapsedTime);
+        setPreviousRemarks(state.previousRemarks);
+        setPostRemarks(state.postRemarks);
+        setIsCompleted(state.isCompleted);
+      }
+    } catch (error) {
+      console.error('Error loading appointment state:', error);
+    }
+  };
+
+  // Save current state to AsyncStorage
+  const saveAppointmentState = async () => {
+    try {
+      const state: AppointmentState = {
+        isStarted,
+        startTime: startTime?.toISOString() || null,
+        elapsedTime,
+        previousRemarks,
+        postRemarks,
+        isCompleted,
+      };
+      await AsyncStorage.setItem(
+        `appointment_${appointment._id}`,
+        JSON.stringify(state),
+      );
+    } catch (error) {
+      console.error('Error saving appointment state:', error);
+    }
+  };
+  // Clear saved state
+  const clearAppointmentState = async () => {
+    try {
+      await AsyncStorage.removeItem(`appointment_${appointment._id}`);
+    } catch (error) {
+      console.error('Error clearing appointment state:', error);
+    }
   };
 
   useEffect(() => {
@@ -147,6 +241,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
   }, [appointment._id, previousRemarks]);
 
   const handleCancel = () => {
+    clearAppointmentState();
     setPreviousRemarks('');
     onClose();
   };
@@ -171,6 +266,8 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
       );
 
       if (response.status === 200) {
+        setIsCompleted(true);
+        await saveAppointmentState();
         setModalVisible(false);
         onClose();
         navigation.navigate('payment', {
@@ -187,6 +284,34 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
       setLoading(false);
     }
   }, [appointment._id, postRemarks]);
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isStarted && startTime) {
+      interval = setInterval(() => {
+        const newElapsedTime = Math.floor(
+          (new Date().getTime() - startTime.getTime()) / 1000,
+        );
+        if (newElapsedTime >= MAX_SESSION_TIME) {
+          handleTimeExceeded();
+        } else {
+          setElapsedTime(newElapsedTime);
+        }
+      }, 1000);
+
+      Animated.loop(
+        Animated.timing(rotation, {
+          toValue: 1,
+          duration: 3000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ).start();
+    }
+    return () => {
+      clearInterval(interval);
+      rotation.setValue(0);
+    };
+  }, [isStarted, startTime, rotation]);
 
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
@@ -200,7 +325,13 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.headerText}>Appointment Details</Text>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+            <MaterialIcons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Appointment Details</Text>
+          <View style={styles.headerRight} />
+        </View>
         <View style={styles.dateContainer}>
           {isStarted ? (
             <Text style={styles.dateText}>{`${appointment.patient_name}`}</Text>
@@ -212,7 +343,14 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
         </View>
 
         <View style={styles.detailsContainer}>
-          {!isStarted && (
+          {isCompleted ? (
+            <View style={styles.completedContainer}>
+              <Text style={styles.completedText}>Session Completed</Text>
+              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                <Text style={styles.buttonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          ) : !isStarted ? (
             <>
               <View style={styles.card}>
                 <Text style={styles.detailTitle}>Patient Name</Text>
@@ -268,9 +406,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                 <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
             </>
-          )}
-
-          {isStarted && (
+          ) : (
             <View style={styles.timerContainer}>
               <Animated.View style={styles.timerRing}>
                 <View style={styles.timerInnerRing}>
@@ -335,7 +471,41 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     safeArea: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: 'black',
+    },
+    header: {
+      height: 56,
+      backgroundColor: theme.colors.card || '#119FB3',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.2,
+      shadowRadius: 2,
+    },
+    backButton: {
+      padding: 2,
+    },
+    headerTitle: {
+      color: theme.colors.text,
+      fontSize: 20,
+      fontWeight: 'bold',
+    },
+    completedContainer: {
+      alignItems: 'center',
+      padding: 20,
+    },
+    completedText: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      marginBottom: 20,
+    },
+    headerRight: {
+      width: 40,
     },
     cancelButton: {
       backgroundColor: theme.colors.card, // Set the color for cancel button

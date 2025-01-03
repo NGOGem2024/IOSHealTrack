@@ -14,6 +14,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from '../utils/axiosConfig';
 //import {useNavigation} from '@react-navigation/native';
 import {ActivityIndicator} from 'react-native-paper';
+import {useTheme} from '../screens/ThemeContext';
+import {getTheme} from '../screens/Theme';
 
 interface AuthModalProps {
   isVisible: boolean;
@@ -27,6 +29,12 @@ const AuthModal: React.FC<AuthModalProps> = ({
   onLoginSuccess,
 }) => {
   const {setSession} = useSession();
+  const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
@@ -170,69 +178,71 @@ const AuthModal: React.FC<AuthModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: '#f5f5f5',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    maxHeight: '80%',
-    overflow: 'hidden',
-    alignItems: 'center',
-  },
-  logo: {
-    width: 200,
-    height: 70,
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    color: 'black',
-    fontWeight: 'bold',
-  },
-  input: {
-    width: '100%',
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-  },
-  button: {
-    backgroundColor: '#2a7fba',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    marginBottom: 15,
-    width: '100%',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    marginBottom: 10,
-    width: '100%',
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: '#2a7fba',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-});
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
+  StyleSheet.create({
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+      backgroundColor: theme.colors.card,
+      padding: 20,
+      borderRadius: 10,
+      width: '80%',
+      maxHeight: '80%',
+      overflow: 'hidden',
+      alignItems: 'center',
+    },
+    logo: {
+      width: 200,
+      height: 70,
+    },
+    title: {
+      fontSize: 24,
+      marginBottom: 20,
+      color: theme.colors.text,
+      fontWeight: 'bold',
+    },
+    input: {
+      width: '100%',
+      height: 40,
+      borderColor: 'gray',
+      borderWidth: 1,
+      marginBottom: 10,
+      color: theme.colors.text,
+      paddingHorizontal: 10,
+      borderRadius: 5,
+    },
+    button: {
+      backgroundColor: '#2a7fba',
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 5,
+      marginBottom: 15,
+      width: '100%',
+      alignItems: 'center',
+    },
+    buttonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    secondaryButton: {
+      backgroundColor: 'transparent',
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 5,
+      marginBottom: 10,
+      width: '100%',
+      alignItems: 'center',
+    },
+    secondaryButtonText: {
+      color: '#2a7fba',
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+  });
 
 export default AuthModal;

@@ -570,6 +570,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     dropdownItem: {
       padding: 10,
+      color: theme.colors.text,
       fontSize: 16,
     },
     logoutText: {

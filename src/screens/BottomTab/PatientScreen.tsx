@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   StatusBar,
   SafeAreaView,
+  RefreshControl,
 } from 'react-native';
 import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../../types/types';
@@ -91,28 +92,42 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
   );
   const [patientData, setPatientData] = useState<PatientData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const fetchPatientData = async () => {
+    if (!session.idToken) return;
+    try {
+      const response = await axiosInstance.get(`/patient/${patientId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + session.idToken,
+        },
+      });
+      setPatientData(response.data.patientData);
+    } catch (error) {
+      handleError(error);
+    }
+  };
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchPatientData();
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
   useEffect(() => {
-    const fetchPatientData = async () => {
-      if (!session.idToken || patientData) return;
+    const loadInitialData = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        const response = await axiosInstance.get(`/patient/${patientId}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + session.idToken,
-          },
-        });
-        setPatientData(response.data.patientData);
-      } catch (error) {
-        handleError(error);
+        await fetchPatientData();
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchPatientData();
-  }, [patientId, session.idToken, patientData]);
+    loadInitialData();
+  }, [patientId, session.idToken]);
 
   if (isLoading) {
     return (
@@ -127,8 +142,16 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
     <SafeAreaView style={styles.safeArea}>
       <BackTopTab screenName="Patient" />
 
-      <ScrollView style={styles.container}>
-        {/* Patient Information Card */}
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#119FB3']} // Android
+            tintColor="#119FB3" // iOS
+          />
+        }>
         <View style={styles.mainCard}>
           <View style={styles.cardHeader}>
             <Text style={styles.patientName}>
@@ -316,7 +339,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     therapyPlanDetailText: {
       fontSize: 14,
-      color: 'black',
+      color: theme.colors.text,
       marginBottom: 4,
     },
     safeArea: {

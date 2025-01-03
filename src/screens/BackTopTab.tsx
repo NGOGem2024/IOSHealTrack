@@ -1,22 +1,31 @@
 import React, {useState} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, Image, StatusBar} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  StatusBar,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import {useSession} from '../context/SessionContext';
-import { useTheme } from './ThemeContext';
-import { getTheme } from './Theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
+import {useTheme} from './ThemeContext';
+import {getTheme} from './Theme';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   const navigation = useNavigation();
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const insets = useSafeAreaInsets();
 
-  const styles = getStyles( getTheme(
-        theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
-      ),insets);
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+    insets,
+  );
   const route = useRoute();
   const {session} = useSession();
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -29,7 +38,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   };
 
   return (
-    <View style={styles.header}>    
+    <View style={styles.header}>
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}>
@@ -78,67 +87,69 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   );
 };
 
-const getStyles = (theme: ReturnType<typeof getTheme>,insets: any) =>StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    backgroundColor: '#119FB3',
-    borderBottomWidth: 1,
-    borderBottomColor: 'white',
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoImage: {
-    width: 110,
-    height: 35,
-  },
-  rightSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  screenNameText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 18,
-    marginRight: 15,
-  },
-  profileButton: {
-    alignItems: 'flex-end',
-  },
-  modal: {
-    margin: 0,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-  },
-  dropdown: {
-    backgroundColor: theme.colors.card,
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 60,
-    marginRight: 15,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+      backgroundColor: '#119FB3',
+      borderBottomWidth: 1,
+      borderBottomColor: 'white',
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    minWidth: 180,
-    transform: [{translateY: -10}],
-  },
-  dropdownItem: {
-    padding: 10,
-    fontSize: 16,
-  },
-  logoutText: {
-    color: 'red',
-  },
-});
+    backButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    logoImage: {
+      width: 110,
+      height: 35,
+    },
+    rightSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    screenNameText: {
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+      fontSize: 18,
+      marginRight: 15,
+    },
+    profileButton: {
+      alignItems: 'flex-end',
+    },
+    modal: {
+      margin: 0,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-end',
+    },
+    dropdown: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 10,
+      padding: 10,
+      marginTop: 60,
+      marginRight: 15,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+      minWidth: 180,
+      transform: [{translateY: -10}],
+    },
+    dropdownItem: {
+      padding: 10,
+      color: theme.colors.text,
+      fontSize: 16,
+    },
+    logoutText: {
+      color: 'red',
+    },
+  });
 
 export default BackTabTop;

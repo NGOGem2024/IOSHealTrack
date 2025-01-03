@@ -11,6 +11,7 @@ import {
   useColorScheme,
   Appearance,
   SafeAreaView,
+  Modal,
 } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
@@ -30,7 +31,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
   const {session} = useSession();
   const colorScheme = useColorScheme();
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
-
+  const [showPicker, setShowPicker] = useState(false);
   const [doctorData, setDoctorData] = useState({
     doctor_first_name: '',
     doctor_last_name: '',
@@ -91,6 +92,71 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
       backgroundColor: colors.background,
     },
   });
+
+  const renderPicker = () => {
+    if (Platform.OS === 'ios') {
+      return (
+        <View>
+          <TouchableOpacity
+            style={[styles.pickerButton, themedStyles.input]}
+            onPress={() => setShowPicker(true)}>
+            <Text style={[styles.pickerButtonText, {color: colors.text}]}>
+              {doctorData.is_admin ? 'Admin' : 'Doctor'}
+            </Text>
+          </TouchableOpacity>
+
+          <Modal visible={showPicker} transparent={true} animationType="slide">
+            <View style={styles.modalContainer}>
+              <View
+                style={[
+                  styles.pickerModalContent,
+                  {backgroundColor: colors.cardBackground},
+                ]}>
+                <View style={styles.pickerHeader}>
+                  <TouchableOpacity
+                    style={styles.pickerDoneButton}
+                    onPress={() => setShowPicker(false)}>
+                    <Text
+                      style={[styles.pickerDoneText, {color: colors.primary}]}>
+                      Done
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <Picker
+                  selectedValue={doctorData.is_admin}
+                  onValueChange={itemValue => {
+                    setDoctorData({...doctorData, is_admin: itemValue});
+                  }}
+                  style={{backgroundColor: colors.cardBackground}}>
+                  <Picker.Item
+                    label="Doctor"
+                    value={false}
+                    color={colors.text}
+                  />
+                  <Picker.Item label="Admin" value={true} color={colors.text} />
+                </Picker>
+              </View>
+            </View>
+          </Modal>
+        </View>
+      );
+    }
+
+    return (
+      <View style={[styles.pickerContainer, themedStyles.input]}>
+        <Picker
+          selectedValue={doctorData.is_admin}
+          style={{color: colors.text}}
+          dropdownIconColor={colors.text}
+          onValueChange={itemValue =>
+            setDoctorData({...doctorData, is_admin: itemValue})
+          }>
+          <Picker.Item label="Doctor" value={false} color={colors.text} />
+          <Picker.Item label="Admin" value={true} color={colors.text} />
+        </Picker>
+      </View>
+    );
+  };
 
   const handleDoctorRegister = async () => {
     setIsLoading(true);
@@ -264,26 +330,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
                   <Text style={[styles.labelText, themedStyles.text]}>
                     Role:
                   </Text>
-                  <View style={[styles.pickerContainer, themedStyles.input]}>
-                    <Picker
-                      selectedValue={doctorData.is_admin}
-                      style={{color: colors.text}}
-                      dropdownIconColor={colors.text}
-                      onValueChange={itemValue =>
-                        setDoctorData({...doctorData, is_admin: itemValue})
-                      }>
-                      <Picker.Item
-                        label="Doctor"
-                        value={false}
-                        color={colors.text}
-                      />
-                      <Picker.Item
-                        label="Admin"
-                        value={true}
-                        color={colors.text}
-                      />
-                    </Picker>
-                  </View>
+                  {renderPicker()}
                 </Animatable.View>
 
                 {/* Register Button */}
@@ -360,6 +407,41 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 12,
     fontSize: 16,
+  },
+  pickerButton: {
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 5,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  pickerButtonText: {
+    fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  pickerModalContent: {
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    paddingBottom: 20,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    borderBottomWidth: 1,
+    borderBottomColor: '#CCCCCC',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  pickerDoneButton: {
+    padding: 4,
+  },
+  pickerDoneText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   pickerContainer: {
     borderWidth: 1,

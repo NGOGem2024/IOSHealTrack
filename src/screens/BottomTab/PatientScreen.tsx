@@ -127,7 +127,15 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
     };
 
     loadInitialData();
-  }, [patientId, session.idToken]);
+
+    // Add focus listener to refresh data when screen comes into focus
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchPatientData();
+    });
+
+    // Cleanup subscription on unmount
+    return unsubscribe;
+  }, [patientId, session.idToken, navigation]);
 
   if (isLoading) {
     return (

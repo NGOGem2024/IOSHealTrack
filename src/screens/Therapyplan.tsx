@@ -8,10 +8,10 @@ import {
   Alert,
   Animated,
   ActivityIndicator,
-  ScrollView,
   useColorScheme,
   SafeAreaView,
 } from 'react-native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
 import axios from 'axios';
@@ -286,12 +286,19 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        style={[styles.scrollView, isDarkMode && styles.scrollViewDark]}
+      <BackTabTop screenName="Plan" />
+      <KeyboardAwareScrollView
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{flexGrow: 1}}
-        showsVerticalScrollIndicator={false}>
-        <BackTabTop screenName="Plan" />
+        extraScrollHeight={20}
+        enableResetScrollToCoords={false}
+        scrollEnabled={true}
+        bounces={true}
+        keyboardOpeningTime={0}
+        showsVerticalScrollIndicator={true}
+        style={[styles.scrollView, isDarkMode && styles.scrollViewDark]}
+        contentContainerStyle={styles.scrollContainer}>
         <Animated.View
           style={[
             styles.container,
@@ -638,7 +645,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
             )}
           </TouchableOpacity>
         </Animated.View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };
@@ -693,6 +700,18 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
 const styles = StyleSheet.create({
   saveButtonDark1: {
     backgroundColor: '#333333',
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'black',
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#F0F8FF',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   scrollViewDark: {
     backgroundColor: '#1A1A1A',
@@ -759,10 +778,6 @@ const styles = StyleSheet.create({
   dateTimeBlock: {
     flex: 1,
     marginHorizontal: 2,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'black',
   },
   dateTimeLabel: {
     fontSize: 16,
@@ -872,10 +887,6 @@ const styles = StyleSheet.create({
     color: '#333333',
   },
 
-  scrollView: {
-    flex: 1,
-    backgroundColor: '#F0F8FF',
-  },
   container: {
     flex: 1,
     paddingHorizontal: '5%',

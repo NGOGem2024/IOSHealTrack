@@ -445,15 +445,13 @@ const DoctorDashboard: React.FC = () => {
         <View style={styles.section}>
           <View style={styles.appointmentHeader}>
             <Text style={styles.sectionTitle}>
-              {showAllAppointments
-                ? 'All Appointments'
-                : "Today's Appointments"}
+              {showAllAppointments ? 'All Appointments' : 'My Appointments'}
             </Text>
             <TouchableOpacity
               style={styles.toggleButton}
               onPress={toggleAllAppointments}>
               <Text style={styles.toggleButtonText}>
-                {showAllAppointments ? 'Show My' : 'Show All'}
+                {showAllAppointments ? 'My Appointments' : 'All Appointments'}
               </Text>
             </TouchableOpacity>
           </View>

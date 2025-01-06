@@ -50,10 +50,11 @@ interface Therapy {
   status?: string;
   therepy_cost?: string;
 }
-type TherapyHistoryScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'UpdateTherapy'
->;
+
+type TherapyHistoryScreenProps = {
+  navigation: StackNavigationProp<RootStackParamList, "TherapyHistory">;
+  route: { params: { patientId: string } };
+};
 
 const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
   navigation,
@@ -80,6 +81,27 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
   const [showNewUserPopup, setShowNewUserPopup] = useState(false);
   const popupScale = useSharedValue(0);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedView, setSelectedView] = useState<"all" | "past" | "upcoming">(
+    "all"
+  );
+
+  const selectTherapyType = (type: "all" | "past" | "upcoming") => {
+    setSelectedView(type);
+    setIsDropdownOpen(false);
+  };
+
+  const getDisplayedTherapies = () => {
+    switch (selectedView) {
+      case "all":
+        return [...upcomingTherapies, ...pastTherapies];
+      case "past":
+        return pastTherapies;
+      case "upcoming":
+        return upcomingTherapies;
+      default:
+        return [];
+    }
+  };
 
   useEffect(() => {
     if (!patientId) {
@@ -213,11 +235,6 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const selectTherapyType = (type: 'past' | 'upcoming') => {
-    setShowPastTherapies(type === 'past');
-    toggleDropdown();
   };
 
   const handleRecTherapy = async (therepy_id: string) => {
@@ -459,8 +476,12 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
             onPress={toggleDropdown}
             style={styles.dropdownButton}>
             <Text style={styles.dropdownButtonText}>
-              {showPastTherapies ? 'Past Sessions' : 'Upcoming Sessions'}
-            </Text>
+            {selectedView === "all"
+              ? "All Sessions"
+              : selectedView === "past"
+              ? "Past Sessions"
+              : "Upcoming Sessions"}
+          </Text>
             <Icon
               name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
               size={16}
@@ -468,33 +489,78 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
             />
           </TouchableOpacity>
 
-          {isDropdownOpen && (
-            <View style={styles.dropdownContent}>
-              <TouchableOpacity
-                onPress={() => selectTherapyType('past')}
-                style={styles.dropdownItem}>
-                <Text>Past Sessions</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => selectTherapyType('upcoming')}
-                style={styles.dropdownItem}>
-                <Text>Upcoming Sessions</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+           {isDropdownOpen && (
+          <View style={styles.dropdownContent}>
+            <TouchableOpacity
+              onPress={() => selectTherapyType("all")}
+              style={[
+                styles.dropdownItem,
+                selectedView === "all" && styles.selectedDropdownItem,
+              ]}
+            >
+              <Text
+                style={
+                  selectedView === "all"
+                    ? styles.selectedDropdownText
+                    : styles.dropdownText
+                }
+              >
+                All Sessions
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => selectTherapyType("past")}
+              style={[
+                styles.dropdownItem,
+                selectedView === "past" && styles.selectedDropdownItem,
+              ]}
+            >
+              <Text
+                style={
+                  selectedView === "past"
+                    ? styles.selectedDropdownText
+                    : styles.dropdownText
+                }
+              >
+                Past Sessions
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => selectTherapyType("upcoming")}
+              style={[
+                styles.dropdownItem,
+                selectedView === "upcoming" && styles.selectedDropdownItem,
+              ]}
+            >
+              <Text
+                style={
+                  selectedView === "upcoming"
+                    ? styles.selectedDropdownText
+                    : styles.dropdownText
+                }
+              >
+                Upcoming Sessions
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
 
           {isLoading ? (
             <Text style={styles.loadingText}>Loading therapies...</Text>
           ) : (
             <FlatList
-              data={showPastTherapies ? pastTherapies : upcomingTherapies}
+              data={getDisplayedTherapies()}
               keyExtractor={item => item._id}
               renderItem={renderTherapyItem}
               ListEmptyComponent={
                 <Text style={styles.noTherapyText}>
-                  No {showPastTherapies ? 'past' : 'upcoming'} therapies
-                  available
-                </Text>
+                No {selectedView === "all" ? "" : selectedView} sessions
+                available
+              </Text>
+              }
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
               }
             />
           )}
@@ -625,6 +691,16 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
 const windowWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
+  selectedDropdownItem: {
+    backgroundColor: "rgba(17, 159, 179, 0.1)",
+  },
+  selectedDropdownText: {
+    color: "#119FB3",
+    fontWeight: "bold",
+  },
+  dropdownText: {
+    color: "#333333",
+  },
   safeArea: {
     flex: 1,
     backgroundColor: 'black',

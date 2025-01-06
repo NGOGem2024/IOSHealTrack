@@ -11,24 +11,20 @@ import {
   TextInput,
   StatusBar,
   Platform,
+  SafeAreaView,
 } from 'react-native';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
 import {useSession} from '../context/SessionContext';
 import axiosInstance from '../utils/axiosConfig';
-import {StackNavigationProp} from '@react-navigation/stack';
+import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
 import BackTabTop from './BackTopTab';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import PaymentModal from './PaymentModal';
 import EditPaymentModal from './EditPaymentModal';
 
-type PaymentPageProps = {
-  navigation: StackNavigationProp<RootStackParamList, 'payment'>;
-  route: {
-    params: {planId: string; patientId?: string; preloadedData?: any};
-  };
-};
+type Props = StackScreenProps<RootStackParamList, 'payment'>;
 interface Addon {
   name: string;
   amount: number;
@@ -63,12 +59,9 @@ interface PaymentInfo {
   }>;
 }
 
-const PaymentDetailsScreen: React.FC<PaymentPageProps> = ({
-  navigation,
-  route,
-}) => {
+const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
   const {theme} = useTheme();
-  const {planId, patientId} = route.params;
+  const {planId, patientId} = route.params || {};
   const styles = getStyles(
     getTheme(
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
@@ -241,215 +234,219 @@ const PaymentDetailsScreen: React.FC<PaymentPageProps> = ({
   }
 
   return (
-    <View style={styles.safeAreaContainer}>
-      {/* <StatusBar barStyle="light-content" translucent={false} />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeAreaContainer}>
+        {/* <StatusBar barStyle="light-content" translucent={false} />
       <View style={styles.fixedHeader}>
         <Text style={styles.headerText}>Payment Details</Text>
       </View> */}
-      <BackTabTop screenName="Payment Details" />
-      <View style={styles.contentContainer}>
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.scrollViewContent}
-          showsVerticalScrollIndicator={true}>
-          {/* Summary Card */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{paymentInfo.therapy_name}</Text>
-            <View style={styles.rowContainer}>
-              <View style={styles.amountBox}>
-                <Text style={styles.amountLabel}>Total Amount</Text>
-                <Text style={styles.amountValue}>
-                  {formatCurrency(paymentInfo.payment_summary.total_amount)}
-                </Text>
+        <BackTabTop screenName="Payment Details" />
+        <View style={styles.contentContainer}>
+          <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.scrollViewContent}
+            showsVerticalScrollIndicator={true}>
+            {/* Summary Card */}
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>{paymentInfo.therapy_name}</Text>
+              <View style={styles.rowContainer}>
+                <View style={styles.amountBox}>
+                  <Text style={styles.amountLabel}>Total Amount</Text>
+                  <Text style={styles.amountValue}>
+                    {formatCurrency(paymentInfo.payment_summary.total_amount)}
+                  </Text>
+                </View>
+                <View style={styles.amountBox}>
+                  <Text style={styles.amountLabel}>Balance</Text>
+                  <Text style={[styles.amountValue, {color: '#e74c3c'}]}>
+                    {formatCurrency(paymentInfo.payment_summary.balance)}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.amountBox}>
-                <Text style={styles.amountLabel}>Balance</Text>
-                <Text style={[styles.amountValue, {color: '#e74c3c'}]}>
-                  {formatCurrency(paymentInfo.payment_summary.balance)}
-                </Text>
+              {paymentInfo.payment_summary.addons_amount > 0 && (
+                <View style={styles.addonsContainer}>
+                  <Text style={styles.addonsLabel}>Additional Services</Text>
+                  <Text style={styles.addonsValue}>
+                    {formatCurrency(paymentInfo.payment_summary.addons_amount)}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Session Details */}
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Session Information</Text>
+              <View style={styles.sessionGrid}>
+                <View style={styles.sessionItem}>
+                  <Text style={styles.sessionLabel}>Total Sessions</Text>
+                  <Text style={styles.sessionValue}>
+                    {paymentInfo.session_info.estimated_sessions}
+                  </Text>
+                </View>
+                <View style={styles.sessionItem}>
+                  <Text style={styles.sessionLabel}>Completed</Text>
+                  <Text style={styles.sessionValue}>
+                    {paymentInfo.session_info.completed_sessions}
+                  </Text>
+                </View>
+                <View style={styles.sessionItem}>
+                  <Text style={styles.sessionLabel}>Remaining</Text>
+                  <Text style={styles.sessionValue}>
+                    {paymentInfo.session_info.remaining_sessions}
+                  </Text>
+                </View>
+                <View style={styles.sessionItem}>
+                  <Text style={styles.sessionLabel}>Per Session</Text>
+                  <Text style={styles.sessionValue}>
+                    {formatCurrency(
+                      paymentInfo.session_info.per_session_amount,
+                    )}
+                  </Text>
+                </View>
               </View>
             </View>
-            {paymentInfo.payment_summary.addons_amount > 0 && (
-              <View style={styles.addonsContainer}>
-                <Text style={styles.addonsLabel}>Additional Services</Text>
-                <Text style={styles.addonsValue}>
-                  {formatCurrency(paymentInfo.payment_summary.addons_amount)}
-                </Text>
-              </View>
-            )}
-          </View>
 
-          {/* Session Details */}
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Session Information</Text>
-            <View style={styles.sessionGrid}>
-              <View style={styles.sessionItem}>
-                <Text style={styles.sessionLabel}>Total Sessions</Text>
-                <Text style={styles.sessionValue}>
-                  {paymentInfo.session_info.estimated_sessions}
-                </Text>
+            {/* Payment Structure */}
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Payment Structure</Text>
+              <View style={styles.paymentTypeContainer}>
+                <Text style={styles.paymentTypeLabel}>Payment Type:</Text>
+                <View style={styles.paymentTypeBadge}>
+                  <Text style={styles.paymentTypeText}>
+                    {paymentInfo.payment_structure.payment_type}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.sessionItem}>
-                <Text style={styles.sessionLabel}>Completed</Text>
-                <Text style={styles.sessionValue}>
-                  {paymentInfo.session_info.completed_sessions}
-                </Text>
-              </View>
-              <View style={styles.sessionItem}>
-                <Text style={styles.sessionLabel}>Remaining</Text>
-                <Text style={styles.sessionValue}>
-                  {paymentInfo.session_info.remaining_sessions}
-                </Text>
-              </View>
-              <View style={styles.sessionItem}>
-                <Text style={styles.sessionLabel}>Per Session</Text>
-                <Text style={styles.sessionValue}>
-                  {formatCurrency(paymentInfo.session_info.per_session_amount)}
-                </Text>
-              </View>
+              {paymentInfo.payment_structure.next_payment_due && (
+                <View style={styles.nextPaymentContainer}>
+                  <Text style={styles.nextPaymentLabel}>Next Payment Due:</Text>
+                  <Text style={styles.nextPaymentDate}>
+                    {formatDate(paymentInfo.payment_structure.next_payment_due)}
+                  </Text>
+                </View>
+              )}
             </View>
-          </View>
 
-          {/* Payment Structure */}
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Payment Structure</Text>
-            <View style={styles.paymentTypeContainer}>
-              <Text style={styles.paymentTypeLabel}>Payment Type:</Text>
-              <View style={styles.paymentTypeBadge}>
-                <Text style={styles.paymentTypeText}>
-                  {paymentInfo.payment_structure.payment_type}
-                </Text>
-              </View>
-            </View>
-            {paymentInfo.payment_structure.next_payment_due && (
-              <View style={styles.nextPaymentContainer}>
-                <Text style={styles.nextPaymentLabel}>Next Payment Due:</Text>
-                <Text style={styles.nextPaymentDate}>
-                  {formatDate(paymentInfo.payment_structure.next_payment_due)}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* Payment History */}
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Payment History</Text>
-            {paymentInfo.payment_history.map((payment, index) => (
-              <View key={index} style={styles.paymentHistoryItem}>
-                <TouchableOpacity
-                  style={styles.paymentHistoryContent}
-                  onPress={() => {
-                    setSelectedPayment(payment);
-                    setIsEditModalVisible(true);
-                  }}>
-                  <View style={styles.paymentHistoryLeft}>
-                    <Text style={styles.paymentHistorySession}>
-                      {payment.payment_number &&
-                        `Payment #${payment.payment_number}`}
-                    </Text>
-                    <Text style={styles.paymentHistoryDate}>
-                      {formatDate(payment.date)}
-                    </Text>
-                  </View>
-                  <View style={styles.paymentHistoryRight}>
-                    <Text style={styles.paymentHistoryAmount}>
-                      {formatCurrency(payment.amount)}
-                    </Text>
-                    <Text style={styles.paymentHistoryType}>
-                      {payment.type}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDeletePayment(payment)}>
-                  <Text style={styles.deleteButtonText}>×</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, styles.closeButton]}
-              onPress={() => setIsCloseModalVisible(true)}>
-              <Text style={styles.buttonText}>Close</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.recordPaymentButton]}
-              onPress={() => setIsPaymentModalVisible(true)}>
-              <Text style={styles.buttonText}>Record Payment</Text>
-            </TouchableOpacity>
-          </View>
-
-          <PaymentModal
-            visible={isPaymentModalVisible}
-            onClose={() => setIsPaymentModalVisible(false)}
-            onSubmit={handleRecordPayment}
-            currentSession={paymentInfo.session_info.completed_sessions}
-            paymentInfo={paymentInfo}
-          />
-          <EditPaymentModal
-            visible={isEditModalVisible}
-            onClose={() => {
-              setIsEditModalVisible(false);
-              setSelectedPayment(null);
-            }}
-            onSubmit={handleEditPayment}
-            paymentData={
-              selectedPayment
-                ? {
-                    amount: selectedPayment.amount,
-                    type: selectedPayment.type,
-                    addon_services: selectedPayment.addon_services || [],
-                  }
-                : {
-                    amount: 0,
-                    type: 'CASH',
-                    addon_services: [],
-                  }
-            }
-          />
-          <Modal
-            visible={isCloseModalVisible}
-            animationType="fade"
-            transparent={true}
-            onRequestClose={() => setIsCloseModalVisible(false)}>
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <View style={styles.modalHeader}>
+            {/* Payment History */}
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Payment History</Text>
+              {paymentInfo.payment_history.map((payment, index) => (
+                <View key={index} style={styles.paymentHistoryItem}>
                   <TouchableOpacity
-                    onPress={() => setIsCloseModalVisible(false)}
-                    style={styles.closeButton1}>
-                    <Text style={styles.closeButtonText}>✕</Text>
+                    style={styles.paymentHistoryContent}
+                    onPress={() => {
+                      setSelectedPayment(payment);
+                      setIsEditModalVisible(true);
+                    }}>
+                    <View style={styles.paymentHistoryLeft}>
+                      <Text style={styles.paymentHistorySession}>
+                        {payment.payment_number &&
+                          `Payment #${payment.payment_number}`}
+                      </Text>
+                      <Text style={styles.paymentHistoryDate}>
+                        {formatDate(payment.date)}
+                      </Text>
+                    </View>
+                    <View style={styles.paymentHistoryRight}>
+                      <Text style={styles.paymentHistoryAmount}>
+                        {formatCurrency(payment.amount)}
+                      </Text>
+                      <Text style={styles.paymentHistoryType}>
+                        {payment.type}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDeletePayment(payment)}>
+                    <Text style={styles.deleteButtonText}>×</Text>
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.modalTitle}>
-                  What would you like to do?
-                </Text>
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={() => {
-                    setIsCloseModalVisible(false);
-                    navigation.navigate('DoctorDashboard');
-                  }}>
-                  <Text style={styles.buttonText}>Go to Dashboard</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={() => {
-                    setIsCloseModalVisible(false);
-                    navigation.navigate('CreateTherapy', {
-                      patientId: patientId,
-                    });
-                  }}>
-                  <Text style={styles.buttonText}>Set up an Appointment</Text>
-                </TouchableOpacity>
-              </View>
+              ))}
             </View>
-          </Modal>
-        </ScrollView>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.closeButton]}
+                onPress={() => setIsCloseModalVisible(true)}>
+                <Text style={styles.buttonText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.recordPaymentButton]}
+                onPress={() => setIsPaymentModalVisible(true)}>
+                <Text style={styles.buttonText}>Record Payment</Text>
+              </TouchableOpacity>
+            </View>
+
+            <PaymentModal
+              visible={isPaymentModalVisible}
+              onClose={() => setIsPaymentModalVisible(false)}
+              onSubmit={handleRecordPayment}
+              currentSession={paymentInfo.session_info.completed_sessions}
+              paymentInfo={paymentInfo}
+            />
+            <EditPaymentModal
+              visible={isEditModalVisible}
+              onClose={() => {
+                setIsEditModalVisible(false);
+                setSelectedPayment(null);
+              }}
+              onSubmit={handleEditPayment}
+              paymentData={
+                selectedPayment
+                  ? {
+                      amount: selectedPayment.amount,
+                      type: selectedPayment.type,
+                      addon_services: selectedPayment.addon_services || [],
+                    }
+                  : {
+                      amount: 0,
+                      type: 'CASH',
+                      addon_services: [],
+                    }
+              }
+            />
+            <Modal
+              visible={isCloseModalVisible}
+              animationType="fade"
+              transparent={true}
+              onRequestClose={() => setIsCloseModalVisible(false)}>
+              <View style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                  <View style={styles.modalHeader}>
+                    <TouchableOpacity
+                      onPress={() => setIsCloseModalVisible(false)}
+                      style={styles.closeButton1}>
+                      <Text style={styles.closeButtonText}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.modalTitle}>
+                    What would you like to do?
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => {
+                      setIsCloseModalVisible(false);
+                      navigation.navigate('DoctorDashboard');
+                    }}>
+                    <Text style={styles.buttonText}>Go to Dashboard</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => {
+                      setIsCloseModalVisible(false);
+                      navigation.navigate('CreateTherapy', {
+                        patientId: patientId,
+                      });
+                    }}>
+                    <Text style={styles.buttonText}>Set up an Appointment</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+          </ScrollView>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -460,6 +457,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: 'white',
       overflow: 'hidden',
       marginTop: 10,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: 'black',
     },
     safeAreaContainer: {
       flex: 1,

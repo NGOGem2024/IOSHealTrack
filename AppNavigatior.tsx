@@ -5,6 +5,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {useSession} from './src/context/SessionContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Icon2 from 'react-native-vector-icons/Feather';
+import Icon3 from 'react-native-vector-icons/FontAwesome';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import CreateTherapyPlan from './src/screens/Therapyplan';
 import AllPatients from './src/screens/AllPatients';
@@ -28,7 +29,8 @@ import SettingsScreen from './src/screens/settings';
 import TherapyPlanDetails from './src/screens/planDetails';
 import PaymentDetailsScreen from './src/screens/paymentpage';
 import EditTherapyPlan from './src/screens/editPlan';
-
+import AllAppointmentsPage from './src/screens/AllAppointmen';
+import DoctorPatients from './src/screens/DoctorPatients';
 
 // Import your screens...
 
@@ -96,7 +98,7 @@ const HomeStackNavigator = () => (
     />
     <Stack.Screen
       name="planDetails"
-      component={ TherapyPlanDetails}
+      component={TherapyPlanDetails}
       options={{headerShown: false}}
     />
     <Stack.Screen
@@ -129,7 +131,12 @@ const HomeStackNavigator = () => (
       component={EditDoctor}
       options={{headerShown: false}}
     />
-     <Stack.Screen
+    <Stack.Screen
+      name="MyPatient"
+      component={DoctorPatients}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
       name="EditTherapyPlan"
       component={EditTherapyPlan}
       options={{headerShown: false}}
@@ -152,7 +159,7 @@ const TabNavigator = () => (
         height: 60,
         paddingBottom: 5,
       },
-      tabBarHideOnKeyboard:true
+      tabBarHideOnKeyboard: true,
     }}>
     <Tab.Screen
       name="HomeStackNavigator"
@@ -161,6 +168,16 @@ const TabNavigator = () => (
         headerShown: false,
         tabBarIcon: ({color, size}) => (
           <Icon name="home-outline" color={color} size={size} />
+        ),
+      }}
+    />
+    <Tab.Screen
+      name="AllAppointments"
+      component={AllAppointmentsPage}
+      options={{
+        headerShown: false,
+        tabBarIcon: ({color, size}) => (
+          <Icon3 name="calendar" color={color} size={size} />
         ),
       }}
     />

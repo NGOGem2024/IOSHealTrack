@@ -150,6 +150,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
 
     if (
       patientData.referral_source !== 'Social Media' &&
+      patientData.referral_source !== 'walkin' &&
       !patientData.referral_details
     ) {
       handleError(new Error('Please enter referral details'));
@@ -325,6 +326,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
                         label: 'Hospital Reference',
                         value: 'Hospital Reference',
                       },
+                      {label: 'walkin', value: 'walkin'},
                       {label: 'Doctor Reference', value: 'Doctor Reference'},
                       {label: 'Other', value: 'Other'},
                     ]}
@@ -336,7 +338,8 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
               </Animatable.View>
 
               {patientData.referral_source &&
-                patientData.referral_source !== 'Social Media' && (
+                patientData.referral_source !== 'Social Media' &&
+                patientData.referral_source !== 'walkin' && (
                   <Animatable.View
                     animation="fadeInUp"
                     style={styles.inputContainer}>

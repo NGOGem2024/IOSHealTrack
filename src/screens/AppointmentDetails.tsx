@@ -13,7 +13,6 @@ import {
   Easing,
   BackHandler,
   Linking,
-  SafeAreaView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTheme} from './ThemeContext';
@@ -25,6 +24,7 @@ import {RootStackParamList} from '../types/types';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 interface AppointmentDetailsScreenProps {
   appointment: {
@@ -325,7 +325,13 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.headerText}>Appointment Details</Text>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+            <MaterialIcons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Appointment Details</Text>
+          <View style={styles.headerRight} />
+        </View>
         <View style={styles.dateContainer}>
           {isStarted ? (
             <Text style={styles.dateText}>{`${appointment.patient_name}`}</Text>
@@ -337,7 +343,14 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
         </View>
 
         <View style={styles.detailsContainer}>
-          {!isStarted && (
+          {isCompleted ? (
+            <View style={styles.completedContainer}>
+              <Text style={styles.completedText}>Session Completed</Text>
+              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                <Text style={styles.buttonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          ) : !isStarted ? (
             <>
               <View style={styles.card}>
                 <Text style={styles.detailTitle}>Patient Name</Text>
@@ -393,9 +406,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                 <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
             </>
-          )}
-
-          {isStarted && (
+          ) : (
             <View style={styles.timerContainer}>
               <Animated.View style={styles.timerRing}>
                 <View style={styles.timerInnerRing}>
@@ -460,7 +471,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     safeArea: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: 'black',
     },
     header: {
       height: 56,

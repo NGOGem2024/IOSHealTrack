@@ -4,8 +4,7 @@ import {useSession} from '../context/SessionContext';
 import {Platform} from 'react-native';
 
 const instance = axios.create({
-  baseURL: 'https://healtrackapp-production-b2ab.up.railway.app',
-  timeout: 15000,
+  baseURL: 'http://192.168.102.43:5000',
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',

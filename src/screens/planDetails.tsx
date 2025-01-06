@@ -448,7 +448,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     safeArea: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: 'black',
     },
     container: {
       flex: 1,

@@ -47,12 +47,8 @@ const DAYS_TO_LOAD = 7; // Number of days to load at once
 const AllAppointmentsPage: React.FC = () => {
   const {theme} = useTheme();
   const insets = useSafeAreaInsets();
-  const styles = getStyles(
-    getTheme(
-      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
-    ),
-    insets,
-  );
+  const isDarkMode = theme.name === 'dark';
+  const styles = getStyles(getTheme(theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark'), insets, isDarkMode);
 
   const [data, setData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,13 +126,23 @@ const AllAppointmentsPage: React.FC = () => {
     }
   };
   const getStatusColor = (status?: string) => {
+    const colors = isDarkMode ? {
+      completed: '#66BB6A',  
+      in_progress: '#FFB74D',  
+      default: '#4DD0E1'  
+    } : {
+      completed: '#4CAF50',
+      in_progress: '#FFA726',
+      default: '#119FB3'
+    };
+
     switch (status?.toLowerCase()) {
       case 'completed':
-        return '#4CAF50'; // Green
+        return colors.completed;
       case 'in_progress':
-        return '#FFA726'; // Yellow/Orange
+        return colors.in_progress;
       default:
-        return '#119FB3'; // Default blue
+        return colors.default;
     }
   };
   const formatDate = (date: Date) => {
@@ -249,7 +255,10 @@ const AllAppointmentsPage: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="black" />
+      <StatusBar 
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={isDarkMode ? "#121212" : "white"}
+      />
       <BackTabTop screenName="Appointments" />
 
       <FlatList
@@ -280,22 +289,23 @@ const AllAppointmentsPage: React.FC = () => {
   );
 };
 
-const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
+const getStyles = (theme: ReturnType<typeof getTheme>, insets: any, isDarkMode: boolean) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: '#F5F6FA',
+      // backgroundColor: isDarkMode ? '#121212' : '#F5F6FA',
+      backgroundColor: '#119FB3',
     },
     header: {
-      backgroundColor: '#119FB3',
+      backgroundColor: isDarkMode ? '#1E1E1E' : '#119FB3',
       justifyContent: 'flex-end',
       paddingHorizontal: 20,
       borderBottomLeftRadius: 30,
       borderBottomRightRadius: 30,
       elevation: 4,
-      shadowColor: '#000',
+      shadowColor: isDarkMode ? '#000' : '#000',
       shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.2,
+      shadowOpacity: isDarkMode ? 0.4 : 0.2,
       shadowRadius: 4,
       zIndex: 1000,
     },
@@ -323,7 +333,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     daySectionHeader: {
       fontSize: 20,
       fontWeight: 'bold',
-      color: '#2C3E50',
+      color: isDarkMode ? 'white': 'black',
       marginBottom: 12,
       paddingHorizontal: 16,
     },
@@ -336,11 +346,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+      backgroundColor: isDarkMode ? '#121212' : '#F5F6FA',
     },
     loadingText: {
       marginTop: 10,
       fontSize: 16,
-      color: '#119FB3',
+      color: isDarkMode ? '#4DD0E1' : '#119FB3',
     },
     loadingMore: {
       paddingVertical: 20,
@@ -350,12 +361,14 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       marginHorizontal: 16,
       marginBottom: 12,
       borderRadius: 16,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: isDarkMode ? '#233436' : '#FFFFFF',
       elevation: 4,
       shadowColor: '#000',
       shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.1,
+      shadowOpacity: isDarkMode ? 0.4 : 0.1,
       shadowRadius: 4,
+      borderColor: isDarkMode ? '#119FB3': 'white',
+      borderWidth: 1,
     },
     appointmentContent: {
       flexDirection: 'row',
@@ -366,16 +379,16 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       marginRight: 16,
       paddingRight: 16,
       borderRightWidth: 1,
-      borderRightColor: '#E0E0E0',
+      borderRightColor: isDarkMode ? '#669191' : '#E0E0E0',
     },
     appointmentTime: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: '#2C3E50',
+      color: isDarkMode ? '#FFFFFF' : '#2C3E50',
       marginBottom: 8,
     },
     appointmentIcon: {
-      backgroundColor: '#E8F6F8',
+      backgroundColor: isDarkMode ? '#2C2C2C' : '#E8F6F8',
       padding: 8,
       borderRadius: 12,
     },
@@ -385,21 +398,21 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     appointmentType: {
       fontSize: 16,
       fontWeight: '600',
-      color: '#2C3E50',
+      color: isDarkMode ? '#FFFFFF' : '#2C3E50',
       marginBottom: 4,
     },
     patientName: {
       fontSize: 14,
-      color: '#7F8C8D',
+      color: isDarkMode ? '#B0B0B0' : '#7F8C8D',
       marginBottom: 2,
     },
     doctorName: {
       fontSize: 14,
-      color: '#119FB3',
+      color: isDarkMode ? '#4DD0E1' : '#119FB3',
       marginBottom: 8,
     },
     noAppointmentsContainer: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: isDarkMode ? '#233436' : '#FFFFFF',
       borderRadius: 16,
       padding: 24,
       marginHorizontal: 16,
@@ -407,19 +420,21 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       elevation: 2,
       shadowColor: '#000',
       shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.1,
+      shadowOpacity: isDarkMode ? 0.4 : 0.1,
       shadowRadius: 4,
+      borderColor: isDarkMode ? '#119FB3': 'white',
+      borderWidth: 1,
     },
     noAppointmentsText: {
       fontSize: 18,
       fontWeight: '600',
-      color: '#2C3E50',
+      color: isDarkMode ? '#FFFFFF' : '#2C3E50',
       marginTop: 12,
       marginBottom: 4,
     },
     noAppointmentsSubText: {
       fontSize: 14,
-      color: '#7F8C8D',
+      color: isDarkMode ? '#B0B0B0' : '#7F8C8D',
       textAlign: 'center',
     },
     statusBadge: {

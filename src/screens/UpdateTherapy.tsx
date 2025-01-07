@@ -468,7 +468,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
       <ImageBackground
         source={require('../assets/bac2.jpg')}
         style={styles.backgroundImage}>
-        <BackTabTop screenName="Sessions" />
+        <BackTabTop screenName="Appointments" />
         <View style={styles.container}>
           {error && <Text style={styles.error}>{error}</Text>}
 
@@ -477,10 +477,10 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
             style={styles.dropdownButton}>
             <Text style={styles.dropdownButtonText}>
             {selectedView === "all"
-              ? "All Sessions"
+              ? "All Appointments"
               : selectedView === "past"
-              ? "Past Sessions"
-              : "Upcoming Sessions"}
+              ? "Past Appointments"
+              : "Upcoming Appointments"}
           </Text>
             <Icon
               name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
@@ -505,7 +505,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
                     : styles.dropdownText
                 }
               >
-                All Sessions
+                All Appointments
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -522,7 +522,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
                     : styles.dropdownText
                 }
               >
-                Past Sessions
+                Past Appointments
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -539,7 +539,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
                     : styles.dropdownText
                 }
               >
-                Upcoming Sessions
+                Upcoming Appointments
               </Text>
             </TouchableOpacity>
           </View>

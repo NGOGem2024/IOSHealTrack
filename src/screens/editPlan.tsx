@@ -22,6 +22,7 @@ import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import TherapyCategoryDropdown from './TherapyCategoryDropdown';
+import {useSession} from '../context/SessionContext';
 
 type EditTherapyPlanScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -48,6 +49,19 @@ type DropdownProps = {
   onValueChange: (itemValue: string) => void;
   items: string[];
 };
+type TherapyPlanType = {
+  patient_diagnosis: string;
+  patient_symptoms: string;
+  therapy_duration: string;
+  therapy_category: string;
+  total_amount: string;
+  received_amount: string;
+  therapy_name: string;
+  balance: string;
+  payment_type: string;
+  per_session_amount: string;
+  estimated_sessions: string;
+};
 
 const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   navigation,
@@ -56,7 +70,8 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [patientName, setPatientName] = useState('');
-  const [therapyPlan, setTherapyPlan] = useState({
+  const {session} = useSession();
+  const [therapyPlan, setTherapyPlan] = useState<TherapyPlanType>({
     patient_diagnosis: '',
     patient_symptoms: '',
     therapy_duration: '',
@@ -68,6 +83,28 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     payment_type: 'recurring',
     per_session_amount: '',
     estimated_sessions: '',
+  });
+
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [initialTherapyPlan, setInitialTherapyPlan] = useState<TherapyPlanType>(
+    {
+      patient_diagnosis: '',
+      patient_symptoms: '',
+      therapy_duration: '',
+      therapy_category: '',
+      total_amount: '',
+      received_amount: '',
+      therapy_name: '',
+      balance: '',
+      payment_type: 'recurring',
+      per_session_amount: '',
+      estimated_sessions: '',
+    },
+  );
+
+  const [initialDates, setInitialDates] = useState({
+    startDate: new Date(),
+    endDate: new Date(),
   });
   const {planId} = route.params;
 
@@ -112,7 +149,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
       const response = await axiosInstance.get(`/get/plan/${planId}`);
       const {therapy_plan, patient_name} = response.data;
 
-      setTherapyPlan({
+      const therapyPlanData = {
         therapy_name: therapy_plan.therapy_name,
         patient_diagnosis: therapy_plan.patient_diagnosis,
         patient_symptoms: therapy_plan.patient_symptoms,
@@ -128,10 +165,21 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
         estimated_sessions: therapy_plan.estimated_sessions
           ? therapy_plan.estimated_sessions.toString()
           : '',
+      };
+
+      setTherapyPlan(therapyPlanData);
+      setInitialTherapyPlan(therapyPlanData);
+
+      const startDateValue = new Date(therapy_plan.therapy_start);
+      const endDateValue = new Date(therapy_plan.therapy_end);
+
+      setStartDate(startDateValue);
+      setEndDate(endDateValue);
+      setInitialDates({
+        startDate: startDateValue,
+        endDate: endDateValue,
       });
 
-      setStartDate(new Date(therapy_plan.therapy_start));
-      setEndDate(new Date(therapy_plan.therapy_end));
       setPatientName(patient_name);
     } catch (error) {
       handleError(error);
@@ -202,11 +250,13 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     if (!therapyPlan.therapy_name.trim()) {
       newErrors.therapy_name = 'Therapy name is required';
     }
-    if (!therapyPlan.patient_symptoms.trim()) {
-      newErrors.patient_symptoms = 'Patient symptoms are required';
-    }
-    if (!therapyPlan.patient_diagnosis.trim()) {
-      newErrors.patient_diagnosis = 'Patient diagnosis is required';
+    if (!session.is_admin) {
+      if (!therapyPlan.patient_symptoms.trim()) {
+        newErrors.patient_symptoms = 'Patient symptoms are required';
+      }
+      if (!therapyPlan.patient_diagnosis.trim()) {
+        newErrors.patient_diagnosis = 'Patient diagnosis is required';
+      }
     }
     if (!therapyPlan.therapy_category) {
       newErrors.therapy_category = 'Therapy category is required';
@@ -250,6 +300,101 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+  useEffect(() => {
+    if (initialTherapyPlan) {
+      const hasChanges =
+        JSON.stringify(therapyPlan) !== JSON.stringify(initialTherapyPlan) ||
+        startDate.getTime() !== initialDates.startDate.getTime() ||
+        endDate.getTime() !== initialDates.endDate.getTime();
+      setHasUnsavedChanges(hasChanges);
+    }
+  }, [therapyPlan, startDate, endDate, initialTherapyPlan, initialDates]);
+
+  // Add navigation prevention
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', e => {
+      if (!hasUnsavedChanges) {
+        return;
+      }
+
+      e.preventDefault();
+
+      Alert.alert(
+        'Discard changes?',
+        'You have unsaved changes. Are you sure you want to discard them and leave the screen?',
+        [
+          {text: "Don't leave", style: 'cancel', onPress: () => {}},
+          {
+            text: 'Discard',
+            style: 'destructive',
+            onPress: () => navigation.dispatch(e.data.action),
+          },
+        ],
+      );
+    });
+
+    return unsubscribe;
+  }, [navigation, hasUnsavedChanges]);
+
+  const handleDiscardChanges = () => {
+    Alert.alert(
+      'Discard Changes',
+      'Are you sure you want to discard all changes?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Discard',
+          style: 'destructive',
+          onPress: () => {
+            setTherapyPlan(initialTherapyPlan);
+            setStartDate(initialDates.startDate);
+            setEndDate(initialDates.endDate);
+            setErrors({});
+            setHasUnsavedChanges(false);
+          },
+        },
+      ],
+    );
+  };
+
+  // Replace the existing save button with a button row
+  const renderButtons = () => (
+    <View style={styles.buttonRow}>
+      <TouchableOpacity
+        style={[
+          styles.button,
+          styles.discardButton,
+          !hasUnsavedChanges || isSaving ? styles.disabledButton : null,
+        ]}
+        onPress={handleDiscardChanges}
+        disabled={!hasUnsavedChanges || isSaving}>
+        <MaterialIcons name="cancel" size={20} color="#FF6B6B" />
+        <Text style={[styles.buttonText, styles.discardButtonText]}>
+          Discard
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.button,
+          styles.saveButton,
+          !hasUnsavedChanges || isSaving ? styles.disabledButton : null,
+        ]}
+        onPress={handleUpdateTherapyPlan}
+        disabled={!hasUnsavedChanges || isSaving}>
+        {isSaving ? (
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        ) : (
+          <>
+            <MaterialIcons name="check-circle" size={20} color="#FFFFFF" />
+            <Text style={[styles.buttonText, styles.saveButtonText]}>Save</Text>
+          </>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
 
   const handleUpdateTherapyPlan = async () => {
     setIsSaving(true);
@@ -284,6 +429,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
       );
 
       if (response.status === 200) {
+        setHasUnsavedChanges(false);
         showSuccessToast('Therapy plan updated successfully');
         navigation.goBack();
       } else {
@@ -321,8 +467,8 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   }
   return (
     <SafeAreaView style={styles.safeArea}>
+      <BackTabTop screenName="Edit Plan" />
       <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
-        <BackTabTop screenName="Edit Plan" />
         <Animated.View
           style={[
             styles.container,
@@ -514,15 +660,6 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
           )}
 
           <View style={styles.balanceContainer}>
-            <FontAwesome name="rupee" size={24} color="#119FB3" />
-            <Text style={styles.balanceValue}>
-              Received: {therapyPlan.received_amount} Rs
-            </Text>
-          </View>
-          {errors.received_amount && (
-            <Text style={styles.errorText}>{errors.received_amount}</Text>
-          )}
-          <View style={styles.balanceContainer}>
             <MaterialIcons name="account-balance" size={24} color="#119FB3" />
             <Text style={styles.balanceValue}>
               Balance: {therapyPlan.balance} Rs
@@ -533,16 +670,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
             <Text style={styles.errorText}>{errors.submit}</Text>
           )}
 
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={handleUpdateTherapyPlan}
-            disabled={isLoading}>
-            {isSaving ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={styles.saveButtonText}>Edit Plan</Text>
-            )}
-          </TouchableOpacity>
+          {renderButtons()}
         </Animated.View>
       </ScrollView>
     </SafeAreaView>
@@ -619,6 +747,53 @@ const Dropdown: React.FC<DropdownProps> = ({value, onValueChange, items}) => (
 const styles = StyleSheet.create({
   paymentTypeContainer: {
     marginBottom: 20,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    marginBottom: 30,
+    paddingHorizontal: 10,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    flex: 0.48,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  saveButton: {
+    backgroundColor: '#119FB3',
+  },
+  saveButtonText: {
+    color: '#FFFFFF',
+  },
+  discardButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#FF6B6B',
+  },
+  discardButtonText: {
+    color: '#FF6B6B',
+  },
+  disabledButton: {
+    opacity: 0.5,
+    elevation: 0,
   },
   radioGroup: {
     flexDirection: 'row',
@@ -787,20 +962,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 10,
     color: '#333333',
-  },
-  saveButton: {
-    backgroundColor: '#119FB3',
-    paddingVertical: 12,
-    borderRadius: 10,
-    width: '50%',
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginTop: 20,
-  },
-  saveButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   picker: {
     flex: 1,

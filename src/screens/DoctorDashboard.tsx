@@ -157,15 +157,36 @@ const DoctorDashboard: React.FC = () => {
     }
   };
   useEffect(() => {
-    if (session.idToken) {
-      fetchDoctorInfo();
-      fetchAppointments();
-      fetchAllAppointments();
-    } else {
-      setDoctorLoading(false);
-      setAppointmentsLoading(false);
-    }
-  }, [session.idToken]);
+    const loadInitialData = async () => {
+      if (!session.idToken) return;
+
+      setDoctorLoading(true);
+      setAppointmentsLoading(true);
+      try {
+        await Promise.all([
+          fetchDoctorInfo(),
+          fetchAppointments(),
+          fetchAllAppointments(),
+        ]);
+      } finally {
+        setDoctorLoading(false);
+        setAppointmentsLoading(false);
+      }
+    };
+
+    loadInitialData();
+
+    // Add focus listener to refresh appointment data when screen comes into focus
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (session.idToken) {
+        fetchAppointments();
+        fetchAllAppointments();
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return unsubscribe;
+  }, [session.idToken, navigation]);
 
   const onRefresh = async () => {
     setRefreshing(true);

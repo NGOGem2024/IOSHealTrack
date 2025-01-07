@@ -35,6 +35,10 @@ import {getTheme} from '../Theme';
 import {useTheme} from '../ThemeContext';
 
 type PatientScreenProps = StackScreenProps<RootStackParamList, 'Patient'>;
+interface TherapySession {
+  _id: string;
+  status: string;
+}
 
 interface TherapyPlan {
   _id: string;
@@ -48,27 +52,47 @@ interface TherapyPlan {
   total_amount: string;
   received_amount: string;
   balance: string;
+  therapy_sessions?: TherapySession[];
+  estimated_sessions?: number;
 }
-const calculateTherapyProgress = (
-  startDate: string,
-  endDate: string,
-): number => {
-  const start = new Date(startDate).getTime();
-  const end = new Date(endDate).getTime();
-  const now = new Date().getTime();
 
-  // If the therapy hasn't started yet
-  if (now < start) return 0;
+const calculateTherapyProgress = (therapyPlan: TherapyPlan): number => {
+  try {
+    // Guard clause - return 0 if plan doesn't exist or is invalid
+    if (!therapyPlan) return 0;
 
-  // If the therapy has already ended
-  if (now > end) return 100;
+    // Check if therapy_sessions exists and is an array
+    if (
+      !therapyPlan.therapy_sessions ||
+      !Array.isArray(therapyPlan.therapy_sessions)
+    ) {
+      return 0;
+    }
 
-  // Calculate the progress percentage
-  const totalDuration = end - start;
-  const elapsedDuration = now - start;
-  const progressPercentage = (elapsedDuration / totalDuration) * 100;
+    // Check if estimated_sessions exists and is a valid number
+    if (
+      !therapyPlan.estimated_sessions ||
+      typeof therapyPlan.estimated_sessions !== 'number' ||
+      therapyPlan.estimated_sessions <= 0
+    ) {
+      return 0;
+    }
 
-  return Math.min(Math.max(progressPercentage, 0), 100);
+    // Safely count completed sessions
+    const completedSessions = therapyPlan.therapy_sessions.filter(
+      session => session && session.status === 'Completed',
+    ).length;
+
+    // Calculate progress percentage
+    const progress = (completedSessions / therapyPlan.estimated_sessions) * 100;
+
+    // Ensure progress is between 0 and 100 and is a valid number
+    return Number.isFinite(progress) ? Math.min(Math.max(progress, 0), 100) : 0;
+  } catch (error) {
+    // If anything goes wrong, return 0 instead of breaking
+    console.warn('Error calculating therapy progress:', error);
+    return 0;
+  }
 };
 
 interface PatientData {
@@ -90,11 +114,13 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
     ),
   );
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [patientData, setPatientData] = useState<PatientData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const fetchPatientData = async () => {
     if (!session.idToken) return;
+    setIsRefreshing(true); // Show loading indicator during refresh
     try {
       const response = await axiosInstance.get(`/patient/${patientId}`, {
         headers: {
@@ -105,6 +131,8 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
       setPatientData(response.data.patientData);
     } catch (error) {
       handleError(error);
+    } finally {
+      setIsRefreshing(false); // Hide loading indicator after refresh
     }
   };
 
@@ -242,7 +270,11 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             </TouchableOpacity>
           </View>
         </View>
-
+        {isRefreshing && (
+          <View style={styles.refreshLoadingContainer}>
+            <ActivityIndicator size="small" color="black" />
+          </View>
+        )}
         {/* Therapy Plans Card */}
         {patientData?.therapy_plans && patientData.therapy_plans.length > 0 && (
           <View style={styles.card}>
@@ -251,10 +283,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
               .slice()
               .reverse()
               .map((plan, index) => {
-                const progressPercentage = calculateTherapyProgress(
-                  plan.therapy_start,
-                  plan.therapy_end,
-                );
+                const progressPercentage = calculateTherapyProgress(plan);
 
                 return (
                   <TouchableOpacity
@@ -363,6 +392,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: '#119FB3',
+    },
+    refreshLoadingContainer: {
+      padding: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
     },
     loadingText: {
       marginTop: 10,

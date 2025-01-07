@@ -216,7 +216,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
                 })
               }>
               <Ionicons name="clipboard" size={24} color="#6A0DAD" />
-              <Text style={styles.quickActionText}>Therapy Plan</Text>
+              <Text style={styles.quickActionText}>Create Therapy</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -227,7 +227,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
                 })
               }>
               <MaterialCommunityIcons name="file" size={24} color="#6e54ef" />
-              <Text style={styles.quickActionText}>Appointment</Text>
+              <Text style={styles.quickActionText}>Book Appointment</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -238,7 +238,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
                 })
               }>
               <Ionicons name="medical" size={24} color="#55b55b" />
-              <Text style={styles.quickActionText}>Sessions</Text>
+              <Text style={styles.quickActionText}>Appointments</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -407,7 +407,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 16,
+      marginBottom: 5,
     },
     patientName: {
       fontSize: 24,

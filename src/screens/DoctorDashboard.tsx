@@ -408,7 +408,7 @@ const DoctorDashboard: React.FC = () => {
               <Text style={styles.statNumber}>
                 {doctorInfo?.patients?.length || 0}
               </Text>
-              <Text style={styles.statLabel}>Patients Joined</Text>
+              <Text style={styles.statLabel}>My Patients</Text>
             </View>
           </TouchableOpacity>
           <View style={styles.statDivider} />
@@ -738,7 +738,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       fontSize: 28,
       fontWeight: 'bold',
       // color: theme.colors.primary,
-      color: '#FFFFF',
+      color: '#1f1311',
     },
     statLabel: {
       fontSize: 14,

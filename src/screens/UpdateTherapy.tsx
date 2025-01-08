@@ -555,7 +555,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
               renderItem={renderTherapyItem}
               ListEmptyComponent={
                 <Text style={styles.noTherapyText}>
-                No {selectedView === "all" ? "" : selectedView} sessions
+                No {selectedView === "all" ? "" : selectedView} Appointments
                 available
               </Text>
               }

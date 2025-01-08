@@ -35,6 +35,7 @@ import BackTabTop from './BackTopTab';
 import AppointmentDetails from './AppointmentDetails';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface Therapy {
   _id: string;
@@ -409,7 +410,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
             <TouchableOpacity
               style={styles.editButton}
               onPress={() => handleEditTherapy(item)}>
-              <MaterialIcons name="edit" size={24} color="#119FB3" />
+              <MaterialCommunityIcons name="square-edit-outline" size={24} color="#119FB3" />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.deleteButton}

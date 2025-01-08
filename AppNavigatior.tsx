@@ -31,6 +31,7 @@ import PaymentDetailsScreen from './src/screens/paymentpage';
 import EditTherapyPlan from './src/screens/editPlan';
 import AllAppointmentsPage from './src/screens/AllAppointmen';
 import DoctorPatients from './src/screens/DoctorPatients';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Import your screens...
 
@@ -197,7 +198,7 @@ const TabNavigator = () => (
       options={{
         headerShown: false,
         tabBarIcon: ({color, size}) => (
-          <Icon2 name="edit-2" color={color} size={size} />
+          <MaterialCommunityIcons name="square-edit-outline" color={color} size={size} />
         ),
       }}
     />

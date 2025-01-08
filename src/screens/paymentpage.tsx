@@ -438,7 +438,7 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
                         patientId: patientId,
                       });
                     }}>
-                    <Text style={styles.buttonText}>Set up an Appointment</Text>
+                    <Text style={styles.buttonText}>Next Appointment</Text>
                   </TouchableOpacity>
                 </View>
               </View>

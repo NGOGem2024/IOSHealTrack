@@ -22,7 +22,6 @@ import NoAppointmentsPopup from './Noappointmentspopup';
 import BackTabTop from './BackTopTab';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/types';
-import {ScrollView} from 'react-native-gesture-handler';
 
 type Props = NativeStackScreenProps<RootStackParamList>;
 
@@ -61,6 +60,8 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
     isDarkMode,
   );
 
+  const [isAppointmentModalVisible, setIsAppointmentModalVisible] =
+    useState(false);
   const [data, setData] = useState<DayData[]>([]);
   const [hasMorePast, setHasMorePast] = useState(true);
   const [hasMoreFuture, setHasMoreFuture] = useState(true);
@@ -192,6 +193,20 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       </TouchableOpacity>
     );
   };
+
+  const renderStartButton = (appointment: Appointment) => (
+    <TouchableOpacity
+      onPress={(e) => {
+        e.stopPropagation(); // Prevent event bubbling
+        setSelectedAppointment(appointment);
+        setIsAppointmentModalVisible(true);
+      }}
+      activeOpacity={0.7}
+      style={styles.startButtonContainer}>
+      <Icon name="play" size={12} color="black" />
+      <Text style={styles.startButtonText}>Start</Text>
+    </TouchableOpacity>
+  );
   const loadMoreDays = async (direction: 'past' | 'future') => {
     if (
       loadingMore ||
@@ -242,6 +257,10 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
     } finally {
       setLoadingMore(false);
     }
+  };
+  const closeAppointmentModal = () => {
+    setIsAppointmentModalVisible(false);
+    setSelectedAppointment(null);
   };
 
   useEffect(() => {
@@ -294,54 +313,63 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
 
   const renderAppointment = ({item}: {item: Appointment}) => (
     <Animated.View style={[styles.appointmentItem]}>
-      <TouchableOpacity
-        style={styles.appointmentContent}
-        onPress={() => {
-          setSelectedAppointment(item);
-          navigation.navigate('Patient', {
-            patientId: item.patient_id,
-          });
-        }}>
-        <View style={styles.timeContainer}>
-          <Text style={styles.appointmentTime}>{item.therepy_start_time}</Text>
-          <Icon
-            name={
-              item.therepy_type.toLowerCase().includes('video')
-                ? 'videocam'
-                : 'person'
-            }
-            size={24}
-            color="#119FB3"
-            style={styles.appointmentIcon}
-          />
-        </View>
-
-        <View style={styles.appointmentInfo}>
-          <Text style={styles.appointmentType}>{item.therepy_type}</Text>
-          {item.patient_name && (
-            <Text style={styles.patientName} numberOfLines={1}>
-              {item.patient_name}
-            </Text>
-          )}
-          {item.doctor_name && (
-            <Text style={styles.doctorName} numberOfLines={1}>
-              Dr. {item.doctor_name}
-            </Text>
-          )}
-          <View
-            style={[
-              styles.statusBadge,
-              {
-                backgroundColor: getStatusColor(item.status),
-              },
-            ]}>
-            <Text style={styles.statusText}>{item.status || 'Scheduled'}</Text>
+      <View style={styles.appointmentContent}>
+        <TouchableOpacity
+          style={styles.mainContentTouchable}
+          onPress={() => {
+            navigation.navigate('Patient', {
+              patientId: item.patient_id,
+            });
+          }}>
+          <View style={styles.timeContainer}>
+            <Text style={styles.appointmentTime}>{item.therepy_start_time}</Text>
+            <Icon
+              name={
+                item.therepy_type.toLowerCase().includes('video')
+                  ? 'videocam'
+                  : 'person'
+              }
+              size={24}
+              color="#119FB3"
+              style={styles.appointmentIcon}
+            />
           </View>
-        </View>
-      </TouchableOpacity>
+
+          <View style={styles.appointmentInfo}>
+            <View style={styles.typeAndButtonContainer}>
+              <Text style={styles.appointmentType}>{item.therepy_type}</Text>
+              {(!item.status || item.status.toLowerCase() !== 'completed') &&
+                renderStartButton(item)}
+            </View>
+
+            {item.patient_name && (
+              <Text style={styles.patientName} numberOfLines={1}>
+                {item.patient_name}
+              </Text>
+            )}
+            {item.doctor_name && (
+              <Text style={styles.doctorName} numberOfLines={1}>
+                Dr. {item.doctor_name}
+              </Text>
+            )}
+            <View style={styles.appointmentActions}>
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: getStatusColor(item.status),
+                  },
+                ]}>
+                <Text style={styles.statusText}>
+                  {item.status || 'Scheduled'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
     </Animated.View>
   );
-
   const renderNoAppointments = () => (
     <View style={styles.noAppointmentsContainer}>
       <Icon name="calendar-outline" size={48} color="#119FB3" />
@@ -426,6 +454,14 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
           ]}
         />
       </View>
+      {isAppointmentModalVisible && selectedAppointment && (
+        <View style={styles.fullScreenModal}>
+          <AppointmentDetailsScreen
+            appointment={selectedAppointment}
+            onClose={closeAppointmentModal}
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -440,8 +476,67 @@ const getStyles = (
       flex: 1,
       backgroundColor: 'black',
     },
+    mainContentTouchable: {
+      flex: 1,
+      flexDirection: 'row',
+    },
+    startButtonContainer: {
+      backgroundColor: '#aeebbd',
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      borderRadius: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 2,
+      position: 'absolute',  
+      right: 2,  
+      zIndex: 2,     
+      //elevation: 5,     
+      top: '20%',           
+      transform: [{translateY: 22}, {translateX: 25}], 
+    },
+    startButtonText: {
+      color: 'black',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    fullScreenModal: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'white',
+      zIndex: 1000,
+    },
+    typeAndButtonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 4,
+      width: '85%',
+    },
+    appointmentContent: {
+      flex: 1,
+      padding: 16,
+      position: 'relative',
+    },
+    appointmentActions: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    startButton: {
+      backgroundColor: '#27ae60',
+      paddingHorizontal: 16,
+      paddingVertical: 6,
+      borderRadius: 12,
+      marginLeft: 8,
+    },
     loadPreviousButton: {
-      backgroundColor: '#119FB3',
+      backgroundColor: '#0d7685',
       marginHorizontal: 16,
       marginVertical: 8,
       borderRadius: 12,
@@ -500,7 +595,7 @@ const getStyles = (
       paddingTop: 16,
     },
     daySection: {
-      marginBottom: 24,
+      marginBottom: 20,
     },
     daySectionHeader: {
       fontSize: 20,
@@ -542,10 +637,7 @@ const getStyles = (
       borderColor: isDarkMode ? '#119FB3' : 'white',
       borderWidth: 1,
     },
-    appointmentContent: {
-      flexDirection: 'row',
-      padding: 16,
-    },
+   
     timeContainer: {
       alignItems: 'center',
       marginRight: 16,
@@ -598,7 +690,7 @@ const getStyles = (
       shadowRadius: 4,
       borderColor: isDarkMode ? '#119FB3' : 'white',
       borderWidth: 1,
-      minHeight: 200,
+      minHeight: 150,
     },
     noAppointmentsText: {
       fontSize: 18,

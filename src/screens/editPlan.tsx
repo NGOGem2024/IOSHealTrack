@@ -659,12 +659,6 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
             <Text style={styles.errorText}>{errors.total_amount}</Text>
           )}
 
-          <View style={styles.balanceContainer}>
-            <MaterialIcons name="account-balance" size={24} color="#119FB3" />
-            <Text style={styles.balanceValue}>
-              Balance: {therapyPlan.balance} Rs
-            </Text>
-          </View>
 
           {errors.submit && (
             <Text style={styles.errorText}>{errors.submit}</Text>

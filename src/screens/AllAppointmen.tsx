@@ -194,19 +194,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
     );
   };
 
-  const renderStartButton = (appointment: Appointment) => (
-    <TouchableOpacity
-      onPress={(e) => {
-        e.stopPropagation(); // Prevent event bubbling
-        setSelectedAppointment(appointment);
-        setIsAppointmentModalVisible(true);
-      }}
-      activeOpacity={0.7}
-      style={styles.startButtonContainer}>
-      <Icon name="play" size={12} color="black" />
-      <Text style={styles.startButtonText}>Start</Text>
-    </TouchableOpacity>
-  );
+ 
   const loadMoreDays = async (direction: 'past' | 'future') => {
     if (
       loadingMore ||
@@ -310,6 +298,19 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       day: 'numeric',
     });
   };
+  const renderStartButton = (appointment: Appointment) => (
+    <TouchableOpacity
+      onPress={(e) => {
+        e.stopPropagation(); // Prevent event bubbling
+        setSelectedAppointment(appointment);
+        setIsAppointmentModalVisible(true);
+      }}
+      activeOpacity={0.7}
+      style={styles.startButtonContainer}>
+      <Icon name="play" size={12} color="black" />
+      <Text style={styles.startButtonText}>Start</Text>
+    </TouchableOpacity>
+  );
 
   const renderAppointment = ({item}: {item: Appointment}) => (
     <Animated.View style={[styles.appointmentItem]}>
@@ -317,7 +318,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
         <TouchableOpacity
           style={styles.mainContentTouchable}
           onPress={() => {
-            navigation.navigate('Patient', {
+            navigation.navigate('UpdateTherapy', {
               patientId: item.patient_id,
             });
           }}>
@@ -475,11 +476,17 @@ const getStyles = (
     safeArea: {
       flex: 1,
       backgroundColor: 'black',
-    },
-    mainContentTouchable: {
+    },   mainContentTouchable: {
       flex: 1,
       flexDirection: 'row',
     },
+    
+    appointmentContent: {
+      flex: 1,
+      padding: 16,
+      position: 'relative',
+    },
+
     startButtonContainer: {
       backgroundColor: '#aeebbd',
       paddingHorizontal: 10,
@@ -489,10 +496,10 @@ const getStyles = (
       alignItems: 'center',
       justifyContent: 'center',
       gap: 2,
+      zIndex: 2, // Ensure button is above other elements
+      elevation: 2, // For Android
       position: 'absolute',  
-      right: 2,  
-      zIndex: 2,     
-      //elevation: 5,     
+      right: 2,            
       top: '20%',           
       transform: [{translateY: 22}, {translateX: 25}], 
     },
@@ -517,11 +524,7 @@ const getStyles = (
       marginBottom: 4,
       width: '85%',
     },
-    appointmentContent: {
-      flex: 1,
-      padding: 16,
-      position: 'relative',
-    },
+    
     appointmentActions: {
       flexDirection: 'row',
       justifyContent: 'space-between',

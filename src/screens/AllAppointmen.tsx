@@ -277,6 +277,22 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
         return colors.default;
     }
   };
+  const getFormattedStatus = (status?: string) => {
+    if (!status) return 'Scheduled';
+
+    switch (status.toLowerCase()) {
+      case 'in_progress':
+        return 'In Progress';
+      default:
+        // Capitalize first letter of each word
+        return status
+          .split('_')
+          .map(
+            word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+          )
+          .join(' ');
+    }
+  };
   const formatDate = (date: Date) => {
     const today = new Date();
     const tomorrow = new Date(today);
@@ -554,9 +570,11 @@ const getStyles = (
       alignItems: 'center',
       justifyContent: 'center',
       padding: 12,
+      borderRadius: 5,
+      backgroundColor: theme.colors.card,
     },
     loadPreviousText: {
-      color: '#FFFFFF',
+      color: theme.colors.text,
       fontSize: 16,
       fontWeight: '600',
       marginLeft: 8,

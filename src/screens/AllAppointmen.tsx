@@ -185,7 +185,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
             <>
-              <Icon name="chevron-up" size={20} color="#FFFFFF" />
+              <Icon name="chevron-up" size={20} color="#b7c7c9" />
               <Text style={styles.loadPreviousText}>Load Previous Days</Text>
             </>
           )}
@@ -555,7 +555,7 @@ const getStyles = (
       marginLeft: 8,
     },
     loadPreviousButton: {
-      backgroundColor: '#0d7685',
+      backgroundColor: '#306b73',
       marginHorizontal: 16,
       marginVertical: 8,
       borderRadius: 12,
@@ -569,12 +569,12 @@ const getStyles = (
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: 12,
-      borderRadius: 5,
-      backgroundColor: theme.colors.card,
+      padding: 8,
+      borderRadius: 8,
+      backgroundColor:"#306b73",
     },
     loadPreviousText: {
-      color: theme.colors.text,
+      color: '#b7c7c9',
       fontSize: 16,
       fontWeight: '600',
       marginLeft: 8,

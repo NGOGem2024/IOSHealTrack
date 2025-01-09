@@ -335,21 +335,36 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
         </View>
         <View style={styles.dateContainer}>
           <View style={styles.dateIconContainer}>
-            <Ionicons name="calendar-outline" size={20} color="#119FB3" />
-            {isStarted ? (
-              <Text
-                style={styles.dateText}>{`${appointment.patient_name}`}</Text>
+            {!isStarted ? (
+              <>
+                <Ionicons name="calendar-outline" size={20} color="#119FB3" />
+                <Text style={styles.dateText1}>
+                  {new Date(appointment.therepy_date)
+                    .toLocaleDateString("en-US", {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                    .replace(/(\d+)(?:st|nd|rd|th)/, "$1")}
+                </Text>
+              </>
             ) : (
-              <Text style={styles.dateText}>
-                {new Date(appointment.therepy_date)
-                  .toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })
-                  .replace(/(\d+)(?:st|nd|rd|th)/, '$1')}{' '}
-              </Text>
+              <View style={styles.dateTextContainer}>
+                <Text style={styles.patientNameText}>
+                  {appointment.patient_name}
+                </Text>
+                <Text style={styles.dateText}>
+                  {new Date(appointment.therepy_date)
+                    .toLocaleDateString("en-US", {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                    .replace(/(\d+)(?:st|nd|rd|th)/, "$1")}
+                </Text>
+              </View>
             )}
           </View>
         </View>
@@ -492,9 +507,29 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     dateIconContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 8,
+    },
+    dateTextContainer: {
+      flexDirection: "column",
+      gap: 4,
+    },
+    patientNameText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: "black",
+    },
+    dateText: {
+      fontSize: 14,
+      color: "#666",
+    },
+    dateText1: {
+      color: "black",
+      fontSize: 16,
+      fontWeight: "600",
+      textAlign: "left",
+      letterSpacing: 0.5,
     },
     icondesign: {
       fontSize: 18,
@@ -670,13 +705,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     uploadButtonText: {
       color: 'black',
       textAlign: 'center',
-    },
-    dateText: {
-      color: theme.colors.text, // Dark gray for better readability
-      fontSize: 16,
-      fontWeight: '600',
-      textAlign: 'left',
-      letterSpacing: 0.5,
     },
     timerLabel: {
       fontSize: 16,

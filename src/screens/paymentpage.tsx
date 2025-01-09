@@ -364,17 +364,19 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
                 </View>
               ))}
             </View>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.button, styles.closeButton]}
-                onPress={() => setIsCloseModalVisible(true)}>
-                <Text style={styles.buttonText}>Close</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.recordPaymentButton]}
-                onPress={() => setIsPaymentModalVisible(true)}>
-                <Text style={styles.buttonText}>Record Payment</Text>
-              </TouchableOpacity>
+            <View style={styles.footerContainer}>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={[styles.button, styles.closeButton]}
+                  onPress={() => setIsCloseModalVisible(true)}>
+                  <Text style={styles.buttonText}>Close</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.button, styles.recordPaymentButton]}
+                  onPress={() => setIsPaymentModalVisible(true)}>
+                  <Text style={styles.buttonText}>Record Payment</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <PaymentModal
@@ -457,6 +459,50 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: 'white',
       overflow: 'hidden',
       marginTop: 10,
+    },
+    footerContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 20,
+      width: '100%',
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%',
+      maxWidth: 500,
+      alignSelf: 'center',
+      gap: 12,
+    },
+    button: {
+      flex: 1,
+      minHeight: 48,
+      borderRadius: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    recordPaymentButton: {
+      backgroundColor: '#119FB3',
+      flex: 1.2, // Makes the Record Payment button slightly wider
+    },
+    closeButton: {
+      backgroundColor: '#6c757d',
+    },
+    buttonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: '600',
+      textAlign: 'center',
     },
     safeArea: {
       flex: 1,
@@ -578,12 +624,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: '#6c757d',
       marginBottom: 16,
     },
-    buttonText: {
-      color: 'white',
-      fontSize: 16,
-      fontWeight: 'bold',
-      textAlign: 'center',
-    },
     closeButtonText: {
       fontSize: 20,
       color: '#6c757d',
@@ -638,33 +678,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginLeft: 8,
       alignItems: 'center',
     },
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-      alignItems: 'center',
-    },
-    button: {
-      flex: 1,
-      height: 48,
-      borderRadius: 15,
-      justifyContent: 'center', // Center content vertically
-      alignItems: 'center',
-      marginHorizontal: 10,
-      // Shadow for iOS
-      shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
-    },
-    recordPaymentButton: {
-      backgroundColor: '#119FB3',
-    },
-    closeButton: {
-      backgroundColor: 'gray',
-    },
+
     closeButton1: {
       padding: 8,
       borderRadius: 20,

@@ -72,33 +72,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
   const [todayIndex, setTodayIndex] = useState<number>(0);
   const scrollY = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef<FlatList>(null);
-  const fetchAppointmentsForDateRange = async (
-    startDate: Date,
-    endDate: Date,
-  ): Promise<DayData[]> => {
-    try {
-      const formattedStartDate = startDate.toISOString().split('T')[0];
-      const formattedEndDate = endDate.toISOString().split('T')[0];
 
-      const response = await axiosInstance.post('/get/appointments/dates', {
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-      });
-
-      // Convert the grouped appointments back to your DayData format
-      const dayData: DayData[] = Object.entries(response.data.appointments).map(
-        ([date, appointments]) => ({
-          date: new Date(date),
-          appointments: appointments as Appointment[],
-        }),
-      );
-
-      return dayData;
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-      return [];
-    }
-  };
   const fetchAppointmentsForDate = async (
     date: Date,
   ): Promise<Appointment[]> => {

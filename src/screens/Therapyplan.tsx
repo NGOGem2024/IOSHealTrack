@@ -25,6 +25,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useSession} from '../context/SessionContext';
+import { useTheme } from './ThemeContext';
+import { getTheme } from './Theme';
 
 type CreateTherapyPlanProps = NativeStackScreenProps<
   RootStackParamList,
@@ -79,7 +81,12 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
+const {theme} = useTheme();
+const styles = getStyles(
+  getTheme(
+    theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+  ),
+);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(-100));
 
@@ -276,6 +283,53 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
       setIsLoading(false);
     }
   };
+  
+const InputField: React.FC<InputFieldProps> = ({
+  icon,
+  placeholder,
+  value,
+  onChangeText,
+}) => (
+  <View style={styles.inputContainer}>
+    {icon}
+    <TextInput
+      style={styles.input}
+      placeholder={placeholder}
+      value={value}
+      onChangeText={onChangeText}
+      placeholderTextColor="#A0A0A0"
+    />
+  </View>
+);
+
+const DatePickerField: React.FC<DatePickerFieldProps> = ({
+  label,
+  date,
+  showDatePicker,
+  onPress,
+  onChange,
+  isDarkMode,
+}) => (
+  <View style={styles.dateTimeBlock}>
+    <Text style={styles.dateTimeLabel}>{label}</Text>
+    <TouchableOpacity
+      style={[styles.dateTimeContainer, isDarkMode && styles.saveButtonDark1]}
+      onPress={onPress}>
+      <Text style={[styles.dateTimeText, isDarkMode && styles.textDark]}>
+        {date.toLocaleDateString()}
+      </Text>
+      <FontAwesome name="calendar" size={24} color="#119FB3" />
+    </TouchableOpacity>
+    {showDatePicker && (
+      <DateTimePicker
+        value={date}
+        mode="date"
+        display="default"
+        onChange={onChange}
+      />
+    )}
+  </View>
+);
 
   useEffect(() => {
     const total = parseFloat(therapyPlan.total_amount) || 0;
@@ -648,56 +702,11 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
       </KeyboardAwareScrollView>
     </SafeAreaView>
   );
+  
 };
 
-const InputField: React.FC<InputFieldProps> = ({
-  icon,
-  placeholder,
-  value,
-  onChangeText,
-}) => (
-  <View style={styles.inputContainer}>
-    {icon}
-    <TextInput
-      style={styles.input}
-      placeholder={placeholder}
-      value={value}
-      onChangeText={onChangeText}
-      placeholderTextColor="#A0A0A0"
-    />
-  </View>
-);
 
-const DatePickerField: React.FC<DatePickerFieldProps> = ({
-  label,
-  date,
-  showDatePicker,
-  onPress,
-  onChange,
-  isDarkMode,
-}) => (
-  <View style={styles.dateTimeBlock}>
-    <Text style={styles.dateTimeLabel}>{label}</Text>
-    <TouchableOpacity
-      style={[styles.dateTimeContainer, isDarkMode && styles.saveButtonDark1]}
-      onPress={onPress}>
-      <Text style={[styles.dateTimeText, isDarkMode && styles.textDark]}>
-        {date.toLocaleDateString()}
-      </Text>
-      <FontAwesome name="calendar" size={24} color="#119FB3" />
-    </TouchableOpacity>
-    {showDatePicker && (
-      <DateTimePicker
-        value={date}
-        mode="date"
-        display="default"
-        onChange={onChange}
-      />
-    )}
-  </View>
-);
-
-const styles = StyleSheet.create({
+const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   saveButtonDark1: {
     backgroundColor: '#333333',
   },
@@ -913,7 +922,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     marginLeft: 10,
-    color: 'white',
+    color:theme.colors.text ,
     fontSize: 16,
     paddingVertical: 12,
   },

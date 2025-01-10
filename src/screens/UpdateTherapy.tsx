@@ -35,6 +35,7 @@ import BackTabTop from './BackTopTab';
 import AppointmentDetails from './AppointmentDetails';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface Therapy {
   _id: string;
@@ -409,7 +410,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
             <TouchableOpacity
               style={styles.editButton}
               onPress={() => handleEditTherapy(item)}>
-              <MaterialIcons name="edit" size={24} color="#119FB3" />
+              <MaterialCommunityIcons name="square-edit-outline" size={24} color="#119FB3" />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.deleteButton}
@@ -468,7 +469,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
       <ImageBackground
         source={require('../assets/bac2.jpg')}
         style={styles.backgroundImage}>
-        <BackTabTop screenName="Sessions" />
+        <BackTabTop screenName="Appointments" />
         <View style={styles.container}>
           {error && <Text style={styles.error}>{error}</Text>}
 
@@ -477,10 +478,10 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
             style={styles.dropdownButton}>
             <Text style={styles.dropdownButtonText}>
             {selectedView === "all"
-              ? "All Sessions"
+              ? "All Appointments"
               : selectedView === "past"
-              ? "Past Sessions"
-              : "Upcoming Sessions"}
+              ? "Past Appointments"
+              : "Upcoming Appointments"}
           </Text>
             <Icon
               name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
@@ -505,7 +506,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
                     : styles.dropdownText
                 }
               >
-                All Sessions
+                All Appointments
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -522,7 +523,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
                     : styles.dropdownText
                 }
               >
-                Past Sessions
+                Past Appointments
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -539,7 +540,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
                     : styles.dropdownText
                 }
               >
-                Upcoming Sessions
+                Upcoming Appointments
               </Text>
             </TouchableOpacity>
           </View>
@@ -555,7 +556,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
               renderItem={renderTherapyItem}
               ListEmptyComponent={
                 <Text style={styles.noTherapyText}>
-                No {selectedView === "all" ? "" : selectedView} sessions
+                No {selectedView === "all" ? "" : selectedView} Appointments
                 available
               </Text>
               }

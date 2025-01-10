@@ -157,15 +157,36 @@ const DoctorDashboard: React.FC = () => {
     }
   };
   useEffect(() => {
-    if (session.idToken) {
-      fetchDoctorInfo();
-      fetchAppointments();
-      fetchAllAppointments();
-    } else {
-      setDoctorLoading(false);
-      setAppointmentsLoading(false);
-    }
-  }, [session.idToken]);
+    const loadInitialData = async () => {
+      if (!session.idToken) return;
+
+      setDoctorLoading(true);
+      setAppointmentsLoading(true);
+      try {
+        await Promise.all([
+          fetchDoctorInfo(),
+          fetchAppointments(),
+          fetchAllAppointments(),
+        ]);
+      } finally {
+        setDoctorLoading(false);
+        setAppointmentsLoading(false);
+      }
+    };
+
+    loadInitialData();
+
+    // Add focus listener to refresh appointment data when screen comes into focus
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (session.idToken) {
+        fetchAppointments();
+        fetchAllAppointments();
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return unsubscribe;
+  }, [session.idToken, navigation]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -370,7 +391,7 @@ const DoctorDashboard: React.FC = () => {
               <Text style={styles.profileName}>
                 Dr. {doctorInfo.doctor_first_name} {doctorInfo.doctor_last_name}
               </Text>
-              <Text style={styles.profileDetailText}>
+              <Text style={styles.profileDetailText1}>
                 {doctorInfo.qualification}
               </Text>
               {doctorInfo.organization_name && (
@@ -408,7 +429,7 @@ const DoctorDashboard: React.FC = () => {
               <Text style={styles.statNumber}>
                 {doctorInfo?.patients?.length || 0}
               </Text>
-              <Text style={styles.statLabel}>Patients Joined</Text>
+              <Text style={styles.statLabel}>My Patients</Text>
             </View>
           </TouchableOpacity>
           <View style={styles.statDivider} />
@@ -649,15 +670,15 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       fontWeight: 'bold',
     },
     profileSection: {
-      flexDirection: 'row',
-      padding: 24,
+      flexDirection: "row",
+      paddingTop: 70,
+      paddingBottom: 30,
       backgroundColor: theme.colors.card,
       borderBottomLeftRadius: 0,
       borderBottomRightRadius: 150,
       elevation: 5,
-      shadowColor: '#000',
-      marginTop: 50,
-      shadowOffset: {width: 0, height: 2},
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
     },
@@ -665,12 +686,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       width: 100,
       height: 100,
       borderRadius: 50,
-      marginRight: 20,
+      marginRight: 3,
     },
     profileInfo: {
       flex: 1,
       justifyContent: 'center',
       marginBottom: 20,
+      marginRight: 5,
     },
     profileName: {
       fontSize: 24,
@@ -682,19 +704,25 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       fontSize: 18,
       // color: theme.colors.primary,
       color: '#119FB3',
-      marginBottom: 12,
     },
     profileDetail: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 2,
+      marginBottom: 3,
+      marginTop: 3,
+      marginRight: 5,
     },
     profileDetailIcon: {
       // color: theme.colors.primary,
       color: '#119FB3',
-      marginRight: 8,
+      marginRight: 12,
     },
     profileDetailText: {
+      fontSize: 16,
+      color: theme.colors.text,
+      marginLeft: 5,
+    },
+    profileDetailText1: {
       fontSize: 16,
       color: theme.colors.text,
     },
@@ -731,7 +759,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       fontSize: 28,
       fontWeight: 'bold',
       // color: theme.colors.primary,
-      color: '#FFFFF',
+      color: '#1f1311',
     },
     statLabel: {
       fontSize: 14,

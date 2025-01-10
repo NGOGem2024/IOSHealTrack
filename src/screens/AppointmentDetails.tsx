@@ -25,6 +25,7 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 interface AppointmentDetailsScreenProps {
   appointment: {
@@ -327,24 +328,50 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
       <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-            <MaterialIcons name="arrow-back" size={24} color="white" />
+            <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Appointment Details</Text>
           <View style={styles.headerRight} />
         </View>
         <View style={styles.dateContainer}>
-          {isStarted ? (
-            <Text style={styles.dateText}>{`${appointment.patient_name}`}</Text>
-          ) : (
-            <Text style={styles.dateText}>
-              {new Date(appointment.therepy_date).toDateString()}
-            </Text>
-          )}
+          <View style={styles.dateIconContainer}>
+            {!isStarted ? (
+              <>
+                <Ionicons name="calendar-outline" size={20} color="#119FB3" />
+                <Text style={styles.dateText1}>
+                  {new Date(appointment.therepy_date)
+                    .toLocaleDateString("en-US", {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                    .replace(/(\d+)(?:st|nd|rd|th)/, "$1")}
+                </Text>
+              </>
+            ) : (
+              <View style={styles.dateTextContainer}>
+                <Text style={styles.patientNameText}>
+                  {appointment.patient_name}
+                </Text>
+                <Text style={styles.dateText}>
+                  {new Date(appointment.therepy_date)
+                    .toLocaleDateString("en-US", {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                    .replace(/(\d+)(?:st|nd|rd|th)/, "$1")}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
-
         <View style={styles.detailsContainer}>
           {isCompleted ? (
             <View style={styles.completedContainer}>
+              <Ionicons name="checkmark-circle" size={60} color="#27ae60" />
               <Text style={styles.completedText}>Session Completed</Text>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                 <Text style={styles.buttonText}>Close</Text>
@@ -353,35 +380,47 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
           ) : !isStarted ? (
             <>
               <View style={styles.card}>
-                <Text style={styles.detailTitle}>Patient Name</Text>
+                <View style={styles.cardHeader}>
+                  <Ionicons name="person" style={styles.icondesign} />
+                  <Text style={styles.detailTitle}>Patient Name</Text>
+                </View>
                 <Text style={styles.detailText}>
                   {appointment.patient_name}
                 </Text>
               </View>
 
               <View style={styles.card}>
-                <Text style={styles.detailTitle}>Therapy Type</Text>
+                <View style={styles.cardHeader}>
+                  <Ionicons name="medical" style={styles.icondesign} />
+                  <Text style={styles.detailTitle}>Therapy Type</Text>
+                </View>
                 <Text style={styles.detailText}>
                   {appointment.therepy_type}
                 </Text>
               </View>
 
               <View style={styles.card}>
-                <Text style={styles.detailTitle}>Therapy Start Time</Text>
+                <View style={styles.cardHeader}>
+                  <Ionicons name="time" style={styles.icondesign} />
+                  <Text style={styles.detailTitle}>Therapy Start Time</Text>
+                </View>
                 <Text style={styles.detailText}>
                   {appointment.therepy_start_time}
                 </Text>
               </View>
 
-              <Text style={styles.detailTitle}>Pre-Session Remarks</Text>
-              <TextInput
-                style={styles.remarksInput}
-                multiline
-                numberOfLines={4}
-                onChangeText={setPreviousRemarks}
-                value={previousRemarks}
-                placeholder="Enter previous session remarks"
-              />
+              <View style={styles.remarksSection}>
+                <Text style={styles.detailTitle}>Pre-Session Remarks</Text>
+                <TextInput
+                  style={styles.remarksInput}
+                  multiline
+                  numberOfLines={4}
+                  onChangeText={setPreviousRemarks}
+                  value={previousRemarks}
+                  placeholder="Enter previous session remarks"
+                  placeholderTextColor="#9DA3B4"
+                />
+              </View>
               {appointment.therepy_link && (
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity
@@ -391,20 +430,22 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                   </TouchableOpacity>
                 </View>
               )}
-              <TouchableOpacity
-                style={styles.startButton}
-                onPress={handleStart}>
-                {loading ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
-                ) : (
-                  <Text style={styles.buttonText}>Start Therapy</Text>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={handleCancel}>
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
+              <View style={styles.actionButtonsContainer}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.cancelButton]}
+                  onPress={handleCancel}>
+                  <Text style={styles.buttonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.startButton]}
+                  onPress={handleStart}>
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <Text style={styles.buttonText}>Start Therapy</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </>
           ) : (
             <View style={styles.timerContainer}>
@@ -465,6 +506,45 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
 };
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
+    dateIconContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    dateTextContainer: {
+      flexDirection: "column",
+      gap: 4,
+    },
+    patientNameText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: "black",
+    },
+    dateText: {
+      fontSize: 14,
+      color: "#666",
+    },
+    dateText1: {
+      color: "black",
+      fontSize: 16,
+      fontWeight: "600",
+      textAlign: "left",
+      letterSpacing: 0.5,
+    },
+    icondesign: {
+      fontSize: 18,
+      color: '#15b9cf',
+      marginTop: -6,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    remarksSection: {
+      marginTop: 16,
+      marginBottom: 16,
+    },
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
@@ -475,7 +555,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     header: {
       height: 56,
-      backgroundColor: theme.colors.card || '#119FB3',
+      backgroundColor: '#119FB3',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -490,7 +570,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       padding: 2,
     },
     headerTitle: {
-      color: theme.colors.text,
+      color: 'white',
       fontSize: 20,
       fontWeight: 'bold',
     },
@@ -508,7 +588,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       width: 40,
     },
     cancelButton: {
-      backgroundColor: theme.colors.card, // Set the color for cancel button
+      backgroundColor: 'gray', //theme.colors.card, // Set the color for cancel button
       marginTop: 10,
       paddingVertical: 10,
       borderRadius: 10,
@@ -557,18 +637,57 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       width: '80%',
       alignItems: 'center',
     },
+    actionButtonsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 16,
+      gap: 10,
+    },
+    actionButton: {
+      flex: 1,
+      height: 48,
+      borderRadius: 15,
+      justifyContent: 'center', // Center content vertically
+      alignItems: 'center',
+      marginHorizontal: 10,
+      // Shadow for iOS
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    startButton: {
+      // backgroundColor: theme.colors.card, // Set the color for cancel button
+      marginTop: 10,
+      paddingVertical: 13,
+      borderRadius: 10,
+      alignItems: 'center',
+      backgroundColor: '#119FB3',
+    },
     buttonText: {
-      color: theme.colors.text,
+      color: 'white', //theme.colors.text,
       fontWeight: 'bold',
       fontSize: 16,
     },
     dateContainer: {
-      backgroundColor: '#119FB3',
+      backgroundColor: theme.colors.card, // Light neutral background
+      borderLeftWidth: 4,
+      borderLeftColor: '#119FB3', // Accent color matching header
       width: '90%',
-      padding: 10,
+      padding: 16,
+      marginTop: 16,
       marginLeft: 20,
-      borderRadius: 10,
-      elevation: 2,
+      borderRadius: 8,
+      // Enhanced shadow for depth
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 3,
     },
     buttonContainer: {
       flexDirection: 'row',
@@ -585,12 +704,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
 
     uploadButtonText: {
       color: 'black',
-      textAlign: 'center',
-    },
-    dateText: {
-      color: 'white',
-      fontSize: 18,
-      fontWeight: 'bold',
       textAlign: 'center',
     },
     timerLabel: {
@@ -630,7 +743,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     card: {
       backgroundColor: theme.colors.card,
-      borderRadius: 8,
+      borderRadius: 15,
       padding: 12,
       marginBottom: 16,
     },
@@ -639,27 +752,21 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontWeight: 'bold',
       color: theme.colors.text,
       marginBottom: 4,
+      paddingLeft: 5,
     },
     detailText: {
       fontSize: 14,
       color: theme.colors.text,
-    },
-    startButton: {
-      backgroundColor: '#119FB3',
-      padding: 12,
-      borderRadius: 8,
-      alignItems: 'center',
-      marginTop: 16,
+      marginLeft: 25,
     },
     remarksInput: {
-      borderWidth: 1,
-      borderColor: '#cccccc',
       borderRadius: 8,
       padding: 8,
       height: 100,
       color: theme.colors.text,
       textAlignVertical: 'top',
       marginBottom: 16,
+      backgroundColor: theme.colors.card,
     },
     modalContainer: {
       flex: 1,

@@ -7,8 +7,9 @@ import {
   TextInput,
   Modal,
   ScrollView,
+  Platform,
+  SafeAreaView,
 } from 'react-native';
-import {Picker} from '@react-native-picker/picker';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useTheme} from './ThemeContext';
 
@@ -28,6 +29,78 @@ interface EditPaymentModalProps {
   };
 }
 
+// Custom Picker Modal Component
+interface PickerModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onSelect: (value: string) => void;
+  selectedValue: string;
+}
+
+const PickerModal: React.FC<PickerModalProps> = ({
+  visible,
+  onClose,
+  onSelect,
+  selectedValue,
+}) => {
+  const options = [
+    {label: 'Cash', value: 'CASH'},
+    {label: 'Online', value: 'ONLINE'},
+  ];
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}>
+      <View style={styles.pickerModalOverlay}>
+        <View style={styles.pickerModalContent}>
+          <SafeAreaView>
+            <View style={styles.pickerHeader}>
+              <TouchableOpacity onPress={onClose}>
+                <Text style={styles.pickerCancelButton}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.pickerTitle}>Select Payment Method</Text>
+              <View style={{width: 60}} />
+            </View>
+            <View style={styles.optionsContainer}>
+              {options.map(option => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.optionItem,
+                    selectedValue === option.value && styles.selectedOption,
+                  ]}
+                  onPress={() => {
+                    onSelect(option.value);
+                    onClose();
+                  }}>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selectedValue === option.value &&
+                        styles.selectedOptionText,
+                    ]}>
+                    {option.label}
+                  </Text>
+                  {selectedValue === option.value && (
+                    <FontAwesome
+                      name="check"
+                      size={20}
+                      color={COLORS.primary}
+                    />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </SafeAreaView>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 const EditPaymentModal: React.FC<EditPaymentModalProps> = ({
   visible,
   onClose,
@@ -41,9 +114,9 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({
   const [addonAmount, setAddonAmount] = useState<string>('');
   const [addons, setAddons] = useState<Addon[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<string>('CASH');
+  const [showPicker, setShowPicker] = useState(false);
 
   const {theme} = useTheme();
-  const styles = getModalStyles();
 
   useEffect(() => {
     if (visible && paymentData) {
@@ -91,6 +164,10 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({
     return calculateBaseAmount() + calculateAddonTotal();
   };
 
+  const getPaymentMethodLabel = (value: string) => {
+    return value === 'CASH' ? 'Cash' : 'Online';
+  };
+
   return (
     <Modal
       visible={visible}
@@ -124,22 +201,17 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({
             </View>
           </View>
 
-          {/* Payment Method Section */}
+          {/* Custom Payment Method Button */}
           <View style={styles.inputSection}>
             <Text style={styles.inputLabel}>Payment Method</Text>
-            <View style={styles.pickerWrapper}>
-              <Picker
-                selectedValue={paymentMethod}
-                onValueChange={itemValue => setPaymentMethod(itemValue)}
-                style={styles.picker}>
-                <Picker.Item label="Cash" value="CASH" style={styles.item} />
-                <Picker.Item
-                  label="Online"
-                  value="ONLINE"
-                  style={styles.item}
-                />
-              </Picker>
-            </View>
+            <TouchableOpacity
+              style={styles.paymentMethodButton}
+              onPress={() => setShowPicker(true)}>
+              <Text style={styles.paymentMethodButtonText}>
+                {getPaymentMethodLabel(paymentMethod)}
+              </Text>
+              <FontAwesome name="chevron-down" size={16} color={COLORS.text} />
+            </TouchableOpacity>
           </View>
 
           {/* Additional Services Section */}
@@ -152,7 +224,7 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({
               <FontAwesome
                 name={isAdditionalServicesOpen ? 'minus' : 'plus'}
                 size={20}
-                color="#119FB3"
+                color={COLORS.primary}
               />
               <Text style={styles.servicesHeaderText}>Additional Services</Text>
             </TouchableOpacity>
@@ -190,7 +262,7 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({
                     const newAddons = addons.filter((_, i) => i !== index);
                     setAddons(newAddons);
                   }}>
-                  <FontAwesome name="times" size={20} color="#e74c3c" />
+                  <FontAwesome name="times" size={20} color={COLORS.error} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -217,6 +289,14 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({
           </View>
         </ScrollView>
       </View>
+
+      {/* Custom Picker Modal */}
+      <PickerModal
+        visible={showPicker}
+        onClose={() => setShowPicker(false)}
+        onSelect={setPaymentMethod}
+        selectedValue={paymentMethod}
+      />
     </Modal>
   );
 };
@@ -232,190 +312,255 @@ const COLORS = {
   overlay: 'rgba(0, 0, 0, 0.5)',
 };
 
-const getModalStyles = () =>
-  StyleSheet.create({
-    item: {
-      color: 'black',
-    },
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: COLORS.overlay,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    modalContainer: {
-      width: '90%',
-      maxWidth: 650,
-      backgroundColor: 'white',
-      borderRadius: 16,
-      padding: 20,
-      shadowColor: '#000',
-      shadowOffset: {width: 0, height: 4},
-      shadowOpacity: 0.25,
-      shadowRadius: 10,
-      elevation: 5,
-      marginTop: '20%',
-      marginBottom: '20%',
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 20,
-    },
-    modalTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: '#2c3e50',
-    },
-    closeButton: {
-      padding: 8,
-    },
-    closeButtonText: {
-      fontSize: 24,
-      color: '#6c757d',
-    },
-    inputSection: {
-      marginBottom: 20,
-    },
-    inputLabel: {
-      fontSize: 16,
-      color: '#2c3e50',
-      marginBottom: 8,
-      fontWeight: '500',
-    },
-    currencyInputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: '#ced4da',
-      borderRadius: 10,
-      backgroundColor: '#f8f9fa',
-      paddingHorizontal: 12,
-    },
-    currencySymbol: {
-      fontSize: 18,
-      color: '#6c757d',
-      marginRight: 8,
-    },
-    currencyInput: {
-      flex: 1,
-      fontSize: 18,
-      color: '#2c3e50',
-      padding: 12,
-    },
-    pickerWrapper: {
-      borderWidth: 1,
-      borderColor: '#ced4da',
-      borderRadius: 10,
-      backgroundColor: '#f8f9fa',
-      overflow: 'hidden',
-    },
-    picker: {
-      height: 50,
-      color: 'black',
-    },
-    servicesSection: {
-      marginBottom: 20,
-    },
-    servicesHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    servicesHeaderText: {
-      fontSize: 16,
-      fontWeight: '500',
-      color: '#2c3e50',
-      marginLeft: 8,
-    },
-    addonInputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    addonNameInput: {
-      flex: 3,
-      borderWidth: 1,
-      borderColor: '#ced4da',
-      borderRadius: 10,
-      padding: 12,
-      marginRight: 8,
-      fontSize: 13,
-    },
-    addonAmountWrapper: {
-      flex: 2,
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: '#ced4da',
-      borderRadius: 10,
-      paddingHorizontal: 12,
-      marginRight: 8,
-    },
-    addonAmountInput: {
-      flex: 1,
-      padding: 12,
-      fontSize: 13,
-    },
-    addonItem: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      backgroundColor: '#f8f9fa',
-      padding: 12,
-      borderRadius: 10,
-      marginBottom: 8,
-    },
-    addonName: {
-      flex: 2,
-      fontSize: 16,
-      color: '#2c3e50',
-    },
-    addonAmount: {
-      flex: 1,
-      fontSize: 16,
-      color: '#119FB3',
-      fontWeight: '500',
-      textAlign: 'right',
-      marginRight: 12,
-    },
-    totalContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      backgroundColor: '#f8f9fa',
-      padding: 16,
-      borderRadius: 10,
-      marginBottom: 20,
-    },
-    totalLabel: {
-      fontSize: 18,
-      color: '#2c3e50',
-      fontWeight: '500',
-    },
-    totalAmount: {
-      fontSize: 20,
-      color: '#119FB3',
-      fontWeight: 'bold',
-    },
-    footer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-    },
-    confirmButton: {
-      width: '50%',
-      backgroundColor: '#119FB3',
-      paddingVertical: 12,
-      borderRadius: 10,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    buttonText: {
-      color: 'white',
-      fontSize: 16,
-      fontWeight: 'bold',
-    },
-  });
+const styles = StyleSheet.create({
+  item: {
+    color: 'black',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: COLORS.overlay,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '90%',
+    maxWidth: 650,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
+    marginTop: '20%',
+    marginBottom: '20%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+  },
+  closeButton: {
+    padding: 8,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: '#6c757d',
+  },
+  inputSection: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 16,
+    color: '#2c3e50',
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  currencyInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ced4da',
+    borderRadius: 10,
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 12,
+  },
+  pickerModalOverlay: {
+    flex: 1,
+    backgroundColor: COLORS.overlay,
+    justifyContent: 'flex-end',
+  },
+  pickerModalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  pickerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  pickerCancelButton: {
+    fontSize: 17,
+    color: COLORS.primary,
+    width: 60,
+  },
+  optionsContainer: {
+    paddingHorizontal: 16,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  selectedOption: {
+    backgroundColor: `${COLORS.primary}10`,
+  },
+  currencySymbol: {
+    fontSize: 18,
+    color: '#6c757d',
+    marginRight: 8,
+  },
+  currencyInput: {
+    flex: 1,
+    fontSize: 18,
+    color: '#2c3e50',
+    padding: 12,
+  },
+  paymentMethodButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    backgroundColor: COLORS.background,
+    padding: 16,
+  },
+  optionText: {
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  selectedOptionText: {
+    color: COLORS.primary,
+    fontWeight: '500',
+  },
+  paymentMethodButtonText: {
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#ced4da',
+    borderRadius: 10,
+    backgroundColor: '#f8f9fa',
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 50,
+    color: 'black',
+  },
+  servicesSection: {
+    marginBottom: 20,
+  },
+  servicesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  servicesHeaderText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#2c3e50',
+    marginLeft: 8,
+  },
+  addonInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  addonNameInput: {
+    flex: 3,
+    borderWidth: 1,
+    borderColor: '#ced4da',
+    borderRadius: 10,
+    padding: 12,
+    marginRight: 8,
+    fontSize: 13,
+  },
+  addonAmountWrapper: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ced4da',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    marginRight: 8,
+  },
+  addonAmountInput: {
+    flex: 1,
+    padding: 12,
+    fontSize: 13,
+  },
+  addonItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  addonName: {
+    flex: 2,
+    fontSize: 16,
+    color: '#2c3e50',
+  },
+  addonAmount: {
+    flex: 1,
+    fontSize: 16,
+    color: '#119FB3',
+    fontWeight: '500',
+    textAlign: 'right',
+    marginRight: 12,
+  },
+  totalContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: 16,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  totalLabel: {
+    fontSize: 18,
+    color: '#2c3e50',
+    fontWeight: '500',
+  },
+  totalAmount: {
+    fontSize: 20,
+    color: '#119FB3',
+    fontWeight: 'bold',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  confirmButton: {
+    width: '50%',
+    backgroundColor: '#119FB3',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});
 
 export default EditPaymentModal;

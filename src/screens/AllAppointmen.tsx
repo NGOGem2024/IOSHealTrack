@@ -48,7 +48,13 @@ const AllAppointmentsPage: React.FC = () => {
   const {theme} = useTheme();
   const insets = useSafeAreaInsets();
   const isDarkMode = theme.name === 'dark';
-  const styles = getStyles(getTheme(theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark'), insets, isDarkMode);
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+    insets,
+    isDarkMode,
+  );
 
   const [data, setData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +64,33 @@ const AllAppointmentsPage: React.FC = () => {
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef<FlatList>(null);
+  const fetchAppointmentsForDateRange = async (
+    startDate: Date,
+    endDate: Date,
+  ): Promise<DayData[]> => {
+    try {
+      const formattedStartDate = startDate.toISOString().split('T')[0];
+      const formattedEndDate = endDate.toISOString().split('T')[0];
 
+      const response = await axiosInstance.post('/get/appointments/dates', {
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+      });
+
+      // Convert the grouped appointments back to your DayData format
+      const dayData: DayData[] = Object.entries(response.data.appointments).map(
+        ([date, appointments]) => ({
+          date: new Date(date),
+          appointments: appointments as Appointment[],
+        }),
+      );
+
+      return dayData;
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      return [];
+    }
+  };
   const fetchAppointmentsForDate = async (
     date: Date,
   ): Promise<Appointment[]> => {
@@ -78,17 +110,16 @@ const AllAppointmentsPage: React.FC = () => {
     setLoading(true);
     try {
       const today = new Date();
-      const initialDays: DayData[] = [];
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() - 3);
+      const endDate = new Date(today);
+      endDate.setDate(today.getDate() + 3);
 
-      // Load past 3 days and future 3 days
-      for (let i = -3; i <= 3; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
-        const appointments = await fetchAppointmentsForDate(date);
-        initialDays.push({date, appointments});
-      }
-
-      setData(initialDays);
+      const appointments = await fetchAppointmentsForDateRange(
+        startDate,
+        endDate,
+      );
+      setData(appointments);
     } finally {
       setLoading(false);
     }
@@ -126,15 +157,17 @@ const AllAppointmentsPage: React.FC = () => {
     }
   };
   const getStatusColor = (status?: string) => {
-    const colors = isDarkMode ? {
-      completed: '#66BB6A',  
-      in_progress: '#FFB74D',  
-      default: '#4DD0E1'  
-    } : {
-      completed: '#4CAF50',
-      in_progress: '#FFA726',
-      default: '#119FB3'
-    };
+    const colors = isDarkMode
+      ? {
+          completed: '#66BB6A',
+          in_progress: '#FFB74D',
+          default: '#4DD0E1',
+        }
+      : {
+          completed: '#4CAF50',
+          in_progress: '#FFA726',
+          default: '#119FB3',
+        };
 
     switch (status?.toLowerCase()) {
       case 'completed':
@@ -255,9 +288,9 @@ const AllAppointmentsPage: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar 
-        barStyle={isDarkMode ? "light-content" : "dark-content"}
-        backgroundColor={isDarkMode ? "#121212" : "white"}
+      <StatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={isDarkMode ? '#121212' : 'white'}
       />
       <BackTabTop screenName="Appointments" />
 
@@ -289,7 +322,11 @@ const AllAppointmentsPage: React.FC = () => {
   );
 };
 
-const getStyles = (theme: ReturnType<typeof getTheme>, insets: any, isDarkMode: boolean) =>
+const getStyles = (
+  theme: ReturnType<typeof getTheme>,
+  insets: any,
+  isDarkMode: boolean,
+) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -333,7 +370,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any, isDarkMode: 
     daySectionHeader: {
       fontSize: 20,
       fontWeight: 'bold',
-      color: isDarkMode ? 'white': 'black',
+      color: isDarkMode ? 'white' : 'black',
       marginBottom: 12,
       paddingHorizontal: 16,
     },
@@ -367,7 +404,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any, isDarkMode: 
       shadowOffset: {width: 0, height: 2},
       shadowOpacity: isDarkMode ? 0.4 : 0.1,
       shadowRadius: 4,
-      borderColor: isDarkMode ? '#119FB3': 'white',
+      borderColor: isDarkMode ? '#119FB3' : 'white',
       borderWidth: 1,
     },
     appointmentContent: {
@@ -422,7 +459,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any, isDarkMode: 
       shadowOffset: {width: 0, height: 2},
       shadowOpacity: isDarkMode ? 0.4 : 0.1,
       shadowRadius: 4,
-      borderColor: isDarkMode ? '#119FB3': 'white',
+      borderColor: isDarkMode ? '#119FB3' : 'white',
       borderWidth: 1,
     },
     noAppointmentsText: {

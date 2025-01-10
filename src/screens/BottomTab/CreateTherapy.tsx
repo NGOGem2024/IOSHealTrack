@@ -10,7 +10,7 @@ import {
   Modal,
   SafeAreaView,
 } from 'react-native';
-import {useTheme} from '@react-navigation/native';
+import {useTheme} from '../ThemeContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ConfirmationPopup from './confirmationpopup';
@@ -40,7 +40,7 @@ const SLOT_DURATION_OPTIONS = [
 ];
 
 const CreateTherapy = ({route, navigation}: Props) => {
-  const {colors} = useTheme();
+  const {theme, isDarkMode} = useTheme();
   const {patientId} = route.params;
   const {session, updateAccessToken} = useSession();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -69,8 +69,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
     useState<boolean>(true);
   const [showDoctorPicker, setShowDoctorPicker] = useState(false);
   const [showTherapyPicker, setShowTherapyPicker] = useState(false);
-
-  const styles = createStyles(colors);
+  const styles = createStyles(theme.colors, isDarkMode);
 
   const appointmentTypes = ['In Clinic', 'In Home', 'IP/ICU', 'Liveswitch'];
 
@@ -704,11 +703,11 @@ const CreateTherapy = ({route, navigation}: Props) => {
     </SafeAreaView>
   );
 };
-const createStyles = (colors: any) =>
+const createStyles = (colors: any, isDarkMode: boolean) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: 'black',
+      backgroundColor: colors.background,
     },
     modalContainer: {
       flex: 1,
@@ -716,16 +715,16 @@ const createStyles = (colors: any) =>
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     pickerContainer: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.card,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       paddingBottom: 20,
     },
     pickerWrapper: {
-      backgroundColor: '#F5F8FF',
+      backgroundColor: colors.card,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: '#E0E0E0',
+      borderColor: colors.border,
       marginTop: 8,
       overflow: 'hidden',
     },
@@ -734,7 +733,7 @@ const createStyles = (colors: any) =>
       marginTop: 0,
       marginBottom: 0,
       paddingVertical: 8,
-      color: '#333333',
+      color: colors.text,
     },
     pickerHeader: {
       flexDirection: 'row',
@@ -742,12 +741,12 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
       padding: 16,
       borderBottomWidth: 1,
-      borderBottomColor: '#E0E0E0',
+      borderBottomColor: colors.border,
     },
     pickerTitle: {
       fontSize: 18,
       fontWeight: '600',
-      color: '#333333',
+      color: colors.text,
     },
     doneButton: {
       padding: 8,
@@ -758,40 +757,40 @@ const createStyles = (colors: any) =>
       fontWeight: '600',
     },
     iosPicker: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.card,
       height: 215,
     },
     pickerField: {
-      backgroundColor: '#F5F8FF',
+      backgroundColor: colors.card,
       borderRadius: 10,
       padding: 16,
       marginTop: 8,
       borderWidth: 1,
-      borderColor: '#E0E0E0',
+      borderColor: colors.border,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
     },
     pickerFieldText: {
       fontSize: 16,
-      color: '#333333',
+      color: colors.text,
       flex: 1,
     },
     pickerPlaceholder: {
-      color: '#999999',
+      color: colors.text + '80', // Adding opacity for placeholder
     },
     container: {
       flex: 1,
-      backgroundColor: '#F0F8FF',
+      backgroundColor: colors.background,
     },
     infoText: {
-      color: '#666',
+      color: `${colors.text}99`, // Adding opacity for secondary text
       textAlign: 'center',
       marginTop: 10,
     },
     bcontainer: {
       flex: 1,
-      backgroundColor: '#F0F8FF',
+      backgroundColor: colors.background,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -805,18 +804,19 @@ const createStyles = (colors: any) =>
       justifyContent: 'center',
       marginBottom: 10,
       padding: 16,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.card,
       borderRadius: 10,
       elevation: 2,
     },
     liveSwitchButtonText: {
       marginBottom: 10,
       textAlign: 'center',
-      color: '#333333',
+      color: colors.text,
     },
     googleButtonText: {
       marginBottom: 10,
       textAlign: 'center',
+      color: colors.text,
     },
     title: {
       fontSize: 28,
@@ -832,26 +832,26 @@ const createStyles = (colors: any) =>
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+      backgroundColor: colors.background + 'CC', // Adding opacity for overlay
       justifyContent: 'center',
       alignItems: 'center',
-      zIndex: 1, // Ensure it appears above other content
+      zIndex: 1,
     },
     bookButton: {
-      backgroundColor: '#119FB3',
+      backgroundColor: colors.primary,
       padding: 16,
       alignItems: 'center',
       margin: 16,
       borderRadius: 10,
     },
     bookButtonText: {
-      color: '#FFFFFF',
+      color: isDarkMode ? colors.text : '#ffffff',
       fontSize: 18,
       fontWeight: 'bold',
     },
     section: {
       padding: 16,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.card,
       marginBottom: 8,
       borderRadius: 10,
       elevation: 2,
@@ -890,7 +890,7 @@ const createStyles = (colors: any) =>
     dateText: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: '#333333',
+      color: colors.text,
     },
     slotsContainer: {
       flexDirection: 'row',
@@ -906,31 +906,31 @@ const createStyles = (colors: any) =>
       width: '40%',
     },
     slotButtonDisabled: {
-      backgroundColor: '#E0E0E0',
-      borderColor: '#A0A0A0',
+      backgroundColor: colors.border,
+      borderColor: colors.border,
     },
     slotButtonSelected: {
       backgroundColor: '#119FB3',
     },
     slotButtonText: {
-      color: '#333333',
+      color: colors.text,
       textAlign: 'center',
     },
     slotButtonTextDisabled: {
-      color: '#A0A0A0',
+      color: colors.text + '66', // Adding opacity for disabled text
     },
     slotButtonTextSelected: {
       color: '#FFFFFF',
     },
     errorText: {
-      color: 'red',
+      color: colors.notification,
       textAlign: 'center',
       marginTop: 10,
     },
     pickerItem: {
       fontSize: 16,
-      color: '#333333',
-      backgroundColor: '#FFFFFF',
+      color: colors.text,
+      backgroundColor: colors.card,
     },
     appointmentTypesScrollView: {
       flexGrow: 1,

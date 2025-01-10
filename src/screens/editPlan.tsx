@@ -659,7 +659,6 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
             <Text style={styles.errorText}>{errors.total_amount}</Text>
           )}
 
-
           {errors.submit && (
             <Text style={styles.errorText}>{errors.submit}</Text>
           )}

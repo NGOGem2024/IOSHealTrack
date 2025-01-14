@@ -253,7 +253,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: 'black',
     },
     scrollView: {
       flex: 1,

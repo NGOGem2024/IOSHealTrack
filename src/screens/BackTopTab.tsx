@@ -98,6 +98,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       backgroundColor: '#119FB3',
       borderBottomWidth: 1,
       borderBottomColor: 'white',
+      borderTopColor: 'white',
+      borderTopWidth: 1,
     },
     backButton: {
       flexDirection: 'row',

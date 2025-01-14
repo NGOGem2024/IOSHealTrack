@@ -325,14 +325,14 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Appointment Details</Text>
+        <View style={styles.headerRight} />
+      </View>
       <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-            <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Appointment Details</Text>
-          <View style={styles.headerRight} />
-        </View>
         <View style={styles.dateContainer}>
           <View style={styles.dateIconContainer}>
             {!isStarted ? (
@@ -340,13 +340,13 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                 <Ionicons name="calendar-outline" size={20} color="#119FB3" />
                 <Text style={styles.dateText1}>
                   {new Date(appointment.therepy_date)
-                    .toLocaleDateString("en-US", {
-                      weekday: "short",
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
+                    .toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
                     })
-                    .replace(/(\d+)(?:st|nd|rd|th)/, "$1")}
+                    .replace(/(\d+)(?:st|nd|rd|th)/, '$1')}
                 </Text>
               </>
             ) : (
@@ -356,13 +356,13 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                 </Text>
                 <Text style={styles.dateText}>
                   {new Date(appointment.therepy_date)
-                    .toLocaleDateString("en-US", {
-                      weekday: "short",
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
+                    .toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
                     })
-                    .replace(/(\d+)(?:st|nd|rd|th)/, "$1")}
+                    .replace(/(\d+)(?:st|nd|rd|th)/, '$1')}
                 </Text>
               </View>
             )}
@@ -507,28 +507,28 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     dateIconContainer: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: 8,
     },
     dateTextContainer: {
-      flexDirection: "column",
+      flexDirection: 'column',
       gap: 4,
     },
     patientNameText: {
       fontSize: 16,
-      fontWeight: "600",
-      color: "black",
+      fontWeight: '600',
+      color: 'black',
     },
     dateText: {
       fontSize: 14,
-      color: "#666",
+      color: '#666',
     },
     dateText1: {
-      color: "black",
+      color: 'black',
       fontSize: 16,
-      fontWeight: "600",
-      textAlign: "left",
+      fontWeight: '600',
+      textAlign: 'left',
       letterSpacing: 0.5,
     },
     icondesign: {

@@ -24,6 +24,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import TherapyCategoryDropdown from './TherapyCategoryDropdown';
 import {useSession} from '../context/SessionContext';
 import {useTheme} from './ThemeContext';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 type EditTherapyPlanScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -460,7 +461,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   }) => {
     const {theme, isDarkMode} = useTheme();
     const styles = createStyles(theme.colors, isDarkMode);
-  
+
     return (
       <View style={styles.inputContainer}>
         {icon}
@@ -484,7 +485,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   }) => {
     const {theme, isDarkMode} = useTheme();
     const styles = createStyles(theme.colors, isDarkMode);
-  
+
     return (
       <View style={styles.dateTimeBlock}>
         <Text style={styles.dateTimeLabel}>{label}</Text>
@@ -515,7 +516,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
       </View>
     );
   };
-  
+
   const Dropdown: React.FC<DropdownProps> = ({value, onValueChange, items}) => {
     const {theme, isDarkMode} = useTheme();
     const styles = createStyles(theme.colors, isDarkMode);
@@ -553,7 +554,18 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackTabTop screenName="Edit Plan" />
-      <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        keyboardShouldPersistTaps="handled"
+        extraScrollHeight={20}
+        enableResetScrollToCoords={false}
+        scrollEnabled={true}
+        bounces={true}
+        keyboardOpeningTime={0}
+        showsVerticalScrollIndicator={true}
+        style={[styles.scrollView, isDarkMode && styles.scrollViewDark]}
+        contentContainerStyle={styles.scrollContainer}>
         <Animated.View
           style={[
             styles.container,
@@ -767,25 +779,24 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
 
           {renderButtons()}
         </Animated.View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };
-
 
 const createStyles = (colors: any, isDarkMode: boolean) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: colors.background,
-    },
-    scrollView: {
-      backgroundColor: colors.background,
+      backgroundColor: 'black',
     },
     container: {
       flex: 1,
       padding: 20,
       backgroundColor: isDarkMode ? '#66D9E8' : '#F0F8FF',
+    },
+    scrollViewDark: {
+      backgroundColor: '#1A1A1A',
     },
     inputContainer: {
       flexDirection: 'row',
@@ -809,7 +820,7 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      backgroundColor: isDarkMode ? '#333333': '#ffffff',
+      backgroundColor: isDarkMode ? '#333333' : '#ffffff',
       borderRadius: 10,
       paddingHorizontal: 15,
       paddingVertical: 12,
@@ -820,6 +831,14 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
     dateTimeText: {
       fontSize: 16,
       color: colors.text,
+    },
+    scrollView: {
+      flex: 1,
+      backgroundColor: '#F0F8FF',
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      paddingBottom: 20,
     },
     buttonRow: {
       flexDirection: 'row',
@@ -866,7 +885,7 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
     },
     radioButtonSelectedDark: {
-      backgroundColor: isDarkMode ? '#333333': colors.card,
+      backgroundColor: isDarkMode ? '#333333' : colors.card,
       borderColor: '#66D9E8',
     },
     inputLabel: {
@@ -1000,7 +1019,7 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 20,
-      backgroundColor: isDarkMode ? '#333333': '#ffffff',
+      backgroundColor: isDarkMode ? '#333333' : '#ffffff',
 
       borderRadius: 10,
       paddingHorizontal: 15,

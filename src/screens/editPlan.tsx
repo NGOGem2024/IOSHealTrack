@@ -452,6 +452,89 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     }
   };
 
+  const InputField: React.FC<InputFieldProps> = ({
+    icon,
+    placeholder,
+    value,
+    onChangeText,
+  }) => {
+    const {theme, isDarkMode} = useTheme();
+    const styles = createStyles(theme.colors, isDarkMode);
+  
+    return (
+      <View style={styles.inputContainer}>
+        {icon}
+        <TextInput
+          style={styles.input}
+          placeholder={placeholder}
+          value={value}
+          onChangeText={onChangeText}
+          placeholderTextColor="#A0A0A0"
+        />
+      </View>
+    );
+  };
+  const DatePickerField: React.FC<DatePickerFieldProps> = ({
+    label,
+    date,
+    showDatePicker,
+    onPress,
+    onChange,
+    disabled = false,
+  }) => {
+    const {theme, isDarkMode} = useTheme();
+    const styles = createStyles(theme.colors, isDarkMode);
+  
+    return (
+      <View style={styles.dateTimeBlock}>
+        <Text style={styles.dateTimeLabel}>{label}</Text>
+        <TouchableOpacity
+          style={[
+            styles.dateTimeContainer,
+            disabled && styles.disabledDateContainer,
+          ]}
+          onPress={disabled ? undefined : onPress}>
+          <Text
+            style={[styles.dateTimeText, disabled && styles.disabledDateText]}>
+            {date.toLocaleDateString()}
+          </Text>
+          <FontAwesome
+            name="calendar"
+            size={24}
+            color={disabled ? '#A0A0A0' : '#119FB3'}
+          />
+        </TouchableOpacity>
+        {showDatePicker && !disabled && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            onChange={onChange}
+          />
+        )}
+      </View>
+    );
+  };
+  
+  const Dropdown: React.FC<DropdownProps> = ({value, onValueChange, items}) => {
+    const {theme, isDarkMode} = useTheme();
+    const styles = createStyles(theme.colors, isDarkMode);
+    return (
+      <View style={styles.inputContainer}>
+        <MaterialIcons name="category" size={24} color="#119FB3" />
+        <Picker
+          selectedValue={value}
+          onValueChange={onValueChange}
+          style={styles.picker}>
+          <Picker.Item label="Therapy Category" value="" />
+          {items.map((item, index) => (
+            <Picker.Item key={index} label={item} value={item} />
+          ))}
+        </Picker>
+      </View>
+    );
+  };
+
   useEffect(() => {
     const total = parseFloat(therapyPlan.total_amount) || 0;
     const received = parseFloat(therapyPlan.received_amount) || 0;
@@ -474,6 +557,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
         <Animated.View
           style={[
             styles.container,
+            isDarkMode && styles.containerDark,
             {
               opacity: fadeAnim,
               transform: [{translateY: slideAnim}],
@@ -687,87 +771,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     </SafeAreaView>
   );
 };
-const InputField: React.FC<InputFieldProps> = ({
-  icon,
-  placeholder,
-  value,
-  onChangeText,
-}) => {
-  const {theme, isDarkMode} = useTheme();
-  const styles = createStyles(theme.colors, isDarkMode);
 
-  return (
-    <View style={styles.inputContainer}>
-      {icon}
-      <TextInput
-        style={styles.input}
-        placeholder={placeholder}
-        value={value}
-        onChangeText={onChangeText}
-        placeholderTextColor="#A0A0A0"
-      />
-    </View>
-  );
-};
-const DatePickerField: React.FC<DatePickerFieldProps> = ({
-  label,
-  date,
-  showDatePicker,
-  onPress,
-  onChange,
-  disabled = false,
-}) => {
-  const {theme, isDarkMode} = useTheme();
-  const styles = createStyles(theme.colors, isDarkMode);
-
-  return (
-    <View style={styles.dateTimeBlock}>
-      <Text style={styles.dateTimeLabel}>{label}</Text>
-      <TouchableOpacity
-        style={[
-          styles.dateTimeContainer,
-          disabled && styles.disabledDateContainer,
-        ]}
-        onPress={disabled ? undefined : onPress}>
-        <Text
-          style={[styles.dateTimeText, disabled && styles.disabledDateText]}>
-          {date.toLocaleDateString()}
-        </Text>
-        <FontAwesome
-          name="calendar"
-          size={24}
-          color={disabled ? '#A0A0A0' : '#119FB3'}
-        />
-      </TouchableOpacity>
-      {showDatePicker && !disabled && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display="default"
-          onChange={onChange}
-        />
-      )}
-    </View>
-  );
-};
-const Dropdown: React.FC<DropdownProps> = ({value, onValueChange, items}) => {
-  const {theme, isDarkMode} = useTheme();
-  const styles = createStyles(theme.colors, isDarkMode);
-  return (
-    <View style={styles.inputContainer}>
-      <MaterialIcons name="category" size={24} color="#119FB3" />
-      <Picker
-        selectedValue={value}
-        onValueChange={onValueChange}
-        style={styles.picker}>
-        <Picker.Item label="Therapy Category" value="" />
-        {items.map((item, index) => (
-          <Picker.Item key={index} label={item} value={item} />
-        ))}
-      </Picker>
-    </View>
-  );
-};
 
 const createStyles = (colors: any, isDarkMode: boolean) =>
   StyleSheet.create({
@@ -780,13 +784,13 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
     },
     container: {
       flex: 1,
-      padding: 30,
-      backgroundColor: colors.background,
+      padding: 20,
+      backgroundColor: isDarkMode ? '#66D9E8' : '#F0F8FF',
     },
     inputContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+      backgroundColor: isDarkMode ? '#333333' : '#FFFFFF',
       borderRadius: 10,
       paddingHorizontal: 15,
       marginBottom: 20,
@@ -805,7 +809,7 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+      backgroundColor: isDarkMode ? '#333333': '#ffffff',
       borderRadius: 10,
       paddingHorizontal: 15,
       paddingVertical: 12,
@@ -854,15 +858,15 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       borderWidth: isDarkMode ? 1 : 0,
     },
     radioButtonSelected: {
-      backgroundColor: isDarkMode ? '#2C3E50' : '#E6F7F9',
+      backgroundColor: isDarkMode ? '#333333' : '#E6F7F9',
       borderColor: colors.primary,
       borderWidth: 1,
     },
     radioButtonDark: {
-      backgroundColor: '#333333',
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
     },
     radioButtonSelectedDark: {
-      backgroundColor: '#404040',
+      backgroundColor: isDarkMode ? '#333333': colors.card,
       borderColor: '#66D9E8',
     },
     inputLabel: {
@@ -914,10 +918,13 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       marginTop: 10,
     },
     disabledDateContainer: {
-      backgroundColor: colors.card , // Light background to indicate disabled state
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF', // Light background to indicate disabled state
     },
     disabledDateText: {
       color: '#A0A0A0', // Grayed out text
+    },
+    containerDark: {
+      backgroundColor: '#1A1A1A',
     },
     radio: {
       height: 20,
@@ -993,7 +1000,8 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 20,
-      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+      backgroundColor: isDarkMode ? '#333333': '#ffffff',
+
       borderRadius: 10,
       paddingHorizontal: 15,
       paddingVertical: 12,
@@ -1002,7 +1010,7 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
     durationValue: {
       fontSize: 16,
       marginLeft: 10,
-      color: isDarkMode ? colors.ca : '#FFFFFF',
+      color: isDarkMode ? colors.text : '#000000',
     },
     picker: {
       flex: 1,

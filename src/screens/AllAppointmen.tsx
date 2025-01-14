@@ -252,7 +252,35 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
 
   useEffect(() => {
     loadInitialData();
-  }, []);
+    const loadInitialData1 = async () => {
+      try {
+        const today = new Date();
+        const startDate = new Date(today);
+        const endDate = new Date(today);
+
+        startDate.setDate(today.getDate() - 2); // Past 2 days
+        endDate.setDate(today.getDate() + DAYS_TO_LOAD - 2); // Next days
+
+        const appointments = await fetchAppointmentsForDateRange(
+          startDate,
+          endDate,
+        );
+        setData(appointments);
+
+        const todayIdx = appointments.findIndex(
+          day => day.date.toDateString() === today.toDateString(),
+        );
+        setTodayIndex(todayIdx);
+      } catch (error) {
+        handleError(error);
+      }
+    };
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadInitialData1();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const getStatusColor = (status?: string) => {
     const colors = isDarkMode

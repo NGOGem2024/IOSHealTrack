@@ -268,7 +268,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
 
       if (response.status === 200) {
         setIsCompleted(true);
-        await saveAppointmentState();
+        await clearAppointmentState();
         setModalVisible(false);
         onClose();
         navigation.navigate('payment', {

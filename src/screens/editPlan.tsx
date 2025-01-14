@@ -23,6 +23,7 @@ import BackTabTop from './BackTopTab';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import TherapyCategoryDropdown from './TherapyCategoryDropdown';
 import {useSession} from '../context/SessionContext';
+import { useTheme } from './ThemeContext';
 
 type EditTherapyPlanScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -68,6 +69,8 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   route,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const {theme, isDarkMode} = useTheme();
+  const styles = createStyles(theme.colors, isDarkMode);
   const [isSaving, setIsSaving] = useState(false);
   const [patientName, setPatientName] = useState('');
   const {session} = useSession();
@@ -113,7 +116,6 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(-100));
 
@@ -674,18 +676,23 @@ const InputField: React.FC<InputFieldProps> = ({
   placeholder,
   value,
   onChangeText,
-}) => (
-  <View style={styles.inputContainer}>
-    {icon}
-    <TextInput
-      style={styles.input}
-      placeholder={placeholder}
-      value={value}
-      onChangeText={onChangeText}
-      placeholderTextColor="#A0A0A0"
-    />
-  </View>
-);
+}) => {
+  const {theme, isDarkMode} = useTheme();
+  const styles = createStyles(theme.colors, isDarkMode);
+  
+  return (
+    <View style={styles.inputContainer}>
+      {icon}
+      <TextInput
+        style={styles.input}
+        placeholder={placeholder}
+        value={value}
+        onChangeText={onChangeText}
+        placeholderTextColor="#A0A0A0"
+      />
+    </View>
+  );
+};
 const DatePickerField: React.FC<DatePickerFieldProps> = ({
   label,
   date,
@@ -693,37 +700,43 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
   onPress,
   onChange,
   disabled = false,
-}) => (
-  <View style={styles.dateTimeBlock}>
-    <Text style={styles.dateTimeLabel}>{label}</Text>
-    <TouchableOpacity
-      style={[
-        styles.dateTimeContainer,
-        disabled && styles.disabledDateContainer,
-      ]}
-      onPress={disabled ? undefined : onPress}>
-      <Text style={[styles.dateTimeText, disabled && styles.disabledDateText]}>
-        {date.toLocaleDateString()}
-      </Text>
-      <FontAwesome
-        name="calendar"
-        size={24}
-        color={disabled ? '#A0A0A0' : '#119FB3'}
-      />
-    </TouchableOpacity>
-    {showDatePicker && !disabled && (
-      <DateTimePicker
-        value={date}
-        mode="date"
-        display="default"
-        onChange={onChange}
-      />
-    )}
-  </View>
-);
-
-const Dropdown: React.FC<DropdownProps> = ({value, onValueChange, items}) => (
-  <View style={styles.inputContainer}>
+}) => {
+  const {theme, isDarkMode} = useTheme();
+  const styles = createStyles(theme.colors, isDarkMode);
+  
+  return (
+    <View style={styles.dateTimeBlock}>
+      <Text style={styles.dateTimeLabel}>{label}</Text>
+      <TouchableOpacity
+        style={[
+          styles.dateTimeContainer,
+          disabled && styles.disabledDateContainer,
+        ]}
+        onPress={disabled ? undefined : onPress}>
+        <Text style={[styles.dateTimeText, disabled && styles.disabledDateText]}>
+          {date.toLocaleDateString()}
+        </Text>
+        <FontAwesome
+          name="calendar"
+          size={24}
+          color={disabled ? '#A0A0A0' : '#119FB3'}
+        />
+      </TouchableOpacity>
+      {showDatePicker && !disabled && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="default"
+          onChange={onChange}
+        />
+      )}
+    </View>
+  );
+};
+const Dropdown: React.FC<DropdownProps> = ({value, onValueChange, items}) => {
+  const {theme, isDarkMode} = useTheme();
+  const styles = createStyles(theme.colors, isDarkMode);
+  return (<View style={styles.inputContainer}>
     <MaterialIcons name="category" size={24} color="#119FB3" />
     <Picker
       selectedValue={value}
@@ -734,12 +747,56 @@ const Dropdown: React.FC<DropdownProps> = ({value, onValueChange, items}) => (
         <Picker.Item key={index} label={item} value={item} />
       ))}
     </Picker>
-  </View>
-);
+  </View>);
+  
+    };;
 
-const styles = StyleSheet.create({
-  paymentTypeContainer: {
+const createStyles = (colors: any, isDarkMode: boolean) => StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollView: {
+    backgroundColor: colors.background,
+  },
+  container: {
+    flex: 1,
+    padding: 30,
+    backgroundColor: colors.background,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+    borderRadius: 10,
+    paddingHorizontal: 15,
     marginBottom: 20,
+    elevation: 2,
+    borderColor: colors.border,
+    borderWidth: isDarkMode ? 1 : 0,
+  },
+  input: {
+    flex: 1,
+    marginLeft: 10,
+    color: colors.text,
+    fontSize: 16,
+    paddingVertical: 12,
+  },
+  dateTimeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    elevation: isDarkMode ? 0 : 2,
+    borderColor: colors.border,
+    borderWidth: isDarkMode ? 1 : 0,
+  },
+  dateTimeText: {
+    fontSize: 16,
+    color: colors.text,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -756,30 +813,67 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 25,
     flex: 0.48,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    elevation: isDarkMode ? 0 : 3,
   },
+  saveButton: {
+    backgroundColor: colors.primary,
+  },
+  discardButton: {
+    backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#FF6B6B',
+  },
+  radioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+    borderRadius: 10,
+    padding: 15,
+    flex: 0.48,
+    elevation: isDarkMode ? 0 : 2,
+    borderColor: colors.border,
+    borderWidth: isDarkMode ? 1 : 0,
+  },
+  radioButtonSelected: {
+    backgroundColor: isDarkMode ? '#2C3E50' : '#E6F7F9',
+    borderColor: colors.primary,
+    borderWidth: 1,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 5,
+  },
+  dateTimeLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 5,
+  },
+  patientName: {
+    fontSize: 18,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '500',
+  },
+  errorText: {
+    color: '#FF6B6B',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  paymentTypeContainer: {
+    marginBottom: 20,
+  },
+ 
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
   },
-  saveButton: {
-    backgroundColor: '#119FB3',
-  },
   saveButtonText: {
     color: '#FFFFFF',
-  },
-  discardButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#FF6B6B',
   },
   discardButtonText: {
     color: '#FF6B6B',
@@ -792,24 +886,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'black',
-  },
-  radioButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    padding: 15,
-    flex: 0.48,
-    elevation: 2,
-  },
-  radioButtonSelected: {
-    backgroundColor: '#E6F7F9',
-    borderColor: '#119FB3',
-    borderWidth: 1,
   },
   disabledDateContainer: {
     backgroundColor: '#f0f0f0', // Light background to indicate disabled state
@@ -837,14 +913,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#333333',
   },
-  scrollView: {
-    backgroundColor: '#F0F8FF',
-  },
-  container: {
-    flex: 1,
-    padding: 30,
-    backgroundColor: '#F0F8FF',
-  },
+  
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -872,22 +941,6 @@ const styles = StyleSheet.create({
     color: '#333333',
     fontWeight: 'bold',
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    elevation: 2,
-  },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    color: '#333333',
-    fontSize: 16,
-    paddingVertical: 12,
-  },
   dateTimeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -896,32 +949,6 @@ const styles = StyleSheet.create({
   dateTimeBlock: {
     flex: 1,
     marginHorizontal: 2,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#119FB3',
-    marginBottom: 5,
-  },
-  dateTimeLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#119FB3',
-    marginBottom: 5,
-  },
-  dateTimeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    elevation: 2,
-  },
-  dateTimeText: {
-    fontSize: 16,
-    color: '#333333',
   },
   loadingContainer: {
     flex: 1,
@@ -934,18 +961,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#119FB3',
   },
-  patientName: {
-    fontSize: 18,
-    color: '#333333',
-    textAlign: 'center',
-    marginBottom: 20,
-    fontWeight: '500',
-  },
   durationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? 'gray' : '#E6F7F9',
     borderRadius: 10,
     paddingHorizontal: 15,
     paddingVertical: 12,
@@ -960,11 +980,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 10,
     color: '#333333',
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    marginBottom: 10,
   },
   disabledInput: {
     color: '#666666', // Slightly grayed out to indicate it's not editable

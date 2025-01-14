@@ -518,14 +518,14 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     patientNameText: {
       fontSize: 16,
       fontWeight: '600',
-      color: 'black',
+      color: theme.colors.text,
     },
     dateText: {
       fontSize: 14,
-      color: '#666',
+      color: theme.colors.text,
     },
     dateText1: {
-      color: 'black',
+      color: theme.colors.text,
       fontSize: 16,
       fontWeight: '600',
       textAlign: 'left',
@@ -763,7 +763,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderRadius: 8,
       padding: 8,
       height: 100,
-      color: theme.colors.text,
+      color: 'gray',
       textAlignVertical: 'top',
       marginBottom: 16,
       backgroundColor: theme.colors.card,

@@ -23,7 +23,7 @@ import BackTabTop from './BackTopTab';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import TherapyCategoryDropdown from './TherapyCategoryDropdown';
 import {useSession} from '../context/SessionContext';
-import { useTheme } from './ThemeContext';
+import {useTheme} from './ThemeContext';
 
 type EditTherapyPlanScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -200,7 +200,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     }
   }, [startDate, endDate]);
   const paymentTypes = [
-    {label: 'Recurring Payment', value: 'recurring',},
+    {label: 'Recurring Payment', value: 'recurring'},
     {label: 'One-time Payment', value: 'one-time'},
   ];
 
@@ -562,18 +562,34 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
                   key={type.value}
                   style={[
                     styles.radioButton,
+                    isDarkMode && styles.radioButtonDark,
                     therapyPlan.payment_type === type.value &&
                       styles.radioButtonSelected,
+                    therapyPlan.payment_type === type.value &&
+                      isDarkMode &&
+                      styles.radioButtonSelectedDark,
                   ]}
                   onPress={() =>
                     setTherapyPlan({...therapyPlan, payment_type: type.value})
                   }>
-                  <View style={styles.radio}>
+                  <View
+                    style={[
+                      styles.radio,
+                      isDarkMode && {borderColor: '#66D9E8'},
+                    ]}>
                     {therapyPlan.payment_type === type.value && (
-                      <View style={styles.radioSelected} />
+                      <View
+                        style={[
+                          styles.radioSelected,
+                          isDarkMode && {backgroundColor: '#66D9E8'},
+                        ]}
+                      />
                     )}
                   </View>
-                  <Text style={styles.radioLabel}>{type.label}</Text>
+                  <Text
+                    style={[styles.radioLabel, isDarkMode && styles.textDark]}>
+                    {type.label}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -679,7 +695,7 @@ const InputField: React.FC<InputFieldProps> = ({
 }) => {
   const {theme, isDarkMode} = useTheme();
   const styles = createStyles(theme.colors, isDarkMode);
-  
+
   return (
     <View style={styles.inputContainer}>
       {icon}
@@ -703,7 +719,7 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
 }) => {
   const {theme, isDarkMode} = useTheme();
   const styles = createStyles(theme.colors, isDarkMode);
-  
+
   return (
     <View style={styles.dateTimeBlock}>
       <Text style={styles.dateTimeLabel}>{label}</Text>
@@ -713,7 +729,8 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
           disabled && styles.disabledDateContainer,
         ]}
         onPress={disabled ? undefined : onPress}>
-        <Text style={[styles.dateTimeText, disabled && styles.disabledDateText]}>
+        <Text
+          style={[styles.dateTimeText, disabled && styles.disabledDateText]}>
           {date.toLocaleDateString()}
         </Text>
         <FontAwesome
@@ -736,255 +753,266 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
 const Dropdown: React.FC<DropdownProps> = ({value, onValueChange, items}) => {
   const {theme, isDarkMode} = useTheme();
   const styles = createStyles(theme.colors, isDarkMode);
-  return (<View style={styles.inputContainer}>
-    <MaterialIcons name="category" size={24} color="#119FB3" />
-    <Picker
-      selectedValue={value}
-      onValueChange={onValueChange}
-      style={styles.picker}>
-      <Picker.Item label="Therapy Category" value="" />
-      {items.map((item, index) => (
-        <Picker.Item key={index} label={item} value={item} />
-      ))}
-    </Picker>
-  </View>);
-  
-    };;
+  return (
+    <View style={styles.inputContainer}>
+      <MaterialIcons name="category" size={24} color="#119FB3" />
+      <Picker
+        selectedValue={value}
+        onValueChange={onValueChange}
+        style={styles.picker}>
+        <Picker.Item label="Therapy Category" value="" />
+        {items.map((item, index) => (
+          <Picker.Item key={index} label={item} value={item} />
+        ))}
+      </Picker>
+    </View>
+  );
+};
 
-const createStyles = (colors: any, isDarkMode: boolean) => StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollView: {
-    backgroundColor: colors.background,
-  },
-  container: {
-    flex: 1,
-    padding: 30,
-    backgroundColor: colors.background,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    elevation: 2,
-    borderColor: colors.border,
-    borderWidth: isDarkMode ? 1 : 0,
-  },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    color: colors.text,
-    fontSize: 16,
-    paddingVertical: 12,
-  },
-  dateTimeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    elevation: isDarkMode ? 0 : 2,
-    borderColor: colors.border,
-    borderWidth: isDarkMode ? 1 : 0,
-  },
-  dateTimeText: {
-    fontSize: 16,
-    color: colors.text,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-    marginBottom: 30,
-    paddingHorizontal: 10,
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-    flex: 0.48,
-    elevation: isDarkMode ? 0 : 3,
-  },
-  saveButton: {
-    backgroundColor: colors.primary,
-  },
-  discardButton: {
-    backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#FF6B6B',
-  },
-  radioButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
-    borderRadius: 10,
-    padding: 15,
-    flex: 0.48,
-    elevation: isDarkMode ? 0 : 2,
-    borderColor: colors.border,
-    borderWidth: isDarkMode ? 1 : 0,
-  },
-  radioButtonSelected: {
-    backgroundColor: isDarkMode ? '#2C3E50' : '#E6F7F9',
-    borderColor: colors.primary,
-    borderWidth: 1,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 5,
-  },
-  dateTimeLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 5,
-  },
-  patientName: {
-    fontSize: 18,
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: 20,
-    fontWeight: '500',
-  },
-  errorText: {
-    color: '#FF6B6B',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  paymentTypeContainer: {
-    marginBottom: 20,
-  },
- 
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  saveButtonText: {
-    color: '#FFFFFF',
-  },
-  discardButtonText: {
-    color: '#FF6B6B',
-  },
-  disabledButton: {
-    opacity: 0.5,
-    elevation: 0,
-  },
-  radioGroup: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  disabledDateContainer: {
-    backgroundColor: '#f0f0f0', // Light background to indicate disabled state
-  },
-  disabledDateText: {
-    color: '#666666', // Grayed out text
-  },
-  radio: {
-    height: 20,
-    width: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#119FB3',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  radioSelected: {
-    height: 10,
-    width: 10,
-    borderRadius: 5,
-    backgroundColor: '#119FB3',
-  },
-  radioLabel: {
-    fontSize: 12,
-    color: '#333333',
-  },
-  
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#119FB3',
-    textAlign: 'center',
-    marginBottom: 20,
-    marginTop: 25,
-  },
-  labeledInputContainer: {
-    marginBottom: 0,
-  },
-  balanceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    elevation: 2,
-  },
-  balanceValue: {
-    fontSize: 16,
-    marginLeft: 10,
-    color: '#333333',
-    fontWeight: 'bold',
-  },
-  dateTimeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  dateTimeBlock: {
-    flex: 1,
-    marginHorizontal: 2,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F0F8FF',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#119FB3',
-  },
-  durationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    elevation: 2,
-  },
-  durationValue: {
-    fontSize: 16,
-    marginLeft: 10,
-    color: isDarkMode ? colors.ca : '#FFFFFF',
-  },
-  picker: {
-    flex: 1,
-    marginLeft: 10,
-    color: '#333333',
-  },
-  disabledInput: {
-    color: '#666666', // Slightly grayed out to indicate it's not editable
-    backgroundColor: '#f0f0f0', // Light background to further indicate disabled state
-  },
-});
+const createStyles = (colors: any, isDarkMode: boolean) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollView: {
+      backgroundColor: colors.background,
+    },
+    container: {
+      flex: 1,
+      padding: 30,
+      backgroundColor: colors.background,
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      marginBottom: 20,
+      elevation: 2,
+      borderColor: colors.border,
+      borderWidth: isDarkMode ? 1 : 0,
+    },
+    input: {
+      flex: 1,
+      marginLeft: 10,
+      color: colors.text,
+      fontSize: 16,
+      paddingVertical: 12,
+    },
+    dateTimeContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      elevation: isDarkMode ? 0 : 2,
+      borderColor: colors.border,
+      borderWidth: isDarkMode ? 1 : 0,
+    },
+    dateTimeText: {
+      fontSize: 16,
+      color: colors.text,
+    },
+    buttonRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 20,
+      marginBottom: 30,
+      paddingHorizontal: 10,
+    },
+    button: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 25,
+      flex: 0.48,
+      elevation: isDarkMode ? 0 : 3,
+    },
+    saveButton: {
+      backgroundColor: colors.primary,
+    },
+    discardButton: {
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+      borderWidth: 1,
+      borderColor: '#FF6B6B',
+    },
+    radioButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+      borderRadius: 10,
+      padding: 15,
+      flex: 0.48,
+      elevation: isDarkMode ? 0 : 2,
+      borderColor: colors.border,
+      borderWidth: isDarkMode ? 1 : 0,
+    },
+    radioButtonSelected: {
+      backgroundColor: isDarkMode ? '#2C3E50' : '#E6F7F9',
+      borderColor: colors.primary,
+      borderWidth: 1,
+    },
+    radioButtonDark: {
+      backgroundColor: '#333333',
+    },
+    radioButtonSelectedDark: {
+      backgroundColor: '#404040',
+      borderColor: '#66D9E8',
+    },
+    inputLabel: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.primary,
+      marginBottom: 5,
+    },
+    dateTimeLabel: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.primary,
+      marginBottom: 5,
+    },
+    patientName: {
+      fontSize: 18,
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: 20,
+      fontWeight: '500',
+    },
+    errorText: {
+      color: '#FF6B6B',
+      textAlign: 'center',
+      marginBottom: 10,
+    },
+    paymentTypeContainer: {
+      marginBottom: 20,
+    },
+
+    buttonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginLeft: 8,
+    },
+    saveButtonText: {
+      color: '#FFFFFF',
+    },
+    discardButtonText: {
+      color: '#FF6B6B',
+    },
+    disabledButton: {
+      opacity: 0.5,
+      elevation: 0,
+    },
+    radioGroup: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 10,
+    },
+    disabledDateContainer: {
+      backgroundColor: colors.card , // Light background to indicate disabled state
+    },
+    disabledDateText: {
+      color: '#A0A0A0', // Grayed out text
+    },
+    radio: {
+      height: 20,
+      width: 20,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: '#119FB3',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 10,
+    },
+    radioSelected: {
+      height: 10,
+      width: 10,
+      borderRadius: 5,
+      backgroundColor: '#119FB3',
+    },
+    radioLabel: {
+      fontSize: 12,
+      color: '#333333',
+    },
+    textDark: {
+      color: '#FFFFFF',
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: '#119FB3',
+      textAlign: 'center',
+      marginBottom: 20,
+      marginTop: 25,
+    },
+    labeledInputContainer: {
+      marginBottom: 0,
+    },
+    balanceContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 20,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      elevation: 2,
+    },
+    balanceValue: {
+      fontSize: 16,
+      marginLeft: 10,
+      color: '#333333',
+      fontWeight: 'bold',
+    },
+    dateTimeRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 20,
+    },
+    dateTimeBlock: {
+      flex: 1,
+      marginHorizontal: 2,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#F0F8FF',
+    },
+    loadingText: {
+      marginTop: 10,
+      fontSize: 16,
+      color: '#119FB3',
+    },
+    durationContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 20,
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      elevation: 2,
+    },
+    durationValue: {
+      fontSize: 16,
+      marginLeft: 10,
+      color: isDarkMode ? colors.ca : '#FFFFFF',
+    },
+    picker: {
+      flex: 1,
+      marginLeft: 10,
+      color: '#333333',
+    },
+    disabledInput: {
+      color: '#666666', // Slightly grayed out to indicate it's not editable
+      backgroundColor: '#f0f0f0', // Light background to further indicate disabled state
+    },
+  });
 
 export default EditTherapyPlan;

@@ -324,7 +324,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       activeOpacity={0.7}
       style={styles.startButtonContainer}>
       <Icon name="play" size={12} color="black" />
-      <Text style={styles.startButtonText}>Start</Text>
+      <Text style={styles.startButtonText}>Start</Text> 
     </TouchableOpacity>
   );
 
@@ -492,7 +492,8 @@ const getStyles = (
     safeArea: {
       flex: 1,
       backgroundColor: 'black',
-    },   mainContentTouchable: {
+    },   
+    mainContentTouchable: {
       flex: 1,
       flexDirection: 'row',
     },

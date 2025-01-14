@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   ScrollView,
   SafeAreaView,
-  useColorScheme,
 } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
@@ -24,6 +23,7 @@ import BackTabTop from './BackTopTab';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import TherapyCategoryDropdown from './TherapyCategoryDropdown';
 import {useSession} from '../context/SessionContext';
+import { useTheme } from './ThemeContext';
 
 type EditTherapyPlanScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -43,7 +43,6 @@ type DatePickerFieldProps = {
   onPress: () => void;
   onChange: (event: any, selectedDate?: Date) => void;
   disabled?: boolean;
-  isDarkMode?: boolean;
 };
 
 type DropdownProps = {
@@ -111,8 +110,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     endDate: new Date(),
   });
   const {planId} = route.params;
-  const colorScheme = useColorScheme(); // Get current color scheme
-  const isDarkMode = colorScheme === 'dark';
+
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -202,7 +200,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     }
   }, [startDate, endDate]);
   const paymentTypes = [
-    {label: 'Recurring Payment', value: 'recurring'},
+    {label: 'Recurring Payment', value: 'recurring',},
     {label: 'One-time Payment', value: 'one-time'},
   ];
 
@@ -472,18 +470,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackTabTop screenName="Edit Plan" />
-      <KeyboardAwareScrollView
-        enableOnAndroid={true}
-        enableAutomaticScroll={true}
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={20}
-        enableResetScrollToCoords={false}
-        scrollEnabled={true}
-        bounces={true}
-        keyboardOpeningTime={0}
-        showsVerticalScrollIndicator={true}
-        style={[styles.scrollView, isDarkMode && styles.scrollViewDark]}
-        contentContainerStyle={styles.scrollContainer}>
+      <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
         <Animated.View
           style={[
             styles.container,
@@ -680,7 +667,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
 
           {renderButtons()}
         </Animated.View>
-      </KeyboardAwareScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -818,14 +805,6 @@ const createStyles = (colors: any, isDarkMode: boolean) => StyleSheet.create({
     marginBottom: 30,
     paddingHorizontal: 10,
   },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingBottom: 20,
-  },
-  scrollViewDark: {
-    backgroundColor: '#F0F8FF',
-  },
-
   button: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -986,7 +965,7 @@ const createStyles = (colors: any, isDarkMode: boolean) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
-    backgroundColor: isDarkMode ? 'gray' : '#E6F7F9',
+    backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
     borderRadius: 10,
     paddingHorizontal: 15,
     paddingVertical: 12,
@@ -995,7 +974,7 @@ const createStyles = (colors: any, isDarkMode: boolean) => StyleSheet.create({
   durationValue: {
     fontSize: 16,
     marginLeft: 10,
-    color: '#333333',
+    color: isDarkMode ? colors.ca : '#FFFFFF',
   },
   picker: {
     flex: 1,

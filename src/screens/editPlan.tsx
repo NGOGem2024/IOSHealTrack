@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   ScrollView,
   SafeAreaView,
+  useColorScheme,
 } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
@@ -23,7 +24,6 @@ import BackTabTop from './BackTopTab';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import TherapyCategoryDropdown from './TherapyCategoryDropdown';
 import {useSession} from '../context/SessionContext';
-import { useTheme } from './ThemeContext';
 
 type EditTherapyPlanScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -43,6 +43,7 @@ type DatePickerFieldProps = {
   onPress: () => void;
   onChange: (event: any, selectedDate?: Date) => void;
   disabled?: boolean;
+  isDarkMode?: boolean;
 };
 
 type DropdownProps = {
@@ -110,7 +111,8 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     endDate: new Date(),
   });
   const {planId} = route.params;
-
+  const colorScheme = useColorScheme(); // Get current color scheme
+  const isDarkMode = colorScheme === 'dark';
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -470,7 +472,18 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackTabTop screenName="Edit Plan" />
-      <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        keyboardShouldPersistTaps="handled"
+        extraScrollHeight={20}
+        enableResetScrollToCoords={false}
+        scrollEnabled={true}
+        bounces={true}
+        keyboardOpeningTime={0}
+        showsVerticalScrollIndicator={true}
+        style={[styles.scrollView, isDarkMode && styles.scrollViewDark]}
+        contentContainerStyle={styles.scrollContainer}>
         <Animated.View
           style={[
             styles.container,
@@ -667,7 +680,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
 
           {renderButtons()}
         </Animated.View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };
@@ -805,6 +818,14 @@ const createStyles = (colors: any, isDarkMode: boolean) => StyleSheet.create({
     marginBottom: 30,
     paddingHorizontal: 10,
   },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
+  scrollViewDark: {
+    backgroundColor: '#F0F8FF',
+  },
+
   button: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -707,7 +707,7 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: 'black',
     },
     modalContainer: {
       flex: 1,
@@ -721,19 +721,19 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       paddingBottom: 20,
     },
     pickerWrapper: {
-      backgroundColor: colors.card,
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: isDarkMode ? colors.border : '#E0E0E0',
       marginTop: 8,
       overflow: 'hidden',
     },
     picker: {
       backgroundColor: 'transparent',
+      color: colors.text,
+      paddingVertical: 8,
       marginTop: 0,
       marginBottom: 0,
-      paddingVertical: 8,
-      color: colors.text,
     },
     pickerHeader: {
       flexDirection: 'row',
@@ -761,15 +761,12 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       height: 215,
     },
     pickerField: {
-      backgroundColor: colors.card,
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
       borderRadius: 10,
       padding: 16,
       marginTop: 8,
       borderWidth: 1,
-      borderColor: colors.border,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      borderColor: isDarkMode ? colors.border : '#E0E0E0',
     },
     pickerFieldText: {
       fontSize: 16,
@@ -777,17 +774,136 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       flex: 1,
     },
     pickerPlaceholder: {
-      color: colors.text + '80', // Adding opacity for placeholder
+      color: `${colors.text}80`,
     },
     container: {
       flex: 1,
       backgroundColor: colors.background,
     },
     infoText: {
-      color: `${colors.text}99`, // Adding opacity for secondary text
+      color: isDarkMode ? `${colors.text}99` : '#666666',
       textAlign: 'center',
       marginTop: 10,
     },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: '#119FB3',
+      textAlign: 'center',
+      marginBottom: 20,
+      marginTop: 25,
+    },
+    section: {
+      padding: 10,
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+      marginBottom: 8,
+      borderRadius: 10,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      marginHorizontal: 16,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#119FB3',
+      marginBottom: 12,
+    },
+    typeButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: '#119FB3',
+      marginRight: 10,
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+    },
+    selectedTypeButton: {
+      backgroundColor: '#119FB3',
+    },
+    typeButtonText: {
+      color: '#119FB3',
+    },
+    selectedTypeButtonText: {
+      color: '#FFFFFF',
+    },
+    dateText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    slotButton: {
+      borderWidth: 1,
+      borderColor: '#119FB3',
+      borderRadius: 10,
+      padding: 10,
+      width: '48%',
+      marginBottom: 10,
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+    },
+    slotButtonDisabled: {
+      backgroundColor: isDarkMode ? `${colors.border}80` : '#F5F5F5',
+      borderColor: isDarkMode ? colors.border : '#E0E0E0',
+    },
+    slotButtonSelected: {
+      backgroundColor: '#119FB3',
+    },
+    slotButtonText: {
+      color: colors.text,
+      textAlign: 'center',
+    },
+    slotButtonTextDisabled: {
+      color: isDarkMode ? `${colors.text}40` : '#999999',
+    },
+    slotButtonTextSelected: {
+      color: '#FFFFFF',
+    },
+    errorText: {
+      color: isDarkMode ? '#FF6B6B' : '#FF0000',
+      textAlign: 'center',
+      marginTop: 10,
+    },
+    bookButton: {
+      backgroundColor: '#119FB3',
+      padding: 16,
+      alignItems: 'center',
+      margin: 16,
+      borderRadius: 10,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    bookButtonText: {
+      color: '#FFFFFF',
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    loadingContainer: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: isDarkMode
+        ? 'rgba(18, 18, 18, 0.8)'
+        : 'rgba(255, 255, 255, 0.8)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1,
+    },
+    slotsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      paddingHorizontal: 5,
+    },
+    dateSelector: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+    },
+
     bcontainer: {
       flex: 1,
       backgroundColor: colors.background,
@@ -818,114 +934,10 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       textAlign: 'center',
       color: colors.text,
     },
-    title: {
-      fontSize: 28,
-      fontWeight: 'bold',
-      color: '#119FB3',
-      textAlign: 'center',
-      marginBottom: 20,
-      marginTop: 25,
-    },
-    loadingContainer: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: colors.background + 'CC', // Adding opacity for overlay
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1,
-    },
-    bookButton: {
-      backgroundColor: colors.primary,
-      padding: 16,
-      alignItems: 'center',
-      margin: 16,
-      borderRadius: 10,
-    },
-    bookButtonText: {
-      color: isDarkMode ? colors.text : '#ffffff',
-      fontSize: 18,
-      fontWeight: 'bold',
-    },
-    section: {
-      padding: 16,
-      backgroundColor: colors.card,
-      marginBottom: 8,
-      borderRadius: 10,
-      elevation: 2,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: '#119FB3',
-      marginBottom: 12,
-    },
+
     appointmentTypes: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-    },
-    typeButton: {
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: '#119FB3',
-    },
-    selectedTypeButton: {
-      backgroundColor: '#119FB3',
-    },
-    typeButtonText: {
-      color: '#119FB3',
-    },
-    selectedTypeButtonText: {
-      color: '#FFFFFF',
-    },
-    dateSelector: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    dateText: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: colors.text,
-    },
-    slotsContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      gap: 10,
-    },
-    slotButton: {
-      borderWidth: 1,
-      borderColor: '#119FB3',
-      borderRadius: 10,
-      padding: 10,
-      width: '40%',
-    },
-    slotButtonDisabled: {
-      backgroundColor: colors.border,
-      borderColor: colors.border,
-    },
-    slotButtonSelected: {
-      backgroundColor: '#119FB3',
-    },
-    slotButtonText: {
-      color: colors.text,
-      textAlign: 'center',
-    },
-    slotButtonTextDisabled: {
-      color: colors.text + '66', // Adding opacity for disabled text
-    },
-    slotButtonTextSelected: {
-      color: '#FFFFFF',
-    },
-    errorText: {
-      color: colors.notification,
-      textAlign: 'center',
-      marginTop: 10,
     },
     pickerItem: {
       fontSize: 16,

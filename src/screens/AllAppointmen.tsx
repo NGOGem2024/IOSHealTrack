@@ -252,7 +252,35 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
 
   useEffect(() => {
     loadInitialData();
-  }, []);
+    const loadInitialData1 = async () => {
+      try {
+        const today = new Date();
+        const startDate = new Date(today);
+        const endDate = new Date(today);
+
+        startDate.setDate(today.getDate() - 2); // Past 2 days
+        endDate.setDate(today.getDate() + DAYS_TO_LOAD - 2); // Next days
+
+        const appointments = await fetchAppointmentsForDateRange(
+          startDate,
+          endDate,
+        );
+        setData(appointments);
+
+        const todayIdx = appointments.findIndex(
+          day => day.date.toDateString() === today.toDateString(),
+        );
+        setTodayIndex(todayIdx);
+      } catch (error) {
+        handleError(error);
+      }
+    };
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadInitialData1();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const getStatusColor = (status?: string) => {
     const colors = isDarkMode
@@ -316,7 +344,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
   const renderStartButton = (appointment: Appointment) => (
     <TouchableOpacity
       onPress={e => {
-        e.stopPropagation(); // Prevent event bubbling
+        e.stopPropagation(); // Prevent event bubbling to parent
         setSelectedAppointment(appointment);
         setIsAppointmentModalVisible(true);
       }}
@@ -356,8 +384,6 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
           <View style={styles.appointmentInfo}>
             <View style={styles.typeAndButtonContainer}>
               <Text style={styles.appointmentType}>{item.therepy_type}</Text>
-              {(!item.status || item.status.toLowerCase() !== 'completed') &&
-                renderStartButton(item)}
             </View>
 
             {item.patient_name && (
@@ -385,6 +411,8 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
             </View>
           </View>
         </TouchableOpacity>
+        {(!item.status || item.status.toLowerCase() !== 'completed') &&
+          renderStartButton(item)}
       </View>
     </Animated.View>
   );
@@ -494,15 +522,19 @@ const getStyles = (
       flex: 1,
       backgroundColor: 'black',
     },
-    mainContentTouchable: {
-      flex: 1,
-      flexDirection: 'row',
-    },
-
     appointmentContent: {
       flex: 1,
       padding: 16,
       position: 'relative',
+      flexDirection: 'row', // Add row direction to align content and button
+      justifyContent: 'space-between', // Space between content and button
+      alignItems: 'center', // Center items vertically
+    },
+
+    mainContentTouchable: {
+      flex: 1,
+      flexDirection: 'row',
+      marginRight: 12, // Add margin to create space for the button
     },
 
     startButtonContainer: {
@@ -514,12 +546,22 @@ const getStyles = (
       alignItems: 'center',
       justifyContent: 'center',
       gap: 2,
-      zIndex: 2, // Ensure button is above other elements
-      elevation: 2, // For Android
-      position: 'absolute',
-      right: 2,
-      top: '20%',
-      transform: [{translateY: 22}, {translateX: 25}],
+      alignSelf: 'center',
+    },
+
+    appointmentItem: {
+      marginHorizontal: 16,
+      marginBottom: 12,
+      borderRadius: 16,
+      backgroundColor: isDarkMode ? '#233436' : '#FFFFFF',
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: isDarkMode ? 0.4 : 0.1,
+      shadowRadius: 4,
+      borderColor: isDarkMode ? '#119FB3' : 'white',
+      borderWidth: 1,
+      overflow: 'hidden', // Ensure no content spills outside
     },
     startButtonText: {
       color: 'black',
@@ -647,20 +689,6 @@ const getStyles = (
       paddingVertical: 20,
       alignItems: 'center',
     },
-    appointmentItem: {
-      marginHorizontal: 16,
-      marginBottom: 12,
-      borderRadius: 16,
-      backgroundColor: isDarkMode ? '#233436' : '#FFFFFF',
-      elevation: 4,
-      shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: isDarkMode ? 0.4 : 0.1,
-      shadowRadius: 4,
-      borderColor: isDarkMode ? '#119FB3' : 'white',
-      borderWidth: 1,
-    },
-
     timeContainer: {
       alignItems: 'center',
       marginRight: 16,

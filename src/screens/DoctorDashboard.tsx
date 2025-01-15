@@ -550,7 +550,9 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       paddingHorizontal: 15,
       backgroundColor: '#119FB3',
       borderBottomColor: 'white',
+      borderTopColor: 'white',
       borderBottomWidth: 1,
+      borderTopWidth: 1,
     },
     logoImage: {
       width: 120,
@@ -600,7 +602,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     safeArea: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: 'black',
     },
     scrollView: {
       flex: 1,
@@ -670,15 +672,15 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       fontWeight: 'bold',
     },
     profileSection: {
-      flexDirection: "row",
+      flexDirection: 'row',
       paddingTop: 70,
       paddingBottom: 30,
       backgroundColor: theme.colors.card,
       borderBottomLeftRadius: 0,
       borderBottomRightRadius: 150,
       elevation: 5,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.1,
       shadowRadius: 4,
     },

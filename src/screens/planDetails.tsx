@@ -30,6 +30,10 @@ interface SessionRemark {
   postsession_remarks?: string;
   timestamp: string;
 }
+interface TherapySession {
+  _id: string;
+  status: string;
+}
 
 interface TherapyPlanDetails {
   therapy_plan: {
@@ -47,6 +51,8 @@ interface TherapyPlanDetails {
     balance: string;
     extra_addons?: string[] | Array<{name: string; amount: number}>;
     addons_amount?: number | string;
+    therapy_sessions?: TherapySession[];
+    estimated_sessions?: number;
     presession_remarks?: SessionRemark[];
     postsession_remarks?: SessionRemark[];
   };
@@ -89,13 +95,48 @@ const TherapyPlanDetails: React.FC = () => {
       setLoading(false);
     }
   };
-  const calculateProgress = (startDate: string, endDate: string): number => {
-    const start = new Date(startDate).getTime();
-    const end = new Date(endDate).getTime();
-    const current = new Date().getTime();
-    const total = end - start;
-    const elapsed = current - start;
-    return Math.min(Math.max((elapsed / total) * 100, 0), 100);
+  const calculateTherapyProgress = (
+    therapyPlan: TherapyPlanDetails['therapy_plan'],
+  ): number => {
+    try {
+      // Guard clause - return 0 if plan doesn't exist or is invalid
+      if (!therapyPlan) return 0;
+
+      // Check if therapy_sessions exists and is an array
+      if (
+        !therapyPlan.therapy_sessions ||
+        !Array.isArray(therapyPlan.therapy_sessions)
+      ) {
+        return 0;
+      }
+
+      // Check if estimated_sessions exists and is a valid number
+      if (
+        !therapyPlan.estimated_sessions ||
+        typeof therapyPlan.estimated_sessions !== 'number' ||
+        therapyPlan.estimated_sessions <= 0
+      ) {
+        return 0;
+      }
+
+      // Safely count completed sessions
+      const completedSessions = therapyPlan.therapy_sessions.filter(
+        session => session && session.status === 'Completed',
+      ).length;
+
+      // Calculate progress percentage
+      const progress =
+        (completedSessions / therapyPlan.estimated_sessions) * 100;
+
+      // Ensure progress is between 0 and 100 and is a valid number
+      return Number.isFinite(progress)
+        ? Math.min(Math.max(progress, 0), 100)
+        : 0;
+    } catch (error) {
+      // If anything goes wrong, return 0 instead of breaking
+      console.warn('Error calculating therapy progress:', error);
+      return 0;
+    }
   };
 
   if (loading) {
@@ -120,8 +161,68 @@ const TherapyPlanDetails: React.FC = () => {
     );
   }
 
+  const renderSessionsCard = () => {
+    if (!plan.estimated_sessions && !plan.therapy_sessions) return null;
+
+    return (
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Sessions Information</Text>
+
+        <View style={styles.sessionsContainer}>
+          {plan.estimated_sessions !== undefined && (
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Estimated Sessions:</Text>
+              <Text style={styles.value}>{plan.estimated_sessions}</Text>
+            </View>
+          )}
+
+          {plan.therapy_sessions && (
+            <>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Completed Sessions:</Text>
+                <Text style={styles.value}>
+                  {
+                    plan.therapy_sessions.filter(
+                      session => session.status === 'Completed',
+                    ).length
+                  }
+                </Text>
+              </View>
+
+              <Text style={[styles.sectionTitle, styles.sessionListTitle]}>
+                Session Details
+              </Text>
+
+              {plan.therapy_sessions.map((session, index) => (
+                <View key={session._id} style={styles.sessionItem}>
+                  <View style={styles.sessionHeader}>
+                    <Text style={styles.sessionNumber}>
+                      Session {index + 1}
+                    </Text>
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        {
+                          backgroundColor:
+                            session.status === 'Completed'
+                              ? '#4CAF50'
+                              : '#FFA726',
+                        },
+                      ]}>
+                      <Text style={styles.statusText}>{session.status}</Text>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </>
+          )}
+        </View>
+      </View>
+    );
+  };
+
   const plan = planDetails.therapy_plan;
-  const progress = calculateProgress(plan.therapy_start, plan.therapy_end);
+  const progress = calculateTherapyProgress(plan);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -204,7 +305,7 @@ const TherapyPlanDetails: React.FC = () => {
             </Text>
           </View>
         </View>
-
+        {renderSessionsCard()}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.sectionTitle}>Payment Details</Text>
@@ -347,6 +448,45 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
           : 'rgba(17, 159, 179, 0.1)', // Darker background for dark mode
       padding: 12,
       borderRadius: 8,
+    },
+    sessionsContainer: {
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgb(240, 246, 255)'
+          : 'rgba(17, 159, 179, 0.1)',
+      padding: 16,
+      borderRadius: 8,
+    },
+    sessionListTitle: {
+      fontSize: 16,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    sessionItem: {
+      borderLeftWidth: 2,
+      borderLeftColor: '#119FB3',
+      paddingLeft: 12,
+      marginBottom: 12,
+    },
+    sessionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    sessionNumber: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.colors.text,
+    },
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    statusText: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: '500',
     },
     paymentLabel: {
       fontSize: 14,

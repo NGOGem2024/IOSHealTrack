@@ -78,7 +78,23 @@ const TherapyPlanDetails: React.FC = () => {
 
   useEffect(() => {
     fetchPlanDetails();
-  }, [planId]);
+    const fetchPlanDetails1 = async () => {
+      try {
+        const response = await axiosInstance.get(`/get/plan/${planId}`, {
+          headers: {Authorization: `Bearer ${session.idToken}`},
+        });
+        setPatientId(response.data.patient_id);
+        setPlanDetails(response.data);
+      } catch (error) {
+        handleError(error);
+      }
+    };
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchPlanDetails1();
+    });
+
+    return unsubscribe;
+  }, [planId, navigation]);
 
   const fetchPlanDetails = async () => {
     if (!session.idToken || !planId) return;

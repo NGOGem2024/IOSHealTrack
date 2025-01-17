@@ -48,7 +48,9 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
           style={styles.logoImage}
           resizeMode="contain"
         />
+        <Text style={styles.versionText}>v0.5</Text>
       </TouchableOpacity>
+
       <View style={styles.rightSection}>
         <Text style={styles.screenNameText}>{screenName}</Text>
         <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
@@ -121,6 +123,18 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     profileButton: {
       alignItems: 'flex-end',
+    },
+    logoContainer: {
+      alignItems: 'center',
+    },
+    versionText: {
+      position: 'absolute',
+      bottom: 1,
+      right: -18,
+      color: '#FFFFFF',
+      fontSize: 12,
+      opacity: 0.8,
+      fontWeight: 'bold',
     },
     modal: {
       margin: 0,

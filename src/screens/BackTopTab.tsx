@@ -130,7 +130,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     versionText: {
       position: 'absolute',
       bottom: 1,
-      right: -9,
+      right: -14,
       color: '#FFFFFF',
       fontSize: 12,
       opacity: 0.8,

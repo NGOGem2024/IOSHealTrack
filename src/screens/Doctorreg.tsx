@@ -27,6 +27,7 @@ import Icon2 from 'react-native-vector-icons/FontAwesome';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 import CustomCountryPicker from './CustomCountryPicker';
+import RolePicker from './RolePicker';
 
 interface DoctorData {
   doctor_first_name: string;
@@ -199,34 +200,17 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
           Role <Text style={{color: colors.mandatory}}>*</Text>
         </Text>
       </View>
-      <View
-        style={[
-          styles.pickerWrapper,
-          {
-            backgroundColor: colors.inputBg,
-            borderColor: colors.inputBorder,
-          },
-        ]}>
-        <Icon
-          name="account-cog"
-          size={20}
-          color={colors.secondary}
-          style={styles.inputIcon}
-        />
-        <Picker
-          selectedValue={doctorData.is_admin.toString()} 
-          onValueChange={(itemValue: string) => {
-            setDoctorData(prev => ({
-              ...prev,
-              is_admin: itemValue === 'true', 
-            }));
-          }}
-          style={[styles.picker, {color: colors.text}]}
-          dropdownIconColor={colors.text}>
-          <Picker.Item label="Doctor" value="false" />
-          <Picker.Item label="Admin" value="true" />
-        </Picker>
-      </View>
+      <RolePicker
+        value={doctorData.is_admin.toString()}
+        onChange={(itemValue: string) => {
+          setDoctorData(prev => ({
+            ...prev,
+            is_admin: itemValue === 'true',
+          }));
+        }}
+        colors={colors}
+        styles={styles}
+      />
     </Animatable.View>
   );
 

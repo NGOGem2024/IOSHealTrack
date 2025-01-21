@@ -194,7 +194,11 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   <TouchableOpacity
                     style={styles.linkButton}
                     onPress={resetEmailInput}>
-                    <Icon name="arrow-left" size={16} style={styles.iconStyle} />
+                    <Icon
+                      name="arrow-left"
+                      size={16}
+                      style={styles.iconStyle}
+                    />
                     <Text style={styles.linkButtonText}>Change Email</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -233,20 +237,20 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: theme.colors.card,
     },
     headerSection: {
-      marginTop:40,
+      marginTop: 40,
       alignItems: 'center',
       position: 'relative',
     },
     formSection: {
       padding: 20,
-      paddingTop:40,
+      paddingTop: 40,
     },
     iconStyle: {
-      color:'#007b8e',
+      color: '#007b8e',
     },
     logo: {
-      width: width * 0.4,
-      height: 50,
+      width: width * 0.5,
+      height: 70,
     },
     title: {
       fontSize: 26,

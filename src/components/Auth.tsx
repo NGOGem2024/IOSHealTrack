@@ -146,7 +146,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 <View style={styles.inputWrapper}>
                   <Text style={styles.inputLabel}>Email Address</Text>
                   <View style={styles.inputContainer}>
-                    <Icon name="email" size={20} color="#2a7fba" />
+                    <Icon name="email" size={20} style={styles.iconStyle} />
                     <TextInput
                       style={styles.input}
                       placeholder="Enter email address"
@@ -162,7 +162,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 <View style={styles.inputWrapper}>
                   <Text style={styles.inputLabel}>OTP Code</Text>
                   <View style={styles.inputContainer}>
-                    <Icon name="lock" size={20} color="#2a7fba" />
+                    <Icon name="lock" size={20} style={styles.iconStyle} />
                     <TextInput
                       style={styles.input}
                       placeholder="Enter 6-digit code"
@@ -194,14 +194,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   <TouchableOpacity
                     style={styles.linkButton}
                     onPress={resetEmailInput}>
-                    <Icon name="arrow-left" size={16} color="#2a7fba" />
+                    <Icon name="arrow-left" size={16} style={styles.iconStyle} />
                     <Text style={styles.linkButtonText}>Change Email</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.linkButton}
                     onPress={sendOtp}
                     disabled={loading}>
-                    <Icon name="refresh" size={16} color="#2a7fba" />
+                    <Icon name="refresh" size={16} style={styles.iconStyle} />
                     <Text style={styles.linkButtonText}>Resend Code</Text>
                   </TouchableOpacity>
                 </View>
@@ -240,6 +240,9 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     formSection: {
       padding: 20,
       paddingTop:40,
+    },
+    iconStyle: {
+      color:'#007b8e',
     },
     logo: {
       width: width * 0.4,
@@ -282,7 +285,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: '#333',
     },
     mainButton: {
-      backgroundColor: '#2a7fba',
+      backgroundColor: '#007b8e',
       height: 52,
       borderRadius: 12,
       justifyContent: 'center',
@@ -313,7 +316,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       padding: 8,
     },
     linkButtonText: {
-      color: '#2a7fba',
+      color: '#007b8e',
       marginLeft: 4,
       fontSize: 14,
       fontWeight: '600',

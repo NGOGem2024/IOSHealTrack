@@ -14,7 +14,7 @@ export const themeColors = {
   },
   blue: {
     primary: '#1976d2',
-    secondary: '#03a9f4',
+    secondary: '#f0f0f0',
     background: '#fefefe',
     card: '#ffffff',
     text: '#000000',
@@ -54,7 +54,7 @@ export const themeColors = {
   },
   dark: {
     primary: '#bb86fc',
-    secondary: '#03dac6',
+    secondary: '#4c4d4c',
     background: '#121212',
     card: '#1e1e1e',
     text: '#ffffff',

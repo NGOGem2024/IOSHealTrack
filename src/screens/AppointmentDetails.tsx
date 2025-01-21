@@ -478,7 +478,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>Post-Session Remarks</Text>
                 <TextInput
-                  style={styles.remarksInput}
+                  style={styles.remarksInput2}
                   multiline
                   numberOfLines={4}
                   onChangeText={setPostRemarks}
@@ -766,7 +766,16 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: 'gray',
       textAlignVertical: 'top',
       marginBottom: 16,
-      backgroundColor: theme.colors.card,
+      backgroundColor:theme.colors.card,
+    },
+    remarksInput2: {
+      borderRadius: 8,
+      padding: 8,
+      height: 100,
+      color: 'gray',
+      textAlignVertical: 'top',
+      marginBottom: 16,
+      backgroundColor:theme.colors.secondary,
     },
     modalContainer: {
       flex: 1,

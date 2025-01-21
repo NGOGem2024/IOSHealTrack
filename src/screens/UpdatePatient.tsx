@@ -123,12 +123,16 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
     try {
       const response = await axiosInstance.get(`/patient/${patientId}`);
       const patientInfo = response.data.patientData;
+      
+      // Format the phone number if it doesn't have a space after country code
+      const formattedPhone = patientInfo.patient_phone.replace(/^\+(\d{2})(\d+)/, '+$1 $2');
+      
       setPatientData(prevData => ({
         ...prevData,
         patient_first_name: patientInfo.patient_first_name || '',
         patient_last_name: patientInfo.patient_last_name || '',
         patient_email: patientInfo.patient_email || '',
-        patient_phone: patientInfo.patient_phone || '',
+        patient_phone: formattedPhone || '', // Use the formatted phone number
         patient_address1: patientInfo.patient_address1 || '',
         patient_address2: patientInfo.patient_address2 || '',
         patient_age: patientInfo.patient_age || '',

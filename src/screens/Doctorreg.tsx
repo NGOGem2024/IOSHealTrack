@@ -12,27 +12,77 @@ import {
   Appearance,
   SafeAreaView,
   Modal,
+  Dimensions,
 } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
-import {GestureHandlerRootView, ScrollView} from 'react-native-gesture-handler';
 import * as Animatable from 'react-native-animatable';
 import {useSession} from '../context/SessionContext';
 import {Picker} from '@react-native-picker/picker';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import BackTabTop from './BackTopTab';
 import instance from '../utils/axiosConfig';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon2 from 'react-native-vector-icons/FontAwesome';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+
+import CustomCountryPicker from './CustomCountryPicker';
+
+interface DoctorData {
+  doctor_first_name: string;
+  doctor_last_name: string;
+  doctor_email: string;
+  doctor_phone: string;
+  qualification: string;
+  is_admin: boolean;
+}
+
+interface Country {
+  name: string;
+  code: string;
+  flag: string;
+  callingCode: string;
+}
+const {width} = Dimensions.get('window');
 
 type DoctorRegisterScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'DoctorRegister'>;
 };
 
+
+const theme = {
+  light: {
+    background: '#f8f9fa',
+    card: '#ffffff',
+    primary: '#119FB3',
+    secondary: '#119FB3',
+    text: '#1f2937',
+    inputBg: '#f3f4f6',
+    inputBorder: '#03858c',
+    placeholderText: '#9ca3af',
+    error: '#ef4444',
+    success: '#22c55e',
+    mandatory: '#dc2626',
+  },
+  dark: {
+    background: '#161c24',
+    card: '#272d36',
+    primary: '#11bed6',
+    secondary: '#119FB3',
+    text: '#f3f4f6',
+    inputBg: '#282d33',
+    inputBorder: '#03858c',
+    placeholderText: '#9ca3af',
+    error: '#f87171',
+    success: '#34d399',
+    mandatory: '#ef4444',
+  },
+};
+
 const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
   const {session} = useSession();
-  const colorScheme = useColorScheme();
-  const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
-  const [showPicker, setShowPicker] = useState(false);
-  const [doctorData, setDoctorData] = useState({
+  const [isDarkMode, setIsDarkMode] = useState(useColorScheme() === 'dark');
+  const [doctorData, setDoctorData] = useState<DoctorData>({
     doctor_first_name: '',
     doctor_last_name: '',
     doctor_email: '',
@@ -41,137 +91,233 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
     is_admin: false,
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [phoneError, setPhoneError] = useState('');
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [callingCode, setCallingCode] = useState('91');
+  const [selectedCountry, setSelectedCountry] = useState<Country>({
+    name: 'India',
+    code: 'IN',
+    flag: '🇮🇳',
+    callingCode: '91'
+  });
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
 
   useEffect(() => {
-    const subscription = Appearance.addChangeListener(
-      ({colorScheme: newColorScheme}) => {
-        setIsDarkMode(newColorScheme === 'dark');
-      },
-    );
-
-    return () => {
-      subscription.remove();
-    };
+    const subscription = Appearance.addChangeListener(({colorScheme}) => {
+      setIsDarkMode(colorScheme === 'dark');
+    });
+    return () => subscription.remove();
   }, []);
 
-  // Theme colors based on mode
-  const colors = {
-    background: isDarkMode ? '#121212' : '#FFFFFF',
-    text: isDarkMode ? '#FFFFFF' : '#333333',
-    primary: isDarkMode ? '#1FCAE8' : '#119FB3',
-    inputBackground: isDarkMode ? '#2C2C2C' : '#FFFFFF',
-    inputBorder: isDarkMode ? '#404040' : '#D9D9D9',
-    error: isDarkMode ? '#FF6B6B' : '#FF0000',
-    cardBackground: isDarkMode ? '#1E1E1E' : '#FFFFFF',
-    placeholderText: isDarkMode ? '#888888' : '#666666',
-    shadow: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.25)',
+  const colors = theme[isDarkMode ? 'dark' : 'light'];
+
+ 
+
+  const validateField = (field: string, value: string): string => {
+    switch (field) {
+      case 'doctor_email':
+        if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          return 'Invalid email address';
+        }
+        break;
+      case 'doctor_phone':
+        if (value.length !== 10) {
+          return 'Phone number must be 10 digits';
+        }
+        break;
+    }
+    return '';
   };
 
-  // Themed styles
-  const themedStyles = StyleSheet.create({
-    mainContainer: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    card: {
-      backgroundColor: colors.cardBackground,
-      borderColor: colors.inputBorder,
-      borderWidth: isDarkMode ? 1 : 0,
-      shadowColor: colors.shadow,
-    },
-    input: {
-      backgroundColor: colors.inputBackground,
-      borderColor: colors.inputBorder,
-      color: colors.text,
-    },
-    text: {
-      color: colors.text,
-    },
-    scrollContent: {
-      backgroundColor: colors.background,
-    },
-  });
-
-  const renderPicker = () => {
-    if (Platform.OS === 'ios') {
-      return (
-        <View>
-          <TouchableOpacity
-            style={[styles.pickerButton, themedStyles.input]}
-            onPress={() => setShowPicker(true)}>
-            <Text style={[styles.pickerButtonText, {color: colors.text}]}>
-              {doctorData.is_admin ? 'Admin' : 'Doctor'}
-            </Text>
-          </TouchableOpacity>
-
-          <Modal visible={showPicker} transparent={true} animationType="slide">
-            <View style={styles.modalContainer}>
-              <View
-                style={[
-                  styles.pickerModalContent,
-                  {backgroundColor: colors.cardBackground},
-                ]}>
-                <View style={styles.pickerHeader}>
-                  <TouchableOpacity
-                    style={styles.pickerDoneButton}
-                    onPress={() => setShowPicker(false)}>
-                    <Text
-                      style={[styles.pickerDoneText, {color: colors.primary}]}>
-                      Done
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <Picker
-                  selectedValue={doctorData.is_admin}
-                  onValueChange={itemValue => {
-                    setDoctorData({...doctorData, is_admin: itemValue});
-                  }}
-                  style={{backgroundColor: colors.cardBackground}}>
-                  <Picker.Item
-                    label="Doctor"
-                    value={false}
-                    color={colors.text}
-                  />
-                  <Picker.Item label="Admin" value={true} color={colors.text} />
-                </Picker>
-              </View>
-            </View>
-          </Modal>
-        </View>
-      );
+  const handleInputChange = (field: string, value: string) => {
+    let newValue = value;
+    if (field.includes('name')) {
+      newValue = value.replace(/[^a-zA-Z\s]/g, '');
+    } else if (field === 'doctor_phone') {
+      newValue = value.replace(/[^0-9]/g, '');
+    } else if (field === 'doctor_email') {
+      newValue = value.toLowerCase();
     }
 
-    return (
-      <View style={[styles.pickerContainer, themedStyles.input]}>
-        <Picker
-          selectedValue={doctorData.is_admin}
-          style={{color: colors.text}}
-          dropdownIconColor={colors.text}
-          onValueChange={itemValue =>
-            setDoctorData({...doctorData, is_admin: itemValue})
-          }>
-          <Picker.Item label="Doctor" value={false} color={colors.text} />
-          <Picker.Item label="Admin" value={true} color={colors.text} />
-        </Picker>
-      </View>
-    );
+    setDoctorData(prev => ({...prev, [field]: newValue}));
+    const error = validateField(field, newValue);
+    setErrors(prev => ({...prev, [field]: error}));
   };
 
-  const handleDoctorRegister = async () => {
-    setIsLoading(true);
-    try {
-      if (!doctorData.doctor_first_name || !doctorData.doctor_last_name) {
-        throw new Error('First name and last name are required');
-      }
-      if (doctorData.doctor_phone.length !== 10) {
-        throw new Error('Please enter a valid 10-digit phone number');
-      }
+  const renderInput = (
+    label: string,
+    placeholder: string,
+    field: keyof Omit<DoctorData, 'is_admin'>,
+    icon: string,
+    keyboardType: 'default' | 'email-address' | 'numeric' = 'default',
+    isMandatory: boolean = true,
+  ) => (
+    <Animatable.View
+      animation="fadeInUp"
+      duration={800}
+      style={styles.inputContainer}>
+      <View style={styles.labelContainer}>
+        <Text style={[styles.label, {color: colors.text}]}>
+          {label}
+          {isMandatory && <Text style={{color: colors.mandatory}}> *</Text>}
+        </Text>
+      </View>
+      <View
+        style={[
+          styles.inputWrapper,
+          {
+            backgroundColor: colors.inputBg,
+            borderColor: errors[field] ? colors.error : colors.inputBorder,
+          },
+        ]}>
+        <Icon
+          name={icon}
+          size={20}
+          color={colors.secondary}
+          style={styles.inputIcon}
+        />
+        <TextInput
+          style={[styles.input, {color: colors.text}]}
+          placeholder={placeholder}
+          placeholderTextColor={colors.placeholderText}
+          value={doctorData[field]} // Now TypeScript knows this is a string
+          onChangeText={text => handleInputChange(field, text)}
+          keyboardType={keyboardType}
+          autoCapitalize={field === 'doctor_email' ? 'none' : 'words'}
+        />
+      </View>
+      {errors[field] && <Text style={styles.errorText}>{errors[field]}</Text>}
+    </Animatable.View>
+  );
 
-      const formattedData = {
-        ...doctorData,
-        doctor_phone: '+91' + doctorData.doctor_phone,
-      };
+  const renderRolePicker = () => (
+    <Animatable.View
+      animation="fadeInUp"
+      duration={800}
+      style={styles.inputContainer}>
+      <View style={styles.labelContainer}>
+        <Text style={[styles.label, {color: colors.text}]}>
+          Role <Text style={{color: colors.mandatory}}>*</Text>
+        </Text>
+      </View>
+      <View
+        style={[
+          styles.pickerWrapper,
+          {
+            backgroundColor: colors.inputBg,
+            borderColor: colors.inputBorder,
+          },
+        ]}>
+        <Icon
+          name="account-cog"
+          size={20}
+          color={colors.secondary}
+          style={styles.inputIcon}
+        />
+        <Picker
+          selectedValue={doctorData.is_admin.toString()} 
+          onValueChange={(itemValue: string) => {
+            setDoctorData(prev => ({
+              ...prev,
+              is_admin: itemValue === 'true', 
+            }));
+          }}
+          style={[styles.picker, {color: colors.text}]}
+          dropdownIconColor={colors.text}>
+          <Picker.Item label="Doctor" value="false" />
+          <Picker.Item label="Admin" value="true" />
+        </Picker>
+      </View>
+    </Animatable.View>
+  );
+
+  const renderPhoneInput = () => (
+    <Animatable.View
+      animation="fadeInUp"
+      duration={800}
+      style={styles.inputContainer}>
+      <View style={styles.labelContainer}>
+        <Text style={[styles.label, {color: colors.text}]}>
+          Phone Number <Text style={{color: colors.mandatory}}>*</Text>
+        </Text>
+      </View>
+      <View style={styles.phoneInputContainer}>
+        <TouchableOpacity
+          style={[
+            styles.countryPickerButton,
+            {
+              backgroundColor: colors.inputBg,
+              borderColor: errors.doctor_phone
+                ? colors.error
+                : colors.inputBorder,
+            },
+          ]}
+          onPress={() => setShowCountryPicker(true)}>
+          <Text style={styles.flag}>{selectedCountry.flag}</Text>
+          <Text style={[styles.callingCodeText, {color: colors.text}]}>
+            +{selectedCountry.callingCode}
+          </Text>
+        </TouchableOpacity>
+  
+        <TextInput
+          style={[
+            styles.phoneInput,
+            {
+              backgroundColor: colors.inputBg,
+              borderColor: errors.doctor_phone
+                ? colors.error
+                : colors.inputBorder,
+              color: colors.text,
+            },
+          ]}
+          placeholder="Phone Number"
+          placeholderTextColor={colors.placeholderText}
+          value={doctorData.doctor_phone}
+          onChangeText={text => handleInputChange('doctor_phone', text)}
+          keyboardType="numeric"
+          maxLength={10}
+        />
+  
+        <CustomCountryPicker
+          selectedCountry={selectedCountry}
+          onSelect={(country: Country) => {
+            setSelectedCountry(country);
+          }}
+          visible={showCountryPicker}
+          onClose={() => setShowCountryPicker(false)}
+          theme={colors}
+        />
+      </View>
+      {errors.doctor_phone && (
+        <Text style={styles.errorText}>{errors.doctor_phone}</Text>
+      )}
+    </Animatable.View>
+  );
+  
+
+  const handleDoctorRegister = async () => {
+    const newErrors: {[key: string]: string} = {};
+
+    if (!doctorData.doctor_first_name) {
+      newErrors.doctor_first_name = 'First name is required';
+    }
+    if (!doctorData.doctor_last_name) {
+      newErrors.doctor_last_name = 'Last name is required';
+    }
+    if (!doctorData.doctor_phone) {
+      newErrors.doctor_phone = 'Phone number is required';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setIsLoading(true);
+  try {
+    const formattedData = {
+      ...doctorData,
+      doctor_phone: `+${selectedCountry.callingCode}${doctorData.doctor_phone}`,
+    };
 
       const response = await instance.post('/doctor/create', formattedData, {
         headers: {
@@ -197,174 +343,108 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
     }
   };
 
-  const handlePhoneChange = (text: string) => {
-    const numericText = text.replace(/[^0-9]/g, '');
-    if (numericText.length <= 10) {
-      setDoctorData({
-        ...doctorData,
-        doctor_phone: numericText,
-      });
-      setPhoneError(
-        numericText.length === 10 ? '' : 'Phone number must be 10 digits.',
-      );
-    }
-  };
-
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={themedStyles.mainContainer}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{flex: 1}}>
-          <GestureHandlerRootView style={{flex: 1}}>
-            <BackTabTop screenName="Doctor" />
+    <SafeAreaView
+      style={[styles.safeArea, {backgroundColor: colors.background}]}>
+      <BackTabTop screenName="Register Doctor" />
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.scrollContainer}
+        enableOnAndroid={true}
+        enableAutomaticScroll={Platform.OS === 'ios'}
+        extraScrollHeight={140}
+        keyboardShouldPersistTaps="handled">
+        <Animatable.View
+          animation="fadeInUp"
+          duration={1000}
+          style={[styles.card, {backgroundColor: colors.card}]}>
+          <View style={styles.headerContainer}>
+            <Text style={[styles.title, {color: colors.primary}]}>
+              Register
+            </Text>
+            <Icon2 name="user-md" size={25} color={colors.primary} />
+          </View>
 
-            <ScrollView
-              contentContainerStyle={[
-                styles.scrollContainer,
-                themedStyles.scrollContent,
-              ]}
-              keyboardShouldPersistTaps="handled">
-              <Animatable.View
-                animation="fadeInUp"
-                style={[styles.container, themedStyles.card]}>
-                <Text style={[styles.title, {color: colors.primary}]}>
-                  Register Doctor
-                </Text>
+          {renderInput(
+            'First Name',
+            'Enter first name',
+            'doctor_first_name',
+            'account',
+            'default',
+            true,
+          )}
 
-                {/* First Name */}
-                <Animatable.View
-                  animation="fadeInUp"
-                  style={styles.inputContainer}>
-                  <TextInput
-                    style={[styles.input, themedStyles.input]}
-                    placeholder="First Name"
-                    placeholderTextColor={colors.placeholderText}
-                    value={doctorData.doctor_first_name}
-                    onChangeText={text =>
-                      setDoctorData({...doctorData, doctor_first_name: text})
-                    }
+          {renderInput(
+            'Last Name',
+            'Enter last name',
+            'doctor_last_name',
+            'account',
+            'default',
+            true,
+          )}
+
+          {renderInput(
+            'Email',
+            'Enter email address',
+            'doctor_email',
+            'email',
+            'email-address',
+            true,
+          )}
+
+          {renderPhoneInput()}
+
+          {renderInput(
+            'Qualification',
+            'Enter qualification',
+            'qualification',
+            'school',
+            'default',
+            true,
+          )}
+
+          {renderRolePicker()}
+
+
+          <Animatable.View
+            animation="fadeInUp"
+            duration={800}
+            style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, {backgroundColor: colors.primary}]}
+              onPress={handleDoctorRegister}
+              disabled={isLoading}>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <Icon
+                    name="check-circle"
+                    size={20}
+                    color="#FFFFFF"
+                    style={styles.buttonIcon}
                   />
-                </Animatable.View>
+                  <Text style={styles.buttonText}>Register Doctor</Text>
+                </>
+              )}
+            </TouchableOpacity>
 
-                {/* Last Name */}
-                <Animatable.View
-                  animation="fadeInUp"
-                  delay={200}
-                  style={styles.inputContainer}>
-                  <TextInput
-                    style={[styles.input, themedStyles.input]}
-                    placeholder="Last Name"
-                    placeholderTextColor={colors.placeholderText}
-                    value={doctorData.doctor_last_name}
-                    onChangeText={text =>
-                      setDoctorData({...doctorData, doctor_last_name: text})
-                    }
-                  />
-                </Animatable.View>
-
-                {/* Email */}
-                <Animatable.View
-                  animation="fadeInUp"
-                  delay={400}
-                  style={styles.inputContainer}>
-                  <TextInput
-                    style={[styles.input, themedStyles.input]}
-                    placeholder="Email"
-                    placeholderTextColor={colors.placeholderText}
-                    value={doctorData.doctor_email}
-                    onChangeText={text =>
-                      setDoctorData({...doctorData, doctor_email: text})
-                    }
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </Animatable.View>
-
-                {/* Phone */}
-                <Animatable.View
-                  animation="fadeInUp"
-                  delay={600}
-                  style={styles.inputContainer}>
-                  <TextInput
-                    style={[styles.input, themedStyles.input]}
-                    placeholder="+91 Contact No."
-                    placeholderTextColor={colors.placeholderText}
-                    value={
-                      doctorData.doctor_phone
-                        ? '+91' + doctorData.doctor_phone
-                        : ''
-                    }
-                    onChangeText={handlePhoneChange}
-                    keyboardType="numeric"
-                    maxLength={13}
-                  />
-                  {phoneError ? (
-                    <Text style={[styles.errorText, {color: colors.error}]}>
-                      {phoneError}
-                    </Text>
-                  ) : null}
-                </Animatable.View>
-
-                {/* Qualification */}
-                <Animatable.View
-                  animation="fadeInUp"
-                  delay={800}
-                  style={styles.inputContainer}>
-                  <TextInput
-                    style={[styles.input, themedStyles.input]}
-                    placeholder="Qualification"
-                    placeholderTextColor={colors.placeholderText}
-                    value={doctorData.qualification}
-                    onChangeText={text =>
-                      setDoctorData({...doctorData, qualification: text})
-                    }
-                  />
-                </Animatable.View>
-
-                {/* Role Picker */}
-                <Animatable.View
-                  animation="fadeInUp"
-                  delay={1000}
-                  style={styles.inputContainer}>
-                  <Text style={[styles.labelText, themedStyles.text]}>
-                    Role:
-                  </Text>
-                  {renderPicker()}
-                </Animatable.View>
-
-                {/* Register Button */}
-                <TouchableOpacity
-                  style={[styles.button, {backgroundColor: colors.primary}]}
-                  onPress={handleDoctorRegister}
-                  disabled={isLoading}>
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.buttonText}>Register</Text>
-                  )}
-                </TouchableOpacity>
-
-                {/* Back Button */}
-                <TouchableOpacity
-                  style={[
-                    styles.backButton,
-                    {
-                      backgroundColor: 'transparent',
-                      borderColor: colors.primary,
-                    },
-                  ]}
-                  onPress={() => navigation.navigate('DoctorDashboard')}>
-                  <Text
-                    style={[styles.backButtonText, {color: colors.primary}]}>
-                    Back to Home
-                  </Text>
-                </TouchableOpacity>
-              </Animatable.View>
-            </ScrollView>
-          </GestureHandlerRootView>
-        </KeyboardAvoidingView>
-      </View>
+            <TouchableOpacity
+              style={[styles.secondaryButton, {borderColor: colors.primary}]}
+              onPress={() => navigation.navigate('DoctorDashboard')}>
+              <Icon
+                name="home"
+                size={20}
+                color={colors.primary}
+                style={styles.buttonIcon}
+              />
+              <Text
+                style={[styles.secondaryButtonText, {color: colors.primary}]}>
+                Back to Home
+              </Text>
+            </TouchableOpacity>
+          </Animatable.View>
+        </Animatable.View>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };
@@ -372,18 +452,48 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: 'black',
+  },
+  phoneInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingRight: 5,
+  },
+  countryPickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    minWidth: 50,
+    height: 50,
+  },
+  flag: {
+    fontSize: 20,
+    marginRight: 4,
+  },
+  callingCodeText: {
+    fontSize: 16,
+    paddingRight: 5,
+  },
+  phoneInput: {
+    flex: 1,
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
   },
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
+    paddingVertical: 20,
   },
-  container: {
-    width: '100%',
-    padding: 20,
-    borderRadius: 10,
+  card: {
+    width: width * 0.9,
+    alignSelf: 'center',
+    borderRadius: 15,
+    padding: 15,
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -392,30 +502,56 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 20,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
+    marginRight: 5,
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 15,
+  },
+  labelContainer: {
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 50,
+  },
+  inputIcon: {
+    marginRight: 10,
   },
   input: {
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 12,
+    flex: 1,
     fontSize: 16,
+    paddingVertical: 8,
   },
-  pickerButton: {
-    height: 50,
+  roleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 5,
-    justifyContent: 'center',
+    borderRadius: 12,
     paddingHorizontal: 12,
+    height: 50,
   },
-  pickerButtonText: {
+  roleButtonText: {
+    flex: 1,
     fontSize: 16,
   },
   modalContainer: {
@@ -427,6 +563,18 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
     paddingBottom: 20,
+  },
+  pickerWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    height: 50,
+    paddingLeft: 12,
+  },
+  picker: {
+    flex: 1,
+    marginLeft: -10, 
   },
   pickerHeader: {
     flexDirection: 'row',
@@ -443,42 +591,50 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  labelText: {
-    fontSize: 16,
-    marginBottom: 8,
+  buttonContainer: {
+    marginTop: 20,
+    gap: 12,
   },
   button: {
-    height: 50,
-    borderRadius: 5,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  buttonIcon: {
+    marginRight: 8,
   },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
-  backButton: {
-    height: 50,
-    borderRadius: 5,
-    justifyContent: 'center',
+  secondaryButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
     borderWidth: 1,
   },
-  backButtonText: {
+  secondaryButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   errorText: {
-    marginTop: 5,
-    fontSize: 14,
+    color: '#ef4444',
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
 });
 

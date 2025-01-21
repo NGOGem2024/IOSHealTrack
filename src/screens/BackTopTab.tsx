@@ -39,7 +39,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
 
   return (
     <View style={styles.header}>
-          <TouchableOpacity
+      <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}>
         <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
@@ -50,14 +50,13 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
         />
         <Text style={styles.versionText}>v0.5</Text>
       </TouchableOpacity>
-      
+
       <View style={styles.rightSection}>
         <Text style={styles.screenNameText}>{screenName}</Text>
         <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
           <Ionicons name="person-circle-outline" size={30} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
-     
 
       <Modal
         isVisible={isDropdownVisible}
@@ -131,9 +130,9 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     versionText: {
       position: 'absolute',
       bottom: 1,
-      right: -15,
+      right: -18,
       color: '#FFFFFF',
-      fontSize: 10,
+      fontSize: 12,
       opacity: 0.8,
       fontWeight: 'bold',
     },

@@ -44,7 +44,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
         onPress={() => navigation.goBack()}>
         <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         <Image
-          source={require('../assets/logo3.png')}
+          source={require('../assets/healtrack_logo1.png')}
           style={styles.logoImage}
           resizeMode="contain"
         />
@@ -130,7 +130,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     versionText: {
       position: 'absolute',
       bottom: 1,
-      right: -18,
+      right: -9,
       color: '#FFFFFF',
       fontSize: 12,
       opacity: 0.8,

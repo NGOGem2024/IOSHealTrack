@@ -315,7 +315,7 @@ const DoctorDashboard: React.FC = () => {
         />
         <View>
           <Image
-            source={require('../assets/logo3.png')}
+            source={require('../assets/healtrack_logo1.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />
@@ -558,8 +558,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       borderTopWidth: 1,
     },
     logoImage: {
-      width: 120,
-      height: 40,
+      width: 110,
+      height: 35,
     },
     profileButton: {
       alignItems: 'flex-end',
@@ -623,7 +623,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     versionText: {
       position: 'absolute',
       bottom: 1,
-      right: -18,
+      right: -9,
       color: '#FFFFFF',
       fontSize: 12,
       opacity: 0.8,

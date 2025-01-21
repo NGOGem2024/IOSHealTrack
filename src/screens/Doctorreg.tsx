@@ -197,7 +197,6 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
           Role <Text style={{color: colors.mandatory}}>*</Text>
         </Text>
       </View>
-<<<<<<< HEAD
       <RolePicker
         value={doctorData.is_admin.toString()}
         onChange={(itemValue: string) => {
@@ -209,36 +208,6 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
         colors={colors}
         styles={styles}
       />
-=======
-      <View
-        style={[
-          styles.pickerWrapper,
-          {
-            backgroundColor: colors.inputBg,
-            borderColor: colors.inputBorder,
-          },
-        ]}>
-        <Icon
-          name="account-cog"
-          size={20}
-          color={colors.secondary}
-          style={styles.inputIcon}
-        />
-        <Picker
-          selectedValue={doctorData.is_admin.toString()}
-          onValueChange={(itemValue: string) => {
-            setDoctorData(prev => ({
-              ...prev,
-              is_admin: itemValue === 'true',
-            }));
-          }}
-          style={[styles.picker, {color: colors.text}]}
-          dropdownIconColor={colors.text}>
-          <Picker.Item label="Doctor" value="false" />
-          <Picker.Item label="Admin" value="true" />
-        </Picker>
-      </View>
->>>>>>> 8f5190b (After 0.5(3.2))
     </Animatable.View>
   );
 

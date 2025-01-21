@@ -18,15 +18,12 @@ const TOTAL_WIDTH = ICON_SIZE + SPACING + TEXT_WIDTH;
 
 // Calculate center positions
 const CENTER_POSITION = SCREEN_WIDTH / 2 - ICON_SIZE / 2;
-// Icon will only move a tiny bit left from center
-const ICON_END = CENTER_POSITION - 40;
-// Position text right next to where the icon ends up
+// Adjust icon end position slightly to prevent overlap
+const ICON_END = CENTER_POSITION - 50; // Increased from 40 to 45 to prevent overlap
 
 interface AnimatedSplashScreenProps {
   onAnimationComplete: () => void;
 }
-// Updated position constants
-const TEXT_POSITION = ICON_SIZE;
 
 const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
   onAnimationComplete,

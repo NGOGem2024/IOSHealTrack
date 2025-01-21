@@ -50,11 +50,12 @@ interface Therapy {
   therepy_end_time?: string;
   status?: string;
   therepy_cost?: string;
+  doctor_name?: string;
 }
 
 type TherapyHistoryScreenProps = {
-  navigation: StackNavigationProp<RootStackParamList, "TherapyHistory">;
-  route: { params: { patientId: string } };
+  navigation: StackNavigationProp<RootStackParamList, 'TherapyHistory'>;
+  route: {params: {patientId: string}};
 };
 
 const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
@@ -82,22 +83,22 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
   const [showNewUserPopup, setShowNewUserPopup] = useState(false);
   const popupScale = useSharedValue(0);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [selectedView, setSelectedView] = useState<"all" | "past" | "upcoming">(
-    "all"
+  const [selectedView, setSelectedView] = useState<'all' | 'past' | 'upcoming'>(
+    'all',
   );
 
-  const selectTherapyType = (type: "all" | "past" | "upcoming") => {
+  const selectTherapyType = (type: 'all' | 'past' | 'upcoming') => {
     setSelectedView(type);
     setIsDropdownOpen(false);
   };
 
   const getDisplayedTherapies = () => {
     switch (selectedView) {
-      case "all":
+      case 'all':
         return [...upcomingTherapies, ...pastTherapies];
-      case "past":
+      case 'past':
         return pastTherapies;
-      case "upcoming":
+      case 'upcoming':
         return upcomingTherapies;
       default:
         return [];
@@ -410,7 +411,11 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
             <TouchableOpacity
               style={styles.editButton}
               onPress={() => handleEditTherapy(item)}>
-              <MaterialCommunityIcons name="square-edit-outline" size={24} color="#119FB3" />
+              <MaterialCommunityIcons
+                name="square-edit-outline"
+                size={24}
+                color="#119FB3"
+              />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.deleteButton}
@@ -425,6 +430,9 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
         </View>
         <View style={styles.therapyDetails}>
           <Text style={styles.therapyText}>Date: {item.therepy_date}</Text>
+          <Text style={styles.therapyText}>
+            doctor name: {item.doctor_name}
+          </Text>
           <Text style={styles.therapyText}>
             Start Time: {item.therepy_start_time}
           </Text>
@@ -477,12 +485,12 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
             onPress={toggleDropdown}
             style={styles.dropdownButton}>
             <Text style={styles.dropdownButtonText}>
-            {selectedView === "all"
-              ? "All Appointments"
-              : selectedView === "past"
-              ? "Past Appointments"
-              : "Upcoming Appointments"}
-          </Text>
+              {selectedView === 'all'
+                ? 'All Appointments'
+                : selectedView === 'past'
+                ? 'Past Appointments'
+                : 'Upcoming Appointments'}
+            </Text>
             <Icon
               name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
               size={16}
@@ -490,62 +498,55 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
             />
           </TouchableOpacity>
 
-           {isDropdownOpen && (
-          <View style={styles.dropdownContent}>
-            <TouchableOpacity
-              onPress={() => selectTherapyType("all")}
-              style={[
-                styles.dropdownItem,
-                selectedView === "all" && styles.selectedDropdownItem,
-              ]}
-            >
-              <Text
-                style={
-                  selectedView === "all"
-                    ? styles.selectedDropdownText
-                    : styles.dropdownText
-                }
-              >
-                All Appointments
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => selectTherapyType("past")}
-              style={[
-                styles.dropdownItem,
-                selectedView === "past" && styles.selectedDropdownItem,
-              ]}
-            >
-              <Text
-                style={
-                  selectedView === "past"
-                    ? styles.selectedDropdownText
-                    : styles.dropdownText
-                }
-              >
-                Past Appointments
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => selectTherapyType("upcoming")}
-              style={[
-                styles.dropdownItem,
-                selectedView === "upcoming" && styles.selectedDropdownItem,
-              ]}
-            >
-              <Text
-                style={
-                  selectedView === "upcoming"
-                    ? styles.selectedDropdownText
-                    : styles.dropdownText
-                }
-              >
-                Upcoming Appointments
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
+          {isDropdownOpen && (
+            <View style={styles.dropdownContent}>
+              <TouchableOpacity
+                onPress={() => selectTherapyType('all')}
+                style={[
+                  styles.dropdownItem,
+                  selectedView === 'all' && styles.selectedDropdownItem,
+                ]}>
+                <Text
+                  style={
+                    selectedView === 'all'
+                      ? styles.selectedDropdownText
+                      : styles.dropdownText
+                  }>
+                  All Appointments
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => selectTherapyType('past')}
+                style={[
+                  styles.dropdownItem,
+                  selectedView === 'past' && styles.selectedDropdownItem,
+                ]}>
+                <Text
+                  style={
+                    selectedView === 'past'
+                      ? styles.selectedDropdownText
+                      : styles.dropdownText
+                  }>
+                  Past Appointments
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => selectTherapyType('upcoming')}
+                style={[
+                  styles.dropdownItem,
+                  selectedView === 'upcoming' && styles.selectedDropdownItem,
+                ]}>
+                <Text
+                  style={
+                    selectedView === 'upcoming'
+                      ? styles.selectedDropdownText
+                      : styles.dropdownText
+                  }>
+                  Upcoming Appointments
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {isLoading ? (
             <Text style={styles.loadingText}>Loading therapies...</Text>
@@ -556,9 +557,9 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
               renderItem={renderTherapyItem}
               ListEmptyComponent={
                 <Text style={styles.noTherapyText}>
-                No {selectedView === "all" ? "" : selectedView} Appointments
-                available
-              </Text>
+                  No {selectedView === 'all' ? '' : selectedView} Appointments
+                  available
+                </Text>
               }
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -693,14 +694,14 @@ const windowWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
   selectedDropdownItem: {
-    backgroundColor: "rgba(17, 159, 179, 0.1)",
+    backgroundColor: 'rgba(17, 159, 179, 0.1)',
   },
   selectedDropdownText: {
-    color: "#119FB3",
-    fontWeight: "bold",
+    color: '#119FB3',
+    fontWeight: 'bold',
   },
   dropdownText: {
-    color: "#333333",
+    color: '#333333',
   },
   safeArea: {
     flex: 1,

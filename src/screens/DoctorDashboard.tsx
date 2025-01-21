@@ -31,6 +31,7 @@ import AppointmentDetailsScreen from './AppointmentDetails';
 import NoAppointmentsPopup from './Noappointmentspopup';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ActiveTherapyPlans from './Activeplans';
+import LoadingScreen from '../components/loadingScreen';
 
 interface DoctorInfo {
   _id: string;
@@ -359,8 +360,7 @@ const DoctorDashboard: React.FC = () => {
     return (
       <View style={styles.loadingContainer}>
         <StatusBar barStyle="light-content" translucent={false} />
-        <ActivityIndicator size="large" color="#119FB3" />
-        <Text style={styles.loadingText}>Loading Doctor Dashboard...</Text>
+        <LoadingScreen />
       </View>
     );
   }
@@ -551,7 +551,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       justifyContent: 'space-between',
       paddingVertical: 10,
       paddingHorizontal: 15,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       borderBottomColor: 'white',
       borderTopColor: 'white',
       borderBottomWidth: 1,

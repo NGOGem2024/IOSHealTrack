@@ -23,7 +23,7 @@ import BackTabTop from './BackTopTab';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import CustomPicker from './patientpicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Icon2 from "react-native-vector-icons/FontAwesome"
+import Icon2 from 'react-native-vector-icons/FontAwesome';
 import PhoneInput from 'react-native-phone-number-input';
 import CustomCountryPicker from './CustomCountryPicker';
 const {width} = Dimensions.get('window');
@@ -39,7 +39,7 @@ interface PatientData {
   patient_phone: string;
   referral_source: string;
   referral_details: string;
-  formattedPhone: string
+  formattedPhone: string;
 }
 
 const theme = {
@@ -103,11 +103,15 @@ interface Country {
   callingCode: string;
 }
 
-const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => {
+const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
+  navigation,
+}) => {
   const {session} = useSession();
-  const [patientData, setPatientData] = useState<PatientData>(initialPatientData);
+  const [patientData, setPatientData] =
+    useState<PatientData>(initialPatientData);
   const [isLoading, setIsLoading] = useState(false);
-  const [fieldStatus, setFieldStatus] = useState<FieldStatus>(initialFieldStatus);
+  const [fieldStatus, setFieldStatus] =
+    useState<FieldStatus>(initialFieldStatus);
   const [isDarkMode, setIsDarkMode] = useState(useColorScheme() === 'dark');
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const phoneInput = useRef<PhoneInput>(null);
@@ -115,7 +119,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => 
     name: 'India',
     code: 'IN',
     flag: '🇮🇳',
-    callingCode: '91'
+    callingCode: '91',
   });
   const [showCountryPicker, setShowCountryPicker] = useState(false);
 
@@ -135,40 +139,37 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => 
           return 'Invalid email address';
         }
         break;
-        case 'patient_phone':
-          if (phoneInput.current?.isValidNumber(value)) {
-            return '';
-          } else if (value) {
-            return 'Invalid phone number';
-          }
+      case 'patient_phone':
+        if (phoneInput.current?.isValidNumber(value)) {
+          return '';
+        } else if (value) {
+          return 'Invalid phone number';
+        }
         break;
     }
     return '';
   };
 
-
   const handleInputChange = (field: keyof PatientData, value: string) => {
     let newValue = value;
     if (field.includes('name')) {
       newValue = value.replace(/[^a-zA-Z\s]/g, '');
-    } 
-    else if (field === 'patient_phone') {
+    } else if (field === 'patient_phone') {
       newValue = value.replace(/[^0-9]/g, '');
-    } 
-    else if (field === 'patient_email') {
+    } else if (field === 'patient_email') {
       newValue = value.toLowerCase();
     }
 
     setPatientData(prev => ({...prev, [field]: newValue}));
     setFieldStatus(prev => ({...prev, [field]: newValue.length > 0}));
-    
+
     const error = validateField(field, newValue);
     setErrors(prev => ({...prev, [field]: error}));
   };
 
   const handlePatientRegister = async () => {
     const newErrors: {[key: string]: string} = {};
-    
+
     // Validation checks
     if (!patientData.patient_first_name) {
       newErrors.patient_first_name = 'First name is required';
@@ -182,7 +183,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => 
     if (!patientData.referral_source) {
       newErrors.referral_source = 'Referral source is required';
     }
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -195,13 +196,17 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => 
         patient_phone: `+${selectedCountry.callingCode}${patientData.patient_phone}`,
       };
 
-      const response = await axiosInstance.post('/patient/registration', formattedData, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + session.idToken,
+      const response = await axiosInstance.post(
+        '/patient/registration',
+        formattedData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + session.idToken,
+          },
         },
-      });
-      
+      );
+
       showSuccessToast('Patient registered successfully');
       setPatientData(initialPatientData);
       setFieldStatus(initialFieldStatus);
@@ -223,25 +228,30 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => 
     icon: string,
     isMandatory: boolean = false,
   ) => (
-    <Animatable.View 
-      animation="fadeInUp" 
-      duration={800} 
-      style={styles.inputContainer}
-    >
+    <Animatable.View
+      animation="fadeInUp"
+      duration={800}
+      style={styles.inputContainer}>
       <View style={styles.labelContainer}>
         <Text style={[styles.label, {color: colors.text}]}>
           {label}
           {isMandatory && <Text style={{color: colors.mandatory}}> *</Text>}
         </Text>
       </View>
-      <View style={[
-        styles.inputWrapper,
-        {
-          backgroundColor: colors.inputBg,
-          borderColor: errors[field] ? colors.error : colors.inputBorder,
-        },
-      ]}>
-        <Icon name={icon} size={20} color={colors.secondary} style={styles.inputIcon} />
+      <View
+        style={[
+          styles.inputWrapper,
+          {
+            backgroundColor: colors.inputBg,
+            borderColor: errors[field] ? colors.error : colors.inputBorder,
+          },
+        ]}>
+        <Icon
+          name={icon}
+          size={20}
+          color={colors.secondary}
+          style={styles.inputIcon}
+        />
         <TextInput
           style={[styles.input, {color: colors.text}]}
           placeholder={placeholder}
@@ -252,12 +262,9 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => 
           autoCapitalize={field === 'patient_email' ? 'none' : 'words'}
         />
       </View>
-      {errors[field] && (
-        <Text style={styles.errorText}>{errors[field]}</Text>
-      )}
+      {errors[field] && <Text style={styles.errorText}>{errors[field]}</Text>}
     </Animatable.View>
   );
-
 
   const renderPhoneInput = () => (
     <Animatable.View
@@ -286,7 +293,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => 
             +{selectedCountry.callingCode}
           </Text>
         </TouchableOpacity>
-  
+
         <TextInput
           style={[
             styles.phoneInput,
@@ -305,7 +312,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => 
           keyboardType="numeric"
           maxLength={10}
         />
-  
+
         <CustomCountryPicker
           selectedCountry={selectedCountry}
           onSelect={(country: Country) => {
@@ -323,159 +330,181 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => 
   );
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={styles.safeArea}>
       <BackTabTop screenName="Register Patient" />
       <KeyboardAwareScrollView
         contentContainerStyle={styles.scrollContainer}
         enableOnAndroid={true}
         enableAutomaticScroll={Platform.OS === 'ios'}
         extraScrollHeight={140}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Animatable.View
-          animation="fadeInUp"
-          duration={1000}
-          style={[styles.card, {backgroundColor: colors.card}]}
-        >
-             <View style={styles.headerContainer}>
-            <Text style={[styles.title, {color: colors.primary}]}>
-              Register
-            </Text><Icon2 name="user-plus" size={25} color={colors.primary} />
-          </View>
-
-          {renderInput(
-            'First Name',
-            'Enter first name',
-            'patient_first_name',
-            'default',
-            'account',
-            true
-          )}
-
-          {renderInput(
-            'Last Name',
-            'Enter last name',
-            'patient_last_name',
-            'default',
-            'account',
-            true
-          )}
-
-          {renderInput(
-            'Email',
-            'Enter email address',
-            'patient_email',
-            'email-address',
-            'email',
-            false
-          )}
-
-          {renderPhoneInput()}
-
-          <Animatable.View animation="fadeInUp" duration={800} style={styles.inputContainer}>
-            <View style={styles.labelContainer}>
-              <Text style={[styles.label, {color: colors.text}]}>
-                Referral Source <Text style={{color: colors.mandatory}}>*</Text>
+        keyboardShouldPersistTaps="handled">
+        <View style={[{backgroundColor: colors.background}]}>
+          <Animatable.View
+            animation="fadeInUp"
+            duration={1000}
+            style={[styles.card, {backgroundColor: colors.card}]}>
+            <View style={styles.headerContainer}>
+              <Text style={[styles.title, {color: colors.primary}]}>
+                Register
               </Text>
+              <Icon2 name="user-plus" size={25} color={colors.primary} />
             </View>
-            <CustomPicker
-              selectedValue={patientData.referral_source}
-              onValueChange={(itemValue: string) => handleInputChange('referral_source', itemValue)}
-              items={[
-                {label: 'Select Referral Source', value: ''},
-                {label: 'Social Media', value: 'Social Media'},
-                {label: 'Patient Reference', value: 'Patient Reference'},
-                {label: 'Hospital Reference', value: 'Hospital Reference'},
-                {label: 'Walk-in', value: 'walkin'},
-                {label: 'Doctor Reference', value: 'Doctor Reference'},
-                {label: 'Other', value: 'Other'},
-              ]}
-              placeholder="Select Referral Source"
-              style={[
-                styles.picker,
-                {
-                  backgroundColor: colors.inputBg,
-                  borderColor: errors.referral_source ? colors.error : colors.inputBorder,
-                },
-              ]}
-              textColor={colors.text}
-            />
-          </Animatable.View>
 
-          {patientData.referral_source && 
-           patientData.referral_source !== 'walkin' && (
-            <Animatable.View animation="fadeInUp" duration={800}>
-              {patientData.referral_source === 'Social Media' ? (
-                <View style={styles.inputContainer}>
-                  <View style={styles.labelContainer}>
-                    <Text style={[styles.label, {color: colors.text}]}>
-                      Social Media Platform <Text style={{color: colors.mandatory}}>*</Text>
-                    </Text>
-                  </View>
-                  <CustomPicker
-                    selectedValue={patientData.referral_details}
-                    onValueChange={(itemValue: string) => 
-                      handleInputChange('referral_details', itemValue)
-                    }
-                    items={[
-                      {label: 'Select Platform', value: ''},
-                      {label: 'Instagram', value: 'Instagram'},
-                      {label: 'Facebook', value: 'Facebook'},
-                      {label: 'WhatsApp', value: 'WhatsApp'},
-                      {label: 'YouTube', value: 'YouTube'},
-                      {label: 'Google', value: 'Google'},
-                    ]}
-                    placeholder="Select Social Media Platform"
-                    style={[
-                      styles.picker,
-                      {
-                        backgroundColor: colors.inputBg,
-                        borderColor: colors.inputBorder,
-                      },
-                    ]}
-                    textColor={colors.text}
-                  />
-                </View>
-              ) : (
-                renderInput(
-                  'Referral Details',
-                  'Enter referral details',
-                  'referral_details',
-                  'default',
-                  'information',
-                  true
-                )
-              )}
+            {renderInput(
+              'First Name',
+              'Enter first name',
+              'patient_first_name',
+              'default',
+              'account',
+              true,
+            )}
+
+            {renderInput(
+              'Last Name',
+              'Enter last name',
+              'patient_last_name',
+              'default',
+              'account',
+              true,
+            )}
+
+            {renderInput(
+              'Email',
+              'Enter email address',
+              'patient_email',
+              'email-address',
+              'email',
+              false,
+            )}
+
+            {renderPhoneInput()}
+
+            <Animatable.View
+              animation="fadeInUp"
+              duration={800}
+              style={styles.inputContainer}>
+              <View style={styles.labelContainer}>
+                <Text style={[styles.label, {color: colors.text}]}>
+                  Referral Source{' '}
+                  <Text style={{color: colors.mandatory}}>*</Text>
+                </Text>
+              </View>
+              <CustomPicker
+                selectedValue={patientData.referral_source}
+                onValueChange={(itemValue: string) =>
+                  handleInputChange('referral_source', itemValue)
+                }
+                items={[
+                  {label: 'Select Referral Source', value: ''},
+                  {label: 'Social Media', value: 'Social Media'},
+                  {label: 'Patient Reference', value: 'Patient Reference'},
+                  {label: 'Hospital Reference', value: 'Hospital Reference'},
+                  {label: 'Walk-in', value: 'walkin'},
+                  {label: 'Doctor Reference', value: 'Doctor Reference'},
+                  {label: 'Other', value: 'Other'},
+                ]}
+                placeholder="Select Referral Source"
+                style={[
+                  styles.picker,
+                  {
+                    backgroundColor: colors.inputBg,
+                    borderColor: errors.referral_source
+                      ? colors.error
+                      : colors.inputBorder,
+                  },
+                ]}
+                textColor={colors.text}
+              />
             </Animatable.View>
-          )}
 
-          <Animatable.View animation="fadeInUp" duration={800} style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, {backgroundColor: colors.primary}]}
-              onPress={handlePatientRegister}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <>
-                  <Icon name="check-circle" size={20} color="#FFFFFF" style={styles.buttonIcon} />
-                  <Text style={styles.buttonText}>Register Patient</Text>
-                </>
+            {patientData.referral_source &&
+              patientData.referral_source !== 'walkin' && (
+                <Animatable.View animation="fadeInUp" duration={800}>
+                  {patientData.referral_source === 'Social Media' ? (
+                    <View style={styles.inputContainer}>
+                      <View style={styles.labelContainer}>
+                        <Text style={[styles.label, {color: colors.text}]}>
+                          Social Media Platform{' '}
+                          <Text style={{color: colors.mandatory}}>*</Text>
+                        </Text>
+                      </View>
+                      <CustomPicker
+                        selectedValue={patientData.referral_details}
+                        onValueChange={(itemValue: string) =>
+                          handleInputChange('referral_details', itemValue)
+                        }
+                        items={[
+                          {label: 'Select Platform', value: ''},
+                          {label: 'Instagram', value: 'Instagram'},
+                          {label: 'Facebook', value: 'Facebook'},
+                          {label: 'WhatsApp', value: 'WhatsApp'},
+                          {label: 'YouTube', value: 'YouTube'},
+                          {label: 'Google', value: 'Google'},
+                        ]}
+                        placeholder="Select Social Media Platform"
+                        style={[
+                          styles.picker,
+                          {
+                            backgroundColor: colors.inputBg,
+                            borderColor: colors.inputBorder,
+                          },
+                        ]}
+                        textColor={colors.text}
+                      />
+                    </View>
+                  ) : (
+                    renderInput(
+                      'Referral Details',
+                      'Enter referral details',
+                      'referral_details',
+                      'default',
+                      'information',
+                      true,
+                    )
+                  )}
+                </Animatable.View>
               )}
-            </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.secondaryButton, {borderColor: colors.primary}]}
-              onPress={() => navigation.navigate('DoctorDashboard')}
-            >
-              <Icon name="home" size={20} color={colors.primary} style={styles.buttonIcon} />
-              <Text style={[styles.secondaryButtonText, {color: colors.primary}]}>
-                Back to Home
-              </Text>
-            </TouchableOpacity>
+            <Animatable.View
+              animation="fadeInUp"
+              duration={800}
+              style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, {backgroundColor: colors.primary}]}
+                onPress={handlePatientRegister}
+                disabled={isLoading}>
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Icon
+                      name="check-circle"
+                      size={20}
+                      color="#FFFFFF"
+                      style={styles.buttonIcon}
+                    />
+                    <Text style={styles.buttonText}>Register Patient</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.secondaryButton, {borderColor: colors.primary}]}
+                onPress={() => navigation.navigate('DoctorDashboard')}>
+                <Icon
+                  name="home"
+                  size={20}
+                  color={colors.primary}
+                  style={styles.buttonIcon}
+                />
+                <Text
+                  style={[styles.secondaryButtonText, {color: colors.primary}]}>
+                  Back to Home
+                </Text>
+              </TouchableOpacity>
+            </Animatable.View>
           </Animatable.View>
-        </Animatable.View>
+        </View>
       </KeyboardAwareScrollView>
     </SafeAreaView>
   );
@@ -484,12 +513,13 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({navigation}) => 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: 'Black',
   },
   phoneInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingRight:5,
+    paddingRight: 5,
   },
   countryPickerButton: {
     flexDirection: 'row',
@@ -499,11 +529,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     minWidth: 50,
     height: 50,
-    
   },
   callingCodeText: {
     fontSize: 16,
-    paddingRight:5,
+    paddingRight: 5,
   },
   flag: {
     fontSize: 20,

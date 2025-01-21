@@ -50,7 +50,6 @@ type DoctorRegisterScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'DoctorRegister'>;
 };
 
-
 const theme = {
   light: {
     background: '#f8f9fa',
@@ -98,7 +97,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
     name: 'India',
     code: 'IN',
     flag: '🇮🇳',
-    callingCode: '91'
+    callingCode: '91',
   });
   const [showCountryPicker, setShowCountryPicker] = useState(false);
 
@@ -110,8 +109,6 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
   }, []);
 
   const colors = theme[isDarkMode ? 'dark' : 'light'];
-
- 
 
   const validateField = (field: string, value: string): string => {
     switch (field) {
@@ -200,6 +197,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
           Role <Text style={{color: colors.mandatory}}>*</Text>
         </Text>
       </View>
+<<<<<<< HEAD
       <RolePicker
         value={doctorData.is_admin.toString()}
         onChange={(itemValue: string) => {
@@ -211,6 +209,36 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
         colors={colors}
         styles={styles}
       />
+=======
+      <View
+        style={[
+          styles.pickerWrapper,
+          {
+            backgroundColor: colors.inputBg,
+            borderColor: colors.inputBorder,
+          },
+        ]}>
+        <Icon
+          name="account-cog"
+          size={20}
+          color={colors.secondary}
+          style={styles.inputIcon}
+        />
+        <Picker
+          selectedValue={doctorData.is_admin.toString()}
+          onValueChange={(itemValue: string) => {
+            setDoctorData(prev => ({
+              ...prev,
+              is_admin: itemValue === 'true',
+            }));
+          }}
+          style={[styles.picker, {color: colors.text}]}
+          dropdownIconColor={colors.text}>
+          <Picker.Item label="Doctor" value="false" />
+          <Picker.Item label="Admin" value="true" />
+        </Picker>
+      </View>
+>>>>>>> 8f5190b (After 0.5(3.2))
     </Animatable.View>
   );
 
@@ -241,7 +269,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
             +{selectedCountry.callingCode}
           </Text>
         </TouchableOpacity>
-  
+
         <TextInput
           style={[
             styles.phoneInput,
@@ -260,7 +288,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
           keyboardType="numeric"
           maxLength={10}
         />
-  
+
         <CustomCountryPicker
           selectedCountry={selectedCountry}
           onSelect={(country: Country) => {
@@ -276,7 +304,6 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
       )}
     </Animatable.View>
   );
-  
 
   const handleDoctorRegister = async () => {
     const newErrors: {[key: string]: string} = {};
@@ -297,11 +324,11 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
     }
 
     setIsLoading(true);
-  try {
-    const formattedData = {
-      ...doctorData,
-      doctor_phone: `+${selectedCountry.callingCode}${doctorData.doctor_phone}`,
-    };
+    try {
+      const formattedData = {
+        ...doctorData,
+        doctor_phone: `+${selectedCountry.callingCode}${doctorData.doctor_phone}`,
+      };
 
       const response = await instance.post('/doctor/create', formattedData, {
         headers: {
@@ -328,107 +355,107 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.safeArea, {backgroundColor: colors.background}]}>
-      <BackTabTop screenName="Register Doctor" />
-      <KeyboardAwareScrollView
-        contentContainerStyle={styles.scrollContainer}
-        enableOnAndroid={true}
-        enableAutomaticScroll={Platform.OS === 'ios'}
-        extraScrollHeight={140}
-        keyboardShouldPersistTaps="handled">
-        <Animatable.View
-          animation="fadeInUp"
-          duration={1000}
-          style={[styles.card, {backgroundColor: colors.card}]}>
-          <View style={styles.headerContainer}>
-            <Text style={[styles.title, {color: colors.primary}]}>
-              Register
-            </Text>
-            <Icon2 name="user-md" size={25} color={colors.primary} />
-          </View>
-
-          {renderInput(
-            'First Name',
-            'Enter first name',
-            'doctor_first_name',
-            'account',
-            'default',
-            true,
-          )}
-
-          {renderInput(
-            'Last Name',
-            'Enter last name',
-            'doctor_last_name',
-            'account',
-            'default',
-            true,
-          )}
-
-          {renderInput(
-            'Email',
-            'Enter email address',
-            'doctor_email',
-            'email',
-            'email-address',
-            true,
-          )}
-
-          {renderPhoneInput()}
-
-          {renderInput(
-            'Qualification',
-            'Enter qualification',
-            'qualification',
-            'school',
-            'default',
-            true,
-          )}
-
-          {renderRolePicker()}
-
-
+    <SafeAreaView style={styles.safeArea}>
+      <View style={[{backgroundColor: colors.background}]}>
+        <BackTabTop screenName="Register Doctor" />
+        <KeyboardAwareScrollView
+          contentContainerStyle={styles.scrollContainer}
+          enableOnAndroid={true}
+          enableAutomaticScroll={Platform.OS === 'ios'}
+          extraScrollHeight={140}
+          keyboardShouldPersistTaps="handled">
           <Animatable.View
             animation="fadeInUp"
-            duration={800}
-            style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, {backgroundColor: colors.primary}]}
-              onPress={handleDoctorRegister}
-              disabled={isLoading}>
-              {isLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <>
-                  <Icon
-                    name="check-circle"
-                    size={20}
-                    color="#FFFFFF"
-                    style={styles.buttonIcon}
-                  />
-                  <Text style={styles.buttonText}>Register Doctor</Text>
-                </>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.secondaryButton, {borderColor: colors.primary}]}
-              onPress={() => navigation.navigate('DoctorDashboard')}>
-              <Icon
-                name="home"
-                size={20}
-                color={colors.primary}
-                style={styles.buttonIcon}
-              />
-              <Text
-                style={[styles.secondaryButtonText, {color: colors.primary}]}>
-                Back to Home
+            duration={1000}
+            style={[styles.card, {backgroundColor: colors.card}]}>
+            <View style={styles.headerContainer}>
+              <Text style={[styles.title, {color: colors.primary}]}>
+                Register
               </Text>
-            </TouchableOpacity>
+              <Icon2 name="user-md" size={25} color={colors.primary} />
+            </View>
+
+            {renderInput(
+              'First Name',
+              'Enter first name',
+              'doctor_first_name',
+              'account',
+              'default',
+              true,
+            )}
+
+            {renderInput(
+              'Last Name',
+              'Enter last name',
+              'doctor_last_name',
+              'account',
+              'default',
+              true,
+            )}
+
+            {renderInput(
+              'Email',
+              'Enter email address',
+              'doctor_email',
+              'email',
+              'email-address',
+              true,
+            )}
+
+            {renderPhoneInput()}
+
+            {renderInput(
+              'Qualification',
+              'Enter qualification',
+              'qualification',
+              'school',
+              'default',
+              true,
+            )}
+
+            {renderRolePicker()}
+
+            <Animatable.View
+              animation="fadeInUp"
+              duration={800}
+              style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, {backgroundColor: colors.primary}]}
+                onPress={handleDoctorRegister}
+                disabled={isLoading}>
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Icon
+                      name="check-circle"
+                      size={20}
+                      color="#FFFFFF"
+                      style={styles.buttonIcon}
+                    />
+                    <Text style={styles.buttonText}>Register Doctor</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.secondaryButton, {borderColor: colors.primary}]}
+                onPress={() => navigation.navigate('DoctorDashboard')}>
+                <Icon
+                  name="home"
+                  size={20}
+                  color={colors.primary}
+                  style={styles.buttonIcon}
+                />
+                <Text
+                  style={[styles.secondaryButtonText, {color: colors.primary}]}>
+                  Back to Home
+                </Text>
+              </TouchableOpacity>
+            </Animatable.View>
           </Animatable.View>
-        </Animatable.View>
-      </KeyboardAwareScrollView>
+        </KeyboardAwareScrollView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -436,6 +463,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: 'black',
   },
   phoneInputContainer: {
     flexDirection: 'row',
@@ -558,7 +586,7 @@ const styles = StyleSheet.create({
   },
   picker: {
     flex: 1,
-    marginLeft: -10, 
+    marginLeft: -10,
   },
   pickerHeader: {
     flexDirection: 'row',

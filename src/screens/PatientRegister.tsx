@@ -46,8 +46,8 @@ const theme = {
   light: {
     background: '#f8f9fa',
     card: '#ffffff',
-    primary: '#119FB3',
-    secondary: '#119FB3',
+    primary: '#007B8E',
+    secondary: '#007B8E',
     text: '#1f2937',
     inputBg: '#f3f4f6',
     inputBorder: '#03858c',
@@ -60,8 +60,8 @@ const theme = {
   dark: {
     background: '#161c24',
     card: '#272d36',
-    primary: '#11bed6',
-    secondary: '#119FB3',
+    primary: '#007B8E',
+    secondary: '#007B8E',
     text: '#f3f4f6',
     inputBg: '#282d33',
     inputBorder: '#03858c',

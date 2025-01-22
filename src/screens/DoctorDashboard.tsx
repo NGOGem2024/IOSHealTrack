@@ -777,7 +777,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     statLabel: {
       fontSize: 14,
-      color: theme.colors.text,
+      color: 'black',
       opacity: 0.7,
     },
     section: {

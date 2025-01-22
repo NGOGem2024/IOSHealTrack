@@ -149,7 +149,7 @@ const TabNavigator = () => (
   <Tab.Navigator
     initialRouteName="HomeStackNavigator"
     screenOptions={{
-      tabBarActiveTintColor: 'black',
+      tabBarActiveTintColor: '#007B8E',
       tabBarInactiveTintColor: 'gray',
       tabBarActiveBackgroundColor: 'white',
       tabBarInactiveBackgroundColor: 'white',

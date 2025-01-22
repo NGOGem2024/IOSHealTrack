@@ -783,7 +783,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     section: {
       display: 'flex',
       margin: 16,
-
       marginBottom: 0,
       backgroundColor: '#007B8E',
     },

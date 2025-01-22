@@ -696,6 +696,61 @@ const styles = StyleSheet.create({
   selectedDropdownItem: {
     backgroundColor: 'rgba(17, 159, 179, 0.1)',
   },
+  therapyCard: {
+    backgroundColor: '#FFFFFF', // Changed from rgba to solid color
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    elevation: 4,
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+
+  modalView: {
+    backgroundColor: '#FFFFFF', // Changed from white to solid color
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    width: '85%',
+    maxWidth: 400,
+  },
+
+  newUserPopup: {
+    backgroundColor: '#FFFFFF', // Changed from white to solid color
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    width: '85%',
+    maxWidth: 400,
+  },
+
+  dropdownButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#119FB3', // Changed from rgba to solid color
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
   selectedDropdownText: {
     color: '#119FB3',
     fontWeight: 'bold',
@@ -769,22 +824,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  newUserPopup: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    width: '85%',
-    maxWidth: 400,
-  },
   newUserTitle: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -816,18 +855,6 @@ const styles = StyleSheet.create({
   },
   buttonSave: {
     backgroundColor: '#119FB3',
-  },
-
-  therapyCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 4,
-    shadowColor: '#000000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
   },
   inputLabel: {
     alignSelf: 'flex-start',
@@ -901,15 +928,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 20,
   },
-  dropdownButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(17, 159, 179, 0.8)',
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
-  },
   dropdownButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
@@ -926,24 +944,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
   },
-  modalView: {
-    // margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    width: '85%',
-    maxWidth: 400,
-  },
-
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',

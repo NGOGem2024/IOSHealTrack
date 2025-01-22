@@ -23,6 +23,7 @@ import BackTabTop from './BackTopTab';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import PaymentModal from './PaymentModal';
 import EditPaymentModal from './EditPaymentModal';
+import LoadingScreen from '../components/loadingScreen';
 
 type Props = StackScreenProps<RootStackParamList, 'payment'>;
 interface Addon {
@@ -215,7 +216,7 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#119FB3" />
+        <LoadingScreen />
       </View>
     );
   }

@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   View,
   Image,
@@ -6,23 +6,31 @@ import {
   Animated,
   Easing,
   Dimensions,
+  Platform,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-const {width, height} = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
 const LoadingScreen: React.FC = () => {
-  const rotateAnim = new Animated.Value(0);
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.timing(rotateAnim, {
         toValue: 1,
-        duration: 2000,
+        duration: 1500,
         easing: Easing.linear,
         useNativeDriver: true,
+        isInteraction: false,
       }),
-    ).start();
+    );
+
+    animation.start();
+
+    return () => {
+      animation.stop();
+    };
   }, []);
 
   const spin = rotateAnim.interpolate({
@@ -40,7 +48,12 @@ const LoadingScreen: React.FC = () => {
             resizeMode="contain"
           />
           <Animated.View
-            style={[styles.circleLoader, {transform: [{rotate: spin}]}]}
+            style={[
+              styles.circleLoader,
+              {
+                transform: [{rotate: spin}],
+              },
+            ]}
           />
         </View>
       </View>
@@ -49,10 +62,6 @@ const LoadingScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
   safeArea: {
     flex: 1,
     backgroundColor: 'black',
@@ -69,6 +78,14 @@ const styles = StyleSheet.create({
     height: 80,
     justifyContent: 'center',
     alignItems: 'center',
+    ...Platform.select({
+      android: {
+        renderToHardwareTextureAndroid: true,
+      },
+      ios: {
+        shouldRasterizeIOS: true,
+      },
+    }),
   },
   logo: {
     width: 80,

@@ -20,6 +20,7 @@ import BackTabTop from './BackTopTab';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {StackNavigationProp} from '@react-navigation/stack';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import LoadingScreen from '../components/loadingScreen';
 
 type TherapyPlanDetailsRouteProp = RouteProp<RootStackParamList, 'planDetails'>;
 
@@ -158,13 +159,7 @@ const TherapyPlanDetails: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor="black"
-          translucent={false}
-        />
-        <ActivityIndicator size="large" color="#119FB3" />
-        <Text style={styles.loadingText}>Loading Plan Details...</Text>
+        <LoadingScreen />
       </View>
     );
   }
@@ -608,7 +603,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     container: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     loadingContainer: {
       flex: 1,

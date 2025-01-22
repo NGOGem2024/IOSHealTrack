@@ -34,6 +34,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getTheme} from '../Theme';
 import {useTheme} from '../ThemeContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import LoadingScreen from '../../components/loadingScreen';
 
 type PatientScreenProps = StackScreenProps<RootStackParamList, 'Patient'>;
 interface TherapySession {
@@ -170,8 +171,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#119FB3" />
-        <Text style={styles.loadingText}>Loading patient information...</Text>
+        <LoadingScreen />
       </View>
     );
   }
@@ -391,7 +391,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     container: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     loadingContainer: {
       flex: 1,

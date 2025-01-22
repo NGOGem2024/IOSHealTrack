@@ -609,7 +609,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     scrollView: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     header: {
       flexDirection: 'row',
@@ -785,7 +785,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       margin: 16,
 
       marginBottom: 0,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     sectionTitle: {
       fontSize: 22,

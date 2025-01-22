@@ -23,6 +23,7 @@ import BackTopTab from './BackTopTab';
 import instance from '../utils/axiosConfig';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
+import LoadingScreen from '../components/loadingScreen';
 
 interface Doctor {
   _id: string;
@@ -120,7 +121,7 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#119FB3" />
+        <LoadingScreen />
       </View>
     );
   }
@@ -199,7 +200,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     container: {
       flex: 1,
       padding: 16,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     backgroundImage: {
       flex: 1,

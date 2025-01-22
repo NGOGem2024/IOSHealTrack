@@ -20,6 +20,7 @@ import {useSession} from '../context/SessionContext';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import instance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
+import LoadingScreen from '../components/loadingScreen';
 
 const {width} = Dimensions.get('window');
 
@@ -147,8 +148,7 @@ const DoctorProfileEdit: React.FC = () => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#119FB3" />
-        <Text style={styles.loadingText}>Loading profile information...</Text>
+        <LoadingScreen />
       </View>
     );
   }

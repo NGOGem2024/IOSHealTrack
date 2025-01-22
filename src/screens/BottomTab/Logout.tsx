@@ -47,7 +47,7 @@ const LogoutScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#119FB3',
+    backgroundColor: '#007B8E',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EDF2F7',
   },
   logoutButton: {
-    backgroundColor: '#119FB3',
+    backgroundColor: '#007B8E',
   },
   cancelButtonText: {
     color: '#4A5568',

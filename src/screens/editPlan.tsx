@@ -25,6 +25,7 @@ import TherapyCategoryDropdown from './TherapyCategoryDropdown';
 import {useSession} from '../context/SessionContext';
 import {useTheme} from './ThemeContext';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import LoadingScreen from '../components/loadingScreen';
 
 type EditTherapyPlanScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -546,8 +547,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#119FB3" />
-        <Text style={styles.loadingText}>Loading therapy plan...</Text>
+        <LoadingScreen />
       </View>
     );
   }

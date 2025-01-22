@@ -24,6 +24,7 @@ import BackTabTop from './BackTopTab';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
 import CustomPicker from './customepicker';
+import LoadingScreen from '../components/loadingScreen';
 
 interface Props {
   navigation: NavigationProp<ParamListBase>;
@@ -222,12 +223,7 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
   if (isLoading && page === 1) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor="black"
-          translucent={false}
-        />
-        <ActivityIndicator size="large" color="#119FB3" />
+        <LoadingScreen />
       </View>
     );
   }
@@ -319,7 +315,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     container: {
       flex: 1,
       padding: 16,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     backgroundImage: {
       flex: 1,
@@ -327,7 +323,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     scrollView: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     searchContainer: {
       backgroundColor: 'rgba(255, 255, 255, 0.5)',
@@ -458,7 +454,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: theme.colors.card,
+      backgroundColor: theme.colors.background,
     },
     header: {
       flexDirection: 'row',

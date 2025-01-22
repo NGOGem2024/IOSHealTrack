@@ -97,7 +97,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       justifyContent: 'space-between',
       paddingVertical: 10,
       paddingHorizontal: 15,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       borderBottomWidth: 1,
       borderBottomColor: 'white',
       borderTopColor: 'white',

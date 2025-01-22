@@ -26,6 +26,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../types/types';
 import BackTabTop from '../BackTopTab';
 import NoPlanPopup from './noplan';
+import LoadingScreen from '../../components/loadingScreen';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateTherapy'>;
 interface PickerItem {
@@ -205,7 +206,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#119FB3" />
+        <LoadingScreen />
       </View>
     );
   }

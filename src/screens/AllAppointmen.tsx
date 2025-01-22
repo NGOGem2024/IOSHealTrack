@@ -22,6 +22,7 @@ import NoAppointmentsPopup from './Noappointmentspopup';
 import BackTabTop from './BackTopTab';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/types';
+import LoadingScreen from '../components/loadingScreen';
 
 type Props = NativeStackScreenProps<RootStackParamList>;
 
@@ -451,8 +452,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#119FB3" />
-        <Text style={styles.loadingText}>Loading appointments...</Text>
+        <LoadingScreen />
       </View>
     );
   }
@@ -625,7 +625,7 @@ const getStyles = (
     },
     view: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     header: {
       backgroundColor: isDarkMode ? '#1E1E1E' : '#119FB3',

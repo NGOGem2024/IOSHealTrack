@@ -1,0 +1,6 @@
+<resources>
+    <color name="splash_background">#FFFFFF</color>
+    <color name="spine_green">#006837</color>
+    <color name="accent_red">#FF0000</color>
+    <color name="text_primary">#000000</color>
+</resources>

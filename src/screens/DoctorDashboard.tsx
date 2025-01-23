@@ -611,15 +611,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       flex: 1,
       backgroundColor: '#007B8E',
     },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: 16,
-      paddingTop: 40,
-      // backgroundColor: theme.colors.primary,
-      backgroundColor: '#119FB3',
-    },
     versionText: {
       position: 'absolute',
       bottom: 1,
@@ -717,7 +708,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     profileOrg: {
       fontSize: 18,
       // color: theme.colors.primary,
-      color: '#119FB3',
+      color: '#007B8E',
     },
     profileDetail: {
       flexDirection: 'row',
@@ -728,7 +719,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     profileDetailIcon: {
       // color: theme.colors.primary,
-      color: '#119FB3',
+      color: '#007B8E',
       marginRight: 12,
     },
     profileDetailText: {

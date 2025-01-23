@@ -76,7 +76,7 @@ const ActiveTherapyPlans: React.FC = () => {
         key={item._id}
         style={styles.planItem}
         onPress={() => navigation.navigate('planDetails', {planId: item._id})}>
-        <Icon name="medical-outline" size={24} color="#119FB3" />
+        <Icon name="medical-outline" size={24} color="#007B8E" />
         <View style={styles.planInfo}>
           <View style={styles.planMainInfo}>
             <View>
@@ -201,7 +201,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     progressFill: {
       height: '100%',
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       borderRadius: 2,
     },
     daysRemaining: {

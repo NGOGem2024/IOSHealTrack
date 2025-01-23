@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-} from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
-import { useTheme } from "./ThemeContext";
-import { getTheme } from "./Theme";
-import axiosInstance from "../utils/axiosConfig";
-import { useSession } from "../context/SessionContext";
-import { handleError } from "../utils/errorHandler";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../types/types";
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import {useTheme} from './ThemeContext';
+import {getTheme} from './Theme';
+import axiosInstance from '../utils/axiosConfig';
+import {useSession} from '../context/SessionContext';
+import {handleError} from '../utils/errorHandler';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamList} from '../types/types';
 type TherapyNavigationProp = StackNavigationProp<RootStackParamList>;
 
 interface TherapyPlan {
@@ -27,11 +27,13 @@ interface TherapyPlan {
 }
 
 const ActiveTherapyPlans: React.FC = () => {
-  const { theme } = useTheme();
-  const styles = getStyles( getTheme(
-        theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
-      ),);
-  const { session } = useSession();
+  const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
+  const {session} = useSession();
   const [loading, setLoading] = useState(true);
   const [therapyPlans, setTherapyPlans] = useState<TherapyPlan[]>([]);
   const navigation = useNavigation<TherapyNavigationProp>();
@@ -40,8 +42,8 @@ const ActiveTherapyPlans: React.FC = () => {
     if (!session.idToken) return;
     setLoading(true);
     try {
-      const response = await axiosInstance.get("/get/active/plans", {
-        headers: { Authorization: `Bearer ${session.idToken}` },
+      const response = await axiosInstance.get('/get/active/plans', {
+        headers: {Authorization: `Bearer ${session.idToken}`},
       });
       setTherapyPlans(response.data.active_plans);
     } catch (error) {
@@ -73,8 +75,7 @@ const ActiveTherapyPlans: React.FC = () => {
       <TouchableOpacity
         key={item._id}
         style={styles.planItem}
-        onPress={() => navigation.navigate("planDetails", { planId: item._id })}
-      >
+        onPress={() => navigation.navigate('planDetails', {planId: item._id})}>
         <Icon name="medical-outline" size={24} color="#119FB3" />
         <View style={styles.planInfo}>
           <View style={styles.planMainInfo}>
@@ -85,7 +86,7 @@ const ActiveTherapyPlans: React.FC = () => {
           </View>
           <View style={styles.progressContainer}>
             <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${progress}%` }]} />
+              <View style={[styles.progressFill, {width: `${progress}%`}]} />
             </View>
             <Text style={styles.daysRemaining}>
               {item.days_remaining} days remaining
@@ -118,15 +119,14 @@ const ActiveTherapyPlans: React.FC = () => {
         <Text style={styles.sectionTitle}>Active Therapy Plans</Text>
         <TouchableOpacity
           style={styles.refreshButton}
-          onPress={fetchTherapyPlans}
-        >
+          onPress={fetchTherapyPlans}>
           <Icon name="refresh-outline" size={20} color="#fffff" />
         </TouchableOpacity>
       </View>
 
       {/* Render plans directly instead of using FlatList */}
       {therapyPlans.length > 0 ? (
-        <View>{therapyPlans.map((plan) => renderTherapyPlan(plan))}</View>
+        <View>{therapyPlans.map(plan => renderTherapyPlan(plan))}</View>
       ) : (
         <Text style={styles.emptyText}>No active therapy plans found</Text>
       )}
@@ -137,36 +137,36 @@ const ActiveTherapyPlans: React.FC = () => {
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     container: {
-      backgroundColor: "#119FB3",
+      backgroundColor: '#007B8E',
     },
     loadingContainer: {
       padding: 20,
-      alignItems: "center",
+      alignItems: 'center',
     },
     header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       marginBottom: 12,
     },
     sectionTitle: {
       fontSize: 22,
-      fontWeight: "bold",
+      fontWeight: 'bold',
       color: theme.colors.text,
     },
     refreshButton: {
       padding: 8,
     },
     planItem: {
-      flexDirection: "row",
-      alignItems: "flex-start",
+      flexDirection: 'row',
+      alignItems: 'flex-start',
       backgroundColor: theme.colors.card,
       borderRadius: 12,
       padding: 16,
       marginBottom: 12,
       elevation: 2,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 1},
       shadowOpacity: 0.05,
       shadowRadius: 2,
     },
@@ -175,14 +175,14 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginLeft: 16,
     },
     planMainInfo: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       marginBottom: 8,
     },
     patientName: {
       fontSize: 16,
-      fontWeight: "bold",
+      fontWeight: 'bold',
       color: theme.colors.text,
     },
     therapyType: {
@@ -195,13 +195,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     progressBar: {
       height: 4,
-      backgroundColor: "#E0E0E0",
+      backgroundColor: '#E0E0E0',
       borderRadius: 2,
       marginBottom: 4,
     },
     progressFill: {
-      height: "100%",
-      backgroundColor: "#119FB3",
+      height: '100%',
+      backgroundColor: '#119FB3',
       borderRadius: 2,
     },
     daysRemaining: {
@@ -210,8 +210,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       opacity: 0.7,
     },
     dateInfo: {
-      flexDirection: "row",
-      justifyContent: "space-between",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       marginTop: 4,
     },
     dateText: {
@@ -220,7 +220,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       opacity: 0.7,
     },
     emptyText: {
-      textAlign: "center",
+      textAlign: 'center',
       color: theme.colors.text,
       opacity: 0.7,
       padding: 20,

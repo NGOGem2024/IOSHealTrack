@@ -25,6 +25,7 @@ import {handleError, showSuccessToast} from '../utils/errorHandler';
 import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
 import {CustomPicker, CustomRadioGroup} from './customradio';
+import LoadingScreen from '../components/loadingScreen';
 
 const {width} = Dimensions.get('window');
 
@@ -223,8 +224,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#119FB3" />
-        <Text style={styles.loadingText}>Loading profile information...</Text>
+        <LoadingScreen />
       </View>
     );
   }
@@ -251,9 +251,6 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
         showsVerticalScrollIndicator={false}>
         <View style={styles.profileImageContainer}>
           <Image source={profilePhoto} style={styles.profilePhoto} />
-          <TouchableOpacity style={styles.editImageButton}>
-            {/*<Icon name="camera-outline" size={24} color="#FFFFFF" />*/}
-          </TouchableOpacity>
         </View>
 
         <View style={styles.formContainer}>
@@ -353,11 +350,11 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: 'black',
     },
     scrollView: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     header: {
       padding: 16,

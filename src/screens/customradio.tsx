@@ -8,6 +8,8 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
+import { getTheme } from './Theme';
+import { useTheme } from './ThemeContext';
 
 interface CustomPickerProps {
   selectedValue: boolean;
@@ -34,7 +36,12 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [tempValue, setTempValue] = useState(selectedValue);
-
+  const {theme} = useTheme();
+    const styles = getStyles(
+      getTheme(
+        theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+      ),
+    );
   const handleConfirm = () => {
     onValueChange(tempValue);
     setModalVisible(false);
@@ -125,6 +132,12 @@ export const CustomRadioGroup: React.FC<CustomRadioGroupProps> = ({
   label,
   textColor = '#000000',
 }) => {
+  const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
   return (
     <View style={styles.radioGroupContainer}>
       {options.map((option, index) => (
@@ -158,7 +171,7 @@ export const CustomRadioGroup: React.FC<CustomRadioGroupProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   pickerButton: {
     backgroundColor: '#FFFFFF',
     borderRadius: 10,
@@ -219,19 +232,26 @@ const styles = StyleSheet.create({
   radioGroupContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+     alignItems: 'center',
+    justifyContent: 'center'
   },
   radioButton: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
+    paddingRight: 20,
+    paddingLeft: 15,
     borderRadius: 8,
-    backgroundColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor:'#007B8E',
+    backgroundColor: theme.colors.card,
   },
   radioButtonSelected: {
     backgroundColor: '#E3F2FD',
   },
   radioButtonMargin: {
-    marginRight: 15,
+    marginRight: 30,
+   
   },
   radioButtonOuter: {
     height: 24,

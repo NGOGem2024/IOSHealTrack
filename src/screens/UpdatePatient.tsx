@@ -19,8 +19,11 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
+import {Picker} from '@react-native-picker/picker';
+import DoctorPicker from './DoctorPickerUpdate';
 
 interface PatientData {
+  doctor_id: string;
   patient_first_name: string;
   patient_last_name: string;
   patient_email: string;
@@ -36,6 +39,13 @@ interface PatientData {
   patient_therapy_type: string;
   therapy_duration: string;
   patient_id: string;
+  doctor_name: string;
+}
+interface Doctor {
+  _id: string;
+  doctor_first_name: string;
+  doctor_last_name: string;
+  doctor_email: string;
 }
 
 type UpdatePatientProps = StackScreenProps<RootStackParamList, 'UpdatePatient'>;
@@ -78,6 +88,7 @@ const InputField = memo<InputFieldProps>(
 const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
   const {patientId} = route.params;
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [patientData, setPatientData] = useState<PatientData>({
     patient_first_name: '',
     patient_last_name: '',
@@ -94,6 +105,8 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
     patient_therapy_type: '',
     therapy_duration: '',
     patient_id: '',
+    doctor_name: '',
+    doctor_id: '',
   });
 
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -108,14 +121,27 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
     },
     [],
   );
+  const handleDoctorChange = useCallback(
+    (doctorId: string) => {
+      const selectedDoctor = doctors.find(doc => doc._id === doctorId);
+      if (selectedDoctor) {
+        setPatientData(prev => ({
+          ...prev,
+          doctor_id: doctorId,
+          doctor_name: `${selectedDoctor.doctor_first_name} ${selectedDoctor.doctor_last_name}`,
+        }));
+      }
+    },
+    [doctors],
+  );
 
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-    fetchPatientData();
+  const fetchDoctors = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get('/getalldoctor');
+      setDoctors(response.data.doctors);
+    } catch (error) {
+      handleError(error);
+    }
   }, []);
 
   const fetchPatientData = useCallback(async () => {
@@ -123,18 +149,26 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
     try {
       const response = await axiosInstance.get(`/patient/${patientId}`);
       const patientInfo = response.data.patientData;
+
+      const formattedPhone = patientInfo.patient_phone.replace(
+        /^\+(\d{2})(\d+)/,
+        '+$1 $2',
+      );
+
       setPatientData(prevData => ({
         ...prevData,
         patient_first_name: patientInfo.patient_first_name || '',
         patient_last_name: patientInfo.patient_last_name || '',
         patient_email: patientInfo.patient_email || '',
-        patient_phone: patientInfo.patient_phone || '',
+        patient_phone: formattedPhone || '',
         patient_address1: patientInfo.patient_address1 || '',
         patient_address2: patientInfo.patient_address2 || '',
         patient_age: patientInfo.patient_age || '',
         patient_symptoms: patientInfo.patient_symptoms || '',
         patient_diagnosis: patientInfo.patient_diagnosis || '',
         patient_id: patientInfo.patient_id,
+        doctor_id: patientInfo.doctor_id || '',
+        doctor_name: patientInfo.doctor_name || '',
       }));
     } catch (error) {
       handleError(error);
@@ -142,6 +176,28 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
       setIsLoading(false);
     }
   }, [patientId]);
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+
+    const initializeData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch both patient and doctor data in parallel
+        await Promise.all([fetchPatientData(), fetchDoctors()]);
+      } catch (error) {
+        handleError(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeData();
+  }, []);
 
   const handlePatientUpdate = useCallback(async () => {
     setIsLoading(true);
@@ -190,51 +246,49 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
           <BackTabTop screenName="Patient" />
           <Animated.View style={[styles.container, {opacity: fadeAnim}]}>
             <Text style={styles.title}>Update Patient</Text>
-
             {renderInputField(
               'patient_first_name',
               'First Name',
               <Icon name="person" size={24} color="#119FB3" />,
             )}
-
             {renderInputField(
               'patient_last_name',
               'Last Name',
               <Icon name="person" size={24} color="#119FB3" />,
             )}
-
             {renderInputField(
               'patient_email',
               'Email',
               <Icon name="email" size={24} color="#119FB3" />,
             )}
-
             {renderInputField(
               'patient_phone',
               'Contact No',
               <Icon name="phone" size={24} color="#119FB3" />,
               'numeric',
             )}
-
             {renderInputField(
               'patient_address1',
               'Address 1',
               <Icon name="location-on" size={24} color="#119FB3" />,
             )}
-
             {renderInputField(
               'patient_address2',
               'Address 2',
               <Icon name="location-on" size={24} color="#119FB3" />,
             )}
-
             {renderInputField(
               'patient_age',
               'Age',
               <Icon name="tag" size={24} color="#119FB3" />,
               'numeric',
             )}
-
+            <DoctorPicker
+              doctors={doctors}
+              selectedDoctorId={patientData.doctor_id}
+              onDoctorSelect={handleDoctorChange}
+              isLoading={isLoading}
+            />
             <TouchableOpacity
               style={styles.saveButton}
               onPress={handlePatientUpdate}
@@ -277,6 +331,11 @@ const styles = StyleSheet.create({
   disabledInput: {
     backgroundColor: '#F0F0F0',
     color: '#888888',
+  },
+  picker: {
+    flex: 1,
+    marginLeft: 10,
+    color: '#333333',
   },
   inputContainer: {
     flexDirection: 'row',

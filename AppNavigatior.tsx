@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -32,7 +32,7 @@ import EditTherapyPlan from './src/screens/editPlan';
 import AllAppointmentsPage from './src/screens/AllAppointmen';
 import DoctorPatients from './src/screens/DoctorPatients';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import AnimatedSplashScreen from './src/components/AnimatedSplashScreen';
 // Import your screens...
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -149,7 +149,7 @@ const TabNavigator = () => (
   <Tab.Navigator
     initialRouteName="HomeStackNavigator"
     screenOptions={{
-      tabBarActiveTintColor: 'black',
+      tabBarActiveTintColor: '#007B8E',
       tabBarInactiveTintColor: 'gray',
       tabBarActiveBackgroundColor: 'white',
       tabBarInactiveBackgroundColor: 'white',
@@ -198,7 +198,11 @@ const TabNavigator = () => (
       options={{
         headerShown: false,
         tabBarIcon: ({color, size}) => (
-          <MaterialCommunityIcons name="square-edit-outline" color={color} size={size} />
+          <MaterialCommunityIcons
+            name="square-edit-outline"
+            color={color}
+            size={size}
+          />
         ),
       }}
     />
@@ -207,11 +211,17 @@ const TabNavigator = () => (
 
 const AppNavigator = () => {
   const {session, isLoading} = useSession();
-
+  const [isSplashComplete, setSplashComplete] = useState(false);
   if (isLoading) {
     return <SplashScreen />;
   }
-
+  if (!isSplashComplete) {
+    return (
+      <AnimatedSplashScreen
+        onAnimationComplete={() => setSplashComplete(true)}
+      />
+    );
+  }
   return (
     <SafeAreaProvider>
       <NavigationContainer>

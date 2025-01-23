@@ -22,6 +22,7 @@ import instance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
 import {getTheme} from './Theme';
 import {useTheme} from './ThemeContext';
+import LoadingScreen from '../components/loadingScreen';
 
 type DoctorScreenProps = StackScreenProps<RootStackParamList, 'Doctor'>;
 
@@ -90,8 +91,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#119FB3" />
-        <Text style={styles.loadingText}>Loading doctor information...</Text>
+        <LoadingScreen />
       </View>
     );
   }
@@ -213,10 +213,11 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: 'black',
     },
     container: {
       flex: 1,
+      backgroundColor: '#007B8E',
     },
     loadingContainer: {
       flex: 1,

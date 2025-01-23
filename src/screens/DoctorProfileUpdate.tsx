@@ -20,6 +20,7 @@ import {useSession} from '../context/SessionContext';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import instance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
+import LoadingScreen from '../components/loadingScreen';
 
 const {width} = Dimensions.get('window');
 
@@ -147,8 +148,7 @@ const DoctorProfileEdit: React.FC = () => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#119FB3" />
-        <Text style={styles.loadingText}>Loading profile information...</Text>
+        <LoadingScreen />
       </View>
     );
   }
@@ -175,9 +175,6 @@ const DoctorProfileEdit: React.FC = () => {
         showsVerticalScrollIndicator={false}>
         <View style={styles.profileImageContainer}>
           <Image source={profilePhoto} style={styles.profilePhoto} />
-          <TouchableOpacity style={styles.editImageButton}>
-            {/*<Icon name="camera-outline" size={24} color="#FFFFFF" />*/}
-          </TouchableOpacity>
         </View>
 
         <View style={styles.formContainer}>
@@ -257,7 +254,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     scrollView: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     input: {
       backgroundColor: theme.colors.card,
@@ -314,14 +311,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderWidth: 3,
       borderColor: theme.colors.card,
     },
-    editImageButton: {
-      position: 'absolute',
-      bottom: 0,
-      right: width / 2 - 75,
-      backgroundColor: '#119FB3',
-      borderRadius: 20,
-      padding: 8,
-    },
+   
     formContainer: {
       backgroundColor: theme.colors.card,
       borderTopLeftRadius: 30,
@@ -338,7 +328,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontWeight: 'bold',
     },
     saveButton: {
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       borderRadius: 10,
       padding: 15,
       alignItems: 'center',

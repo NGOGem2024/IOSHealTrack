@@ -33,6 +33,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getTheme} from '../Theme';
 import {useTheme} from '../ThemeContext';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import LoadingScreen from '../../components/loadingScreen';
 
 type PatientScreenProps = StackScreenProps<RootStackParamList, 'Patient'>;
 interface TherapySession {
@@ -101,6 +103,7 @@ interface PatientData {
   patient_email: string;
   patient_phone: string;
   patient_id: string;
+  doctor_name?: string;
   patient_address1: string;
   therapy_plans: TherapyPlan[];
 }
@@ -168,8 +171,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#119FB3" />
-        <Text style={styles.loadingText}>Loading patient information...</Text>
+        <LoadingScreen />
       </View>
     );
   }
@@ -219,6 +221,12 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
               <MaterialIcons name="call" size={20} color="#119FB3" />
               <Text style={styles.infoText}>{patientData?.patient_phone}</Text>
             </View>
+            {patientData?.doctor_name && (
+              <View style={styles.infoRow}>
+                <Icon name="user-md" size={20} color="#119FB3" />
+                <Text style={styles.infoText}>{patientData.doctor_name}</Text>
+              </View>
+            )}
             {patientData?.patient_address1 && (
               <View style={styles.infoRow}>
                 <MaterialIcons name="location-on" size={20} color="#119FB3" />
@@ -234,8 +242,6 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActionsContainer}>
-            
-
             <TouchableOpacity
               style={styles.quickActionButton}
               onPress={() =>
@@ -385,7 +391,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     container: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     loadingContainer: {
       flex: 1,

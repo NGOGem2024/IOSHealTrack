@@ -31,6 +31,7 @@ import AppointmentDetailsScreen from './AppointmentDetails';
 import NoAppointmentsPopup from './Noappointmentspopup';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ActiveTherapyPlans from './Activeplans';
+import LoadingScreen from '../components/loadingScreen';
 
 interface DoctorInfo {
   _id: string;
@@ -315,7 +316,7 @@ const DoctorDashboard: React.FC = () => {
         />
         <View>
           <Image
-            source={require('../assets/logo3.png')}
+            source={require('../assets/healtrack_logo1.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />
@@ -359,8 +360,7 @@ const DoctorDashboard: React.FC = () => {
     return (
       <View style={styles.loadingContainer}>
         <StatusBar barStyle="light-content" translucent={false} />
-        <ActivityIndicator size="large" color="#119FB3" />
-        <Text style={styles.loadingText}>Loading Doctor Dashboard...</Text>
+        <LoadingScreen />
       </View>
     );
   }
@@ -551,15 +551,15 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       justifyContent: 'space-between',
       paddingVertical: 10,
       paddingHorizontal: 15,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       borderBottomColor: 'white',
       borderTopColor: 'white',
       borderBottomWidth: 1,
       borderTopWidth: 1,
     },
     logoImage: {
-      width: 120,
-      height: 40,
+      width: 110,
+      height: 35,
     },
     profileButton: {
       alignItems: 'flex-end',
@@ -609,7 +609,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     scrollView: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     header: {
       flexDirection: 'row',
@@ -623,7 +623,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     versionText: {
       position: 'absolute',
       bottom: 1,
-      right: -18,
+      right: -14,
       color: '#FFFFFF',
       fontSize: 12,
       opacity: 0.8,
@@ -777,15 +777,14 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     statLabel: {
       fontSize: 14,
-      color: theme.colors.text,
+      color: 'black',
       opacity: 0.7,
     },
     section: {
       display: 'flex',
       margin: 16,
-
       marginBottom: 0,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     sectionTitle: {
       fontSize: 22,

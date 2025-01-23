@@ -207,7 +207,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               <Icon
                 name={isAdditionalServicesOpen ? 'minus' : 'plus'}
                 size={20}
-                color="#119FB3"
+                color="#007B8E"
               />
               <Text style={styles.servicesHeaderText}>Additional Services</Text>
             </TouchableOpacity>
@@ -501,7 +501,7 @@ const getModalStyles = () =>
     },
     totalAmount: {
       fontSize: 20,
-      color: '#119FB3',
+      color: '#007B8E',
       fontWeight: 'bold',
     },
     footer: {
@@ -518,7 +518,7 @@ const getModalStyles = () =>
     },
     confirmButton: {
       width: '50%',
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       paddingVertical: 12,
       borderRadius: 10,
       alignItems: 'center',
@@ -531,7 +531,7 @@ const getModalStyles = () =>
       fontWeight: 'bold',
     },
     paymentNumberBadge: {
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       paddingVertical: 5,
       paddingHorizontal: 10,
       marginVertical: 5,

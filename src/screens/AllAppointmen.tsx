@@ -293,12 +293,12 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       ? {
           completed: '#66BB6A',
           in_progress: '#FFB74D',
-          default: '#4DD0E1',
+          default: '#029db5',
         }
       : {
           completed: '#4CAF50',
           in_progress: '#FFA726',
-          default: '#119FB3',
+          default: '#007B8E',
         };
 
     switch (status?.toLowerCase()) {
@@ -424,7 +424,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
   );
   const renderNoAppointments = () => (
     <View style={styles.noAppointmentsContainer}>
-      <Icon name="calendar-outline" size={48} color="#119FB3" />
+      <Icon name="calendar-outline" size={48} color="#007B8E" />
       <Text style={styles.noAppointmentsText}>No appointments scheduled</Text>
       <Text style={styles.noAppointmentsSubText}>
         Your appointments for this day will appear here

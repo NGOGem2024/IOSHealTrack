@@ -33,6 +33,7 @@ import AllAppointmentsPage from './src/screens/AllAppointmen';
 import DoctorPatients from './src/screens/DoctorPatients';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AnimatedSplashScreen from './src/components/AnimatedSplashScreen';
+import TherapySessionsList from './src/screens/sessiondetails';
 // Import your screens...
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -51,7 +52,6 @@ const HomeStackNavigator = () => (
       component={AllPatients}
       options={{headerShown: false}}
     />
-
     <Stack.Screen
       name="PatientRegister"
       component={PatientRegister}
@@ -62,6 +62,12 @@ const HomeStackNavigator = () => (
       component={LogoutScreen}
       options={{headerShown: false}}
     />
+    <Stack.Screen
+      name="therapySessions"
+      component={TherapySessionsList}
+      options={{headerShown: false}}
+    />
+
     <Stack.Screen
       name="DoctorProfileEdit"
       component={DoctorProfileEdit}

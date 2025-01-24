@@ -205,25 +205,34 @@ const TherapyPlanDetails: React.FC = () => {
               </Text>
 
               {plan.therapy_sessions.map((session, index) => (
-                <View key={session._id} style={styles.sessionItem}>
-                  <View style={styles.sessionHeader}>
-                    <Text style={styles.sessionNumber}>
-                      Session {index + 1}
-                    </Text>
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        {
-                          backgroundColor:
-                            session.status === 'Completed'
-                              ? '#4CAF50'
-                              : '#FFA726',
-                        },
-                      ]}>
-                      <Text style={styles.statusText}>{session.status}</Text>
+                <TouchableOpacity
+                  key={session._id}
+                  style={styles.sessionItem}
+                  onPress={() =>
+                    navigation.navigate('therapySessions', {
+                      planId: plan._id,
+                    })
+                  }>
+                  <View key={session._id} style={styles.sessionItem}>
+                    <View style={styles.sessionHeader}>
+                      <Text style={styles.sessionNumber}>
+                        Session {index + 1}
+                      </Text>
+                      <View
+                        style={[
+                          styles.statusBadge,
+                          {
+                            backgroundColor:
+                              session.status === 'Completed'
+                                ? '#4CAF50'
+                                : '#FFA726',
+                          },
+                        ]}>
+                        <Text style={styles.statusText}>{session.status}</Text>
+                      </View>
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               ))}
             </>
           )}

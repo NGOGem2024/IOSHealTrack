@@ -14,6 +14,7 @@ export type RootStackParamList = {
   TherapyHistory: {patientId?: string};
   HomeStack: undefined;
   Tabs: undefined;
+  therapySessions: {planId?: string};
   Media: undefined;
   Report: undefined;
   Logout: undefined;

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import GoogleSignInButton from '../components/googlebutton';
 import axiosInstance from '../utils/axiosConfig';
@@ -15,6 +16,18 @@ import {handleError} from '../utils/errorHandler';
 import BackTabTop from './BackTopTab';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
+import {useSession} from '../context/SessionContext';
+import {
+  GoogleSignin,
+  statusCodes,
+  SignInResponse,
+  User,
+} from '@react-native-google-signin/google-signin';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+interface ExtendedUser extends User {
+  data: any;
+  serverAuthCode: string | null;
+}
 
 interface SessionInfo {
   lastUpdated?: string;
@@ -22,6 +35,13 @@ interface SessionInfo {
   organization_name?: string;
   doctor_name?: string;
 }
+
+interface ServerResponse {
+  accessToken: string;
+}
+
+const GOOGLE_WEB_CLIENT_ID =
+  '1038698506388-eegihlhipbg4d1cubdjk4p44gv74sv5i.apps.googleusercontent.com';
 
 const SettingsScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -31,6 +51,8 @@ const SettingsScreen: React.FC = () => {
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
     ),
   );
+  const {updateAccessToken} = useSession();
+
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
 
   const fetchSessionStatus = async () => {
@@ -58,9 +80,66 @@ const SettingsScreen: React.FC = () => {
     fetchSessionStatus();
   }, []);
 
-  const handleSignInSuccess = async () => {
-    console.log('Google Sign-In successful');
-    await fetchSessionStatus();
+  const handleGoogleSignIn = async () => {
+    try {
+      // Configure Google Sign-In
+      GoogleSignin.configure({
+        webClientId: GOOGLE_WEB_CLIENT_ID,
+        offlineAccess: true,
+        scopes: [
+          'https://www.googleapis.com/auth/calendar',
+          'https://www.googleapis.com/auth/userinfo.email',
+          'https://www.googleapis.com/auth/userinfo.profile',
+          'https://www.googleapis.com/auth/calendar.events',
+        ],
+        forceCodeForRefreshToken: true,
+      });
+
+      // Check Play Services
+      await GoogleSignin.hasPlayServices();
+
+      // Perform sign-in
+      const userInfo = (await GoogleSignin.signIn()) as unknown as ExtendedUser;
+      console.log(userInfo);
+      // Ensure serverAuthCode is available
+      if (!userInfo.data.serverAuthCode) {
+        throw new Error('Failed to retrieve serverAuthCode. Please try again.');
+      }
+
+      // Exchange the serverAuthCode for an access token
+      const response = await axiosInstance.post<ServerResponse>('/exchange', {
+        serverAuthCode: userInfo.data.serverAuthCode,
+      });
+
+      const {accessToken} = response.data;
+
+      // Store the access token and update the session
+      await updateAccessToken(accessToken);
+      await fetchSessionStatus();
+
+      console.log('Google Sign-In successful');
+    } catch (error) {
+      let errorMessage = 'Failed to sign in with Google. Please try again.';
+
+      if (error instanceof Error) {
+        switch (error.message) {
+          case statusCodes.SIGN_IN_CANCELLED:
+            errorMessage = 'Sign in was cancelled.';
+            break;
+          case statusCodes.IN_PROGRESS:
+            errorMessage = 'Sign in is already in progress.';
+            break;
+          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+            errorMessage = 'Play services are not available.';
+            break;
+          default:
+            errorMessage = `Error: ${error.message}`;
+        }
+      }
+
+      console.error('Error during Google Sign-In:', error);
+      Alert.alert('Error', errorMessage);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -109,7 +188,7 @@ const SettingsScreen: React.FC = () => {
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity
                     style={styles.syncButton}
-                    onPress={handleSignInSuccess}>
+                    onPress={handleGoogleSignIn}>
                     <Text style={styles.buttonText}>Update Integration</Text>
                   </TouchableOpacity>
 
@@ -125,7 +204,7 @@ const SettingsScreen: React.FC = () => {
                 <Text style={styles.noteText}>
                   Connect your Google Calendar to sync appointments
                 </Text>
-                <GoogleSignInButton onSignInSuccess={handleSignInSuccess} />
+                <GoogleSignInButton onSignInSuccess={handleGoogleSignIn} />
               </View>
             )}
           </View>

@@ -399,7 +399,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
             }
           }}
           style={styles.picker}
-          dropdownIconColor="#119FB3">
+          dropdownIconColor="#007B8E">
           {doctors.map(doctor => (
             <Picker.Item
               key={doctor._id}
@@ -474,7 +474,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
             }
           }}
           style={styles.picker}
-          dropdownIconColor="#119FB3">
+          dropdownIconColor="#007B8E">
           {therapyPlans.map(plan => (
             <Picker.Item
               key={plan._id}
@@ -603,13 +603,13 @@ const CreateTherapy = ({route, navigation}: Props) => {
             <Text style={styles.sectionTitle}>Select Date</Text>
             <View style={styles.dateSelector}>
               <TouchableOpacity onPress={() => changeDate(-1)}>
-                <Icon name="chevron-left" size={24} color="#119FB3" />
+                <Icon name="chevron-left" size={24} color="#007B8E" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setShowDatePicker(true)}>
                 <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => changeDate(1)}>
-                <Icon name="chevron-right" size={24} color="#119FB3" />
+                <Icon name="chevron-right" size={24} color="#007B8E" />
               </TouchableOpacity>
             </View>
           </View>
@@ -634,7 +634,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
                 Please select a doctor to view available slots.
               </Text>
             ) : isLoadingSlots ? (
-              <ActivityIndicator size="small" color="#119FB3" />
+              <ActivityIndicator size="small" color="#007B8E" />
             ) : (
               <View style={styles.slotsContainer}>
                 {availableSlots.map((slot, index) => (
@@ -665,7 +665,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
 
         {isBooking && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#119FB3" />
+            <ActivityIndicator size="large" color="#007B8E" />
           </View>
         )}
 
@@ -753,7 +753,7 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       padding: 8,
     },
     doneButtonText: {
-      color: '#119FB3',
+      color: '#007B8E',
       fontSize: 16,
       fontWeight: '600',
     },
@@ -789,7 +789,7 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
     title: {
       fontSize: 28,
       fontWeight: 'bold',
-      color: '#119FB3',
+      color: '#007B8E',
       textAlign: 'center',
       marginBottom: 20,
       marginTop: 25,
@@ -809,7 +809,7 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
     sectionTitle: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: '#119FB3',
+      color: '#007B8E',
       marginBottom: 12,
     },
     typeButton: {
@@ -817,15 +817,15 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       paddingHorizontal: 16,
       borderRadius: 20,
       borderWidth: 1,
-      borderColor: '#119FB3',
+      borderColor: '#007B8E',
       marginRight: 10,
       backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
     },
     selectedTypeButton: {
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     typeButtonText: {
-      color: '#119FB3',
+      color: '#007B8E',
     },
     selectedTypeButtonText: {
       color: '#FFFFFF',
@@ -837,7 +837,7 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
     },
     slotButton: {
       borderWidth: 1,
-      borderColor: '#119FB3',
+      borderColor: '#007B8E',
       borderRadius: 10,
       padding: 10,
       width: '48%',
@@ -849,7 +849,7 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       borderColor: isDarkMode ? colors.border : '#E0E0E0',
     },
     slotButtonSelected: {
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     slotButtonText: {
       color: colors.text,
@@ -867,7 +867,7 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       marginTop: 10,
     },
     bookButton: {
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       padding: 16,
       alignItems: 'center',
       margin: 16,

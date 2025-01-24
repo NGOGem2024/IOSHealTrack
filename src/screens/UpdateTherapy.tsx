@@ -172,7 +172,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
         const result = await InAppBrowser.open(url, {
           // iOS Properties
           dismissButtonStyle: 'cancel',
-          preferredBarTintColor: '#119FB3',
+          preferredBarTintColor: '#007B8E',
           preferredControlTintColor: 'white',
           readerMode: false,
           animated: true,
@@ -181,7 +181,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
           enableBarCollapsing: false,
           // Android Properties
           showTitle: true,
-          toolbarColor: '#119FB3',
+          toolbarColor: '#007B8E',
           secondaryToolbarColor: 'black',
           navigationBarColor: 'black',
           navigationBarDividerColor: 'white',
@@ -414,7 +414,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
               <MaterialCommunityIcons
                 name="square-edit-outline"
                 size={24}
-                color="#119FB3"
+                color="#007B8E"
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -425,13 +425,13 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
           </View>
         )}
         <View style={styles.therapyHeader}>
-          <MaterialIcons name="event" size={24} color="#119FB3" />
+          <MaterialIcons name="event" size={24} color="#007B8E" />
           <Text style={styles.therapyType}>{item.therepy_type}</Text>
         </View>
         <View style={styles.therapyDetails}>
           <Text style={styles.therapyText}>Date: {item.therepy_date}</Text>
           <Text style={styles.therapyText}>
-            doctor name: {item.doctor_name}
+            Doctor Name: {item.doctor_name}
           </Text>
           <Text style={styles.therapyText}>
             Start Time: {item.therepy_start_time}
@@ -474,9 +474,6 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ImageBackground
-        source={require('../assets/bac2.jpg')}
-        style={styles.backgroundImage}>
         <BackTabTop screenName="Appointments" />
         <View style={styles.container}>
           {error && <Text style={styles.error}>{error}</Text>}
@@ -494,7 +491,7 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
             <Icon
               name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
               size={16}
-              color="#FFFFFF"
+              color="#007B8E"
             />
           </TouchableOpacity>
 
@@ -685,7 +682,6 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
             />
           </View>
         )}
-      </ImageBackground>
     </SafeAreaView>
   );
 };
@@ -697,7 +693,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(17, 159, 179, 0.1)',
   },
   therapyCard: {
-    backgroundColor: '#FFFFFF', // Changed from rgba to solid color
+    backgroundColor: '#f0fbfc', // Changed from rgba to solid color
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
@@ -746,13 +742,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#119FB3', // Changed from rgba to solid color
+    backgroundColor: 'white', // Changed from rgba to solid color
     padding: 10,
     borderRadius: 5,
     marginBottom: 10,
   },
   selectedDropdownText: {
-    color: '#119FB3',
+    color: '#007B8E',
     fontWeight: 'bold',
   },
   dropdownText: {
@@ -769,7 +765,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'rgba(17, 159, 179, 0.1)',
+    backgroundColor: '#007B8E',
   },
   title: {
     fontSize: 24,
@@ -816,7 +812,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF6B6B',
   },
   doneButton: {
-    backgroundColor: '#119FB3',
+    backgroundColor: '#007B8E',
   },
   centeredView: {
     flex: 1,
@@ -827,7 +823,7 @@ const styles = StyleSheet.create({
   newUserTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#119FB3',
+    color: '#007B8E',
     marginBottom: 15,
   },
   newUserText: {
@@ -837,7 +833,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   createTherapyButton: {
-    backgroundColor: '#119FB3',
+    backgroundColor: '#007B8E',
     borderRadius: 10,
     padding: 10,
     elevation: 2,
@@ -854,7 +850,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   buttonSave: {
-    backgroundColor: '#119FB3',
+    backgroundColor: '#007B8E',
   },
   inputLabel: {
     alignSelf: 'flex-start',
@@ -864,7 +860,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#119FB3',
+    borderColor: '#007B8E',
     borderRadius: 5,
     height: 40,
     marginBottom: 20,
@@ -881,7 +877,7 @@ const styles = StyleSheet.create({
   therapyType: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#119FB3',
+    color: '#007B8E',
     marginLeft: 8,
   },
   therapyDetails: {
@@ -907,7 +903,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   joinButton: {
-    backgroundColor: '#119FB3',
+    backgroundColor: '#007B8E',
   },
   recordButton: {
     backgroundColor: '#2596be',
@@ -929,7 +925,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   dropdownButtonText: {
-    color: '#FFFFFF',
+    color: '#007B8E',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -948,7 +944,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#119FB3',
+    color: '#007B8E',
   },
   modalText: {
     marginBottom: 10,
@@ -968,7 +964,7 @@ const styles = StyleSheet.create({
     minWidth: 100,
   },
   buttonClose: {
-    backgroundColor: '#119FB3',
+    backgroundColor: '#007B8E',
   },
   textStyle: {
     color: 'white',

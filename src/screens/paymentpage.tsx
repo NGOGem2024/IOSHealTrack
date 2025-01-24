@@ -236,7 +236,6 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.safeAreaContainer}>
         {/* <StatusBar barStyle="light-content" translucent={false} />
       <View style={styles.fixedHeader}>
         <Text style={styles.headerText}>Payment Details</Text>
@@ -448,7 +447,6 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
             </Modal>
           </ScrollView>
         </View>
-      </View>
     </SafeAreaView>
   );
 };
@@ -457,9 +455,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     contentContainer: {
       flex: 1,
-      backgroundColor: 'white',
+      backgroundColor: '#fafcfc',
       overflow: 'hidden',
-      marginTop: 10,
     },
     footerContainer: {
       paddingHorizontal: 16,
@@ -493,7 +490,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       elevation: 5,
     },
     recordPaymentButton: {
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       flex: 1.2, // Makes the Record Payment button slightly wider
     },
     closeButton: {
@@ -507,12 +504,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     safeArea: {
       flex: 1,
-      backgroundColor: 'black',
     },
-    safeAreaContainer: {
-      flex: 1,
-      backgroundColor: 'white',
-    },
+   
     fixedHeader: {
       backgroundColor: '#119FB3',
       height: Platform.OS === 'ios' ? 50 : 45,
@@ -533,7 +526,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     container: {
       flex: 1,
-      backgroundColor: 'white',
+      backgroundColor: '#fafcfc',
     },
     modalOverlay: {
       flex: 1,
@@ -613,7 +606,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       textAlign: 'center',
     },
     actionButton: {
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       padding: 14,
       borderRadius: 8,
       alignItems: 'center',
@@ -804,7 +797,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginRight: 8,
     },
     paymentTypeBadge: {
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       paddingHorizontal: 12,
       paddingVertical: 4,
       borderRadius: 16,
@@ -867,7 +860,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     paymentHistoryAmount: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: '#119FB3',
+      color: '#007B8E',
     },
     paymentHistoryType: {
       fontSize: 12,

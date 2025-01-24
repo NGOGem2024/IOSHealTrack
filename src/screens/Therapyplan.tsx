@@ -761,7 +761,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     backgroundColor: '#333333',
   },
   saveButtonDark: {
-    backgroundColor: '#66D9E8',
+    backgroundColor: '#007B8E',
   },
   balanceContainer: {
     flexDirection: 'row',
@@ -833,7 +833,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     marginBottom: 5,
   },
   saveButton: {
-    backgroundColor: '#119FB3',
+    backgroundColor: '#007B8E',
     paddingVertical: 12,
     borderRadius: 10,
     width: '100%',

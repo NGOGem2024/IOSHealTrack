@@ -23,6 +23,7 @@ import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
 import CustomPicker from './customepicker';
 import {RootStackNavProps} from '../types/types';
+import LoadingScreen from '../components/loadingScreen';
 
 interface Props {
   navigation: NavigationProp<ParamListBase>;
@@ -239,12 +240,8 @@ const DoctorPatients: React.FC<RootStackNavProps<'MyPatient'>> = ({
   if (isLoading && page === 1) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor="black"
-          translucent={false}
-        />
-        <ActivityIndicator size="large" color="#119FB3" />
+        <StatusBar barStyle="light-content" translucent={false} />
+        <LoadingScreen />
       </View>
     );
   }
@@ -256,9 +253,6 @@ const DoctorPatients: React.FC<RootStackNavProps<'MyPatient'>> = ({
         backgroundColor="black"
         translucent={false}
       />
-      <ImageBackground
-        source={require('../assets/bac2.jpg')}
-        style={styles.backgroundImage}>
         <BackTabTop screenName="My Patients" />
         <View
           style={[styles.container, {height: screenDimensions.height * 0.9}]}>
@@ -309,14 +303,12 @@ const DoctorPatients: React.FC<RootStackNavProps<'MyPatient'>> = ({
             <Icon name="plus" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
-      </ImageBackground>
     </SafeAreaView>
   );
 };
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
-    // ... (styles remain the same as in AllPatients)
     safeArea: {
       flex: 1,
       backgroundColor: 'black',
@@ -324,7 +316,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     container: {
       flex: 1,
       padding: 16,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     backgroundImage: {
       flex: 1,

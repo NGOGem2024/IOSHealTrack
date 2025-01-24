@@ -61,7 +61,7 @@ const DoctorPicker = memo<DoctorPickerProps>(
             </View>
           </View>
           {item._id === selectedDoctorId && (
-            <Icon name="check" size={24} color="#119FB3" />
+            <Icon name="check" size={24} color="#007B8E" />
           )}
         </TouchableOpacity>
       ),
@@ -74,13 +74,13 @@ const DoctorPicker = memo<DoctorPickerProps>(
           style={styles.pickerButton}
           onPress={() => setModalVisible(true)}
           disabled={isLoading}>
-          <Icon name="person" size={24} color="#119FB3" />
+          <Icon name="person" size={24} color="#007B8E" />
           <Text style={styles.selectedText}>
             {selectedDoctor
               ? `${selectedDoctor.doctor_first_name} ${selectedDoctor.doctor_last_name}`
               : 'Select Doctor'}
           </Text>
-          <Icon name="keyboard-arrow-down" size={24} color="#119FB3" />
+          <Icon name="keyboard-arrow-down" size={24} color="#007B8E" />
         </TouchableOpacity>
 
         <Modal
@@ -115,11 +115,15 @@ const DoctorPicker = memo<DoctorPickerProps>(
 const styles = StyleSheet.create({
   container: {
     marginBottom: 15,
+    borderWidth: 1,
+    borderColor:'#007B8E',
+    borderRadius: 10,
+    
   },
   pickerButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9FAFB',
     borderRadius: 10,
     paddingHorizontal: 15,
     paddingVertical: 12,
@@ -131,7 +135,7 @@ const styles = StyleSheet.create({
   },
   selectedText: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 15,
     fontSize: 16,
     color: '#333333',
   },
@@ -158,7 +162,7 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   closeButtonText: {
-    color: '#119FB3',
+    color: '#007B8E',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -181,7 +185,7 @@ const styles = StyleSheet.create({
   },
   selectedDoctorItem: {
     backgroundColor: '#F0FBFF',
-    borderColor: '#119FB3',
+    borderColor: '#007B8E',
     borderWidth: 1,
   },
   doctorItemContent: {
@@ -193,7 +197,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#119FB3',
+    backgroundColor: '#007B8E',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,

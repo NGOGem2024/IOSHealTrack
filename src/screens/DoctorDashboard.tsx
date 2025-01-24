@@ -611,15 +611,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       flex: 1,
       backgroundColor: '#007B8E',
     },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: 16,
-      paddingTop: 40,
-      // backgroundColor: theme.colors.primary,
-      backgroundColor: '#119FB3',
-    },
     versionText: {
       position: 'absolute',
       bottom: 1,
@@ -717,7 +708,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     profileOrg: {
       fontSize: 18,
       // color: theme.colors.primary,
-      color: '#119FB3',
+      color: '#007B8E',
     },
     profileDetail: {
       flexDirection: 'row',
@@ -728,7 +719,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     profileDetailIcon: {
       // color: theme.colors.primary,
-      color: '#119FB3',
+      color: '#007B8E',
       marginRight: 12,
     },
     profileDetailText: {
@@ -757,6 +748,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       elevation: 5,
       shadowColor: '#000',
       backgroundColor: '#119FB3',
+
       shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -847,7 +839,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       textAlign: 'right',
     },
     joinButton: {
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       padding: 8,
       borderRadius: 8,
       marginLeft: 8,
@@ -857,8 +849,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       fontWeight: 'bold',
     },
     iconColor: {
-      // color: theme.colors.primary,
-      color: '#119FB3',
+      color: '#007B8E',
     },
     cardContainer: {
       flexDirection: 'row',
@@ -883,8 +874,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       resizeMode: 'cover',
     },
     cardIcon: {
-      // color: theme.colors.primary,
-      color: '#119FB3',
+      color: '#007B8E',
     },
     cardText: {
       color: theme.colors.text,

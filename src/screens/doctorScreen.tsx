@@ -176,7 +176,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                 <MaterialCommunityIcons
                   name="square-edit-outline"
                   size={24}
-                  color="#65b6e7"
+                  color="#007B8E"
                 />
                 <Text style={styles.quickActionText}>Update Profile</Text>
               </TouchableOpacity>

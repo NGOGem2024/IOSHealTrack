@@ -337,7 +337,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
           <View style={styles.dateIconContainer}>
             {!isStarted ? (
               <>
-                <Ionicons name="calendar-outline" size={20} color="#119FB3" />
+                <Ionicons name="calendar-outline" size={20} color="#007B8E" />
                 <Text style={styles.dateText1}>
                   {new Date(appointment.therepy_date)
                     .toLocaleDateString('en-US', {
@@ -533,7 +533,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     icondesign: {
       fontSize: 18,
-      color: '#15b9cf',
+      color: '#007B8E',
       marginTop: -6,
     },
     cardHeader: {
@@ -555,7 +555,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     header: {
       height: 56,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -663,7 +663,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       paddingVertical: 13,
       borderRadius: 10,
       alignItems: 'center',
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
     },
     buttonText: {
       color: 'white', //theme.colors.text,
@@ -797,7 +797,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       textAlign: 'center',
     },
     modalButton: {
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       padding: 12,
       borderRadius: 8,
       alignItems: 'center',

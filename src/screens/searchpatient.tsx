@@ -147,19 +147,19 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: 'black',
+    // backgroundColor: 'black',
   },
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#119FB3',
+    padding: 10,
+    backgroundColor: '#007B8E',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 20,
-    padding: 10,
+    padding: 2,
     marginBottom: 16,
   },
   searchBar: {
@@ -184,6 +184,7 @@ const styles = StyleSheet.create({
   patientName: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#000000'
   },
   patientDetails: {
     fontSize: 14,

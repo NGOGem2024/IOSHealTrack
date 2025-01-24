@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
+  Dimensions,
 } from 'react-native';
 import {StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
@@ -21,6 +22,7 @@ import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
 import {Picker} from '@react-native-picker/picker';
 import DoctorPicker from './DoctorPickerUpdate';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 interface PatientData {
   doctor_id: string;
@@ -70,17 +72,19 @@ const InputField = memo<InputFieldProps>(
     keyboardType = 'default',
     editable = true,
   }) => (
-    <View style={styles.inputContainer}>
-      {icon}
-      <TextInput
-        style={[styles.input, !editable && styles.disabledInput]}
-        placeholder={placeholder}
-        value={value}
-        onChangeText={onChangeText}
-        keyboardType={keyboardType}
-        placeholderTextColor="#A0A0A0"
-        editable={editable}
-      />
+    <View style={styles.inputWrapper}>
+      <View style={styles.inputContainer}>
+        <View style={styles.iconContainer}>{icon}</View>
+        <TextInput
+          style={[styles.input, !editable && styles.disabledInput]}
+          placeholder={placeholder}
+          value={value}
+          onChangeText={onChangeText}
+          keyboardType={keyboardType}
+          placeholderTextColor="#A0A0A0"
+          editable={editable}
+        />
+      </View>
     </View>
   ),
 );
@@ -235,52 +239,38 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.flex}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
-        <ScrollView
-          style={styles.scrollView}
-          keyboardShouldPersistTaps="always"
-          contentContainerStyle={styles.scrollContent}>
-          <BackTabTop screenName="Patient" />
-          <Animated.View style={[styles.container, {opacity: fadeAnim}]}>
-            <Text style={styles.title}>Update Patient</Text>
+      <BackTabTop screenName="Patient" />
+      <KeyboardAwareScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="always"
+        contentContainerStyle={styles.scrollContent}
+        extraScrollHeight={50}>
+        <Animated.View style={[styles.container, {opacity: fadeAnim}]}>
+          <View style={styles.formContainer}>
+            <View style={styles.headerContainer}>
+              <Text style={styles.title}>Update Patient Profile</Text>
+            </View>
+
             {renderInputField(
               'patient_first_name',
               'First Name',
-              <Icon name="person" size={24} color="#119FB3" />,
+              <Icon name="person" size={24} color="#007B8E" />,
             )}
             {renderInputField(
               'patient_last_name',
               'Last Name',
-              <Icon name="person" size={24} color="#119FB3" />,
+              <Icon name="person" size={24} color="#007B8E" />,
             )}
             {renderInputField(
               'patient_email',
-              'Email',
-              <Icon name="email" size={24} color="#119FB3" />,
+              'Email Address',
+              <Icon name="email" size={24} color="#007B8E" />,
             )}
             {renderInputField(
               'patient_phone',
-              'Contact No',
-              <Icon name="phone" size={24} color="#119FB3" />,
-              'numeric',
-            )}
-            {renderInputField(
-              'patient_address1',
-              'Address 1',
-              <Icon name="location-on" size={24} color="#119FB3" />,
-            )}
-            {renderInputField(
-              'patient_address2',
-              'Address 2',
-              <Icon name="location-on" size={24} color="#119FB3" />,
-            )}
-            {renderInputField(
-              'patient_age',
-              'Age',
-              <Icon name="tag" size={24} color="#119FB3" />,
+              'Contact Number',
+              <Icon name="phone" size={24} color="#007B8E" />,
               'numeric',
             )}
             <DoctorPicker
@@ -289,6 +279,22 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
               onDoctorSelect={handleDoctorChange}
               isLoading={isLoading}
             />
+            {renderInputField(
+              'patient_address1',
+              'Primary Address',
+              <Icon name="location-on" size={24} color="#007B8E" />,
+            )}
+            {renderInputField(
+              'patient_address2',
+              'Secondary Address',
+              <Icon name="location-on" size={24} color="#007B8E" />,
+            )}
+            {renderInputField(
+              'patient_age',
+              'Age',
+              <Icon name="tag" size={24} color="#007B8E" />,
+              'numeric',
+            )}
             <TouchableOpacity
               style={styles.saveButton}
               onPress={handlePatientUpdate}
@@ -296,78 +302,106 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
               {isLoading ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text style={styles.saveButtonText}>Save</Text>
+                <View style={styles.buttonContent}>
+                  <Text style={styles.saveButtonText}>Update Patient</Text>
+                </View>
               )}
             </TouchableOpacity>
-          </Animated.View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </View>
+        </Animated.View>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };
-
+const {width} = Dimensions.get('window');
 const styles = StyleSheet.create({
-  flex: {
+  safeArea: {
     flex: 1,
+    backgroundColor: '#F0F4F8',
   },
   scrollView: {
-    backgroundColor: '#F0F8FF',
+    backgroundColor: '#F0F4F8',
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 20,
   },
   container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#F0F8FF',
+    paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#119FB3',
-    textAlign: 'center',
-    marginBottom: 20,
+  headerContainer: {
+    alignItems: 'center',
+    margin: 10,
+  },
+  formContainer: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 10,
+    marginTop: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  inputWrapper: {
+    marginBottom: 15,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#007B8E',
+    paddingHorizontal: 15,
+  },
+  iconContainer: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    color: '#333333',
+    fontSize: 16,
+    paddingVertical: 12,
   },
   disabledInput: {
     backgroundColor: '#F0F0F0',
     color: '#888888',
   },
-  picker: {
-    flex: 1,
-    marginLeft: 10,
-    color: '#333333',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    elevation: 2,
-  },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    color: '#333333',
-    fontSize: 16,
-    paddingVertical: 12,
-  },
   saveButton: {
-    backgroundColor: '#119FB3',
+    backgroundColor: '#007B8E',
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 20,
   },
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'black',
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   saveButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#007B8E',
+    margin: 5,
+    textAlign: 'center',
+  },
+  flex: {
+    flex: 1,
+  },
+  picker: {
+    flex: 1,
+    marginLeft: 10,
+    color: '#333333',
   },
 });
 

@@ -4,10 +4,10 @@ import {
   Image,
   StyleSheet,
   Animated,
-  Easing,
   Dimensions,
   Platform,
 } from 'react-native';
+import Svg, {Circle} from 'react-native-svg';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 const {width} = Dimensions.get('window');
@@ -20,9 +20,7 @@ const LoadingScreen: React.FC = () => {
       Animated.timing(rotateAnim, {
         toValue: 1,
         duration: 1500,
-        easing: Easing.linear,
         useNativeDriver: true,
-        isInteraction: false,
       }),
     );
 
@@ -48,13 +46,23 @@ const LoadingScreen: React.FC = () => {
             resizeMode="contain"
           />
           <Animated.View
-            style={[
-              styles.circleLoader,
-              {
-                transform: [{rotate: spin}],
-              },
-            ]}
-          />
+            style={{
+              transform: [{rotate: spin}],
+              position: 'absolute',
+            }}>
+            <Svg height="100" width="100" viewBox="0 0 100 100">
+              <Circle
+                cx="50"
+                cy="50"
+                r="45"
+                stroke="white"
+                strokeWidth="4"
+                strokeDasharray="283"
+                strokeDashoffset="70"
+                fill="transparent"
+              />
+            </Svg>
+          </Animated.View>
         </View>
       </View>
     </SafeAreaView>
@@ -92,15 +100,6 @@ const styles = StyleSheet.create({
     height: 80,
     position: 'absolute',
     zIndex: 1,
-  },
-  circleLoader: {
-    width: 100,
-    height: 100,
-    borderRadius: 70,
-    borderWidth: 4,
-    borderColor: 'white',
-    borderTopColor: 'transparent',
-    position: 'absolute',
   },
 });
 

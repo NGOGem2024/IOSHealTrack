@@ -19,6 +19,7 @@ import {useRoute, useNavigation, RouteProp} from '@react-navigation/native';
 import {RootStackParamList} from '../types/types';
 import BackTabTop from './BackTopTab';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import LoadingScreen from '../components/loadingScreen';
 
 interface TherapySession {
   _id: string;
@@ -137,16 +138,14 @@ const TherapySessionsList: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FFFFFF" />
-        <Text style={styles.loadingText}>Loading Sessions...</Text>
-      </SafeAreaView>
+      <View style={styles.loadingContainer}>
+        <LoadingScreen />
+      </View>
     );
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" />
       <BackTabTop screenName="Therapy Sessions" />
       <View style={styles.container}>
         {sessions.length > 0 ? (
@@ -172,18 +171,18 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: 'black',
     },
     container: {
       flex: 1,
-      backgroundColor: '#119FB3',
+      backgroundColor: '#007B8E',
       padding: 16,
     },
     loadingContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: '#119FB3',
+      backgroundColor: theme.colors.background,
     },
     loadingText: {
       marginTop: 10,

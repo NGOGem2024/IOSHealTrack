@@ -53,15 +53,9 @@ interface Therapy {
   doctor_name?: string;
 }
 
-type TherapyHistoryScreenProps = {
-  navigation: StackNavigationProp<RootStackParamList, 'TherapyHistory'>;
-  route: {params: {patientId: string}};
-};
+type Props = NativeStackScreenProps<RootStackParamList, 'TherapyHistory'>;
 
-const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
-  navigation,
-  route,
-}) => {
+const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
   const {session} = useSession();
   const patientId = route.params?.patientId;
 
@@ -474,214 +468,214 @@ const TherapyHistory: React.FC<TherapyHistoryScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-        <BackTabTop screenName="Appointments" />
-        <View style={styles.container}>
-          {error && <Text style={styles.error}>{error}</Text>}
+      <BackTabTop screenName="Appointments" />
+      <View style={styles.container}>
+        {error && <Text style={styles.error}>{error}</Text>}
 
-          <TouchableOpacity
-            onPress={toggleDropdown}
-            style={styles.dropdownButton}>
-            <Text style={styles.dropdownButtonText}>
-              {selectedView === 'all'
-                ? 'All Appointments'
-                : selectedView === 'past'
-                ? 'Past Appointments'
-                : 'Upcoming Appointments'}
-            </Text>
-            <Icon
-              name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
-              size={16}
-              color="#007B8E"
-            />
-          </TouchableOpacity>
+        <TouchableOpacity
+          onPress={toggleDropdown}
+          style={styles.dropdownButton}>
+          <Text style={styles.dropdownButtonText}>
+            {selectedView === 'all'
+              ? 'All Appointments'
+              : selectedView === 'past'
+              ? 'Past Appointments'
+              : 'Upcoming Appointments'}
+          </Text>
+          <Icon
+            name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
+            size={16}
+            color="#007B8E"
+          />
+        </TouchableOpacity>
 
-          {isDropdownOpen && (
-            <View style={styles.dropdownContent}>
-              <TouchableOpacity
-                onPress={() => selectTherapyType('all')}
-                style={[
-                  styles.dropdownItem,
-                  selectedView === 'all' && styles.selectedDropdownItem,
-                ]}>
-                <Text
-                  style={
-                    selectedView === 'all'
-                      ? styles.selectedDropdownText
-                      : styles.dropdownText
-                  }>
-                  All Appointments
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => selectTherapyType('past')}
-                style={[
-                  styles.dropdownItem,
-                  selectedView === 'past' && styles.selectedDropdownItem,
-                ]}>
-                <Text
-                  style={
-                    selectedView === 'past'
-                      ? styles.selectedDropdownText
-                      : styles.dropdownText
-                  }>
-                  Past Appointments
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => selectTherapyType('upcoming')}
-                style={[
-                  styles.dropdownItem,
-                  selectedView === 'upcoming' && styles.selectedDropdownItem,
-                ]}>
-                <Text
-                  style={
-                    selectedView === 'upcoming'
-                      ? styles.selectedDropdownText
-                      : styles.dropdownText
-                  }>
-                  Upcoming Appointments
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
+        {isDropdownOpen && (
+          <View style={styles.dropdownContent}>
+            <TouchableOpacity
+              onPress={() => selectTherapyType('all')}
+              style={[
+                styles.dropdownItem,
+                selectedView === 'all' && styles.selectedDropdownItem,
+              ]}>
+              <Text
+                style={
+                  selectedView === 'all'
+                    ? styles.selectedDropdownText
+                    : styles.dropdownText
+                }>
+                All Appointments
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => selectTherapyType('past')}
+              style={[
+                styles.dropdownItem,
+                selectedView === 'past' && styles.selectedDropdownItem,
+              ]}>
+              <Text
+                style={
+                  selectedView === 'past'
+                    ? styles.selectedDropdownText
+                    : styles.dropdownText
+                }>
+                Past Appointments
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => selectTherapyType('upcoming')}
+              style={[
+                styles.dropdownItem,
+                selectedView === 'upcoming' && styles.selectedDropdownItem,
+              ]}>
+              <Text
+                style={
+                  selectedView === 'upcoming'
+                    ? styles.selectedDropdownText
+                    : styles.dropdownText
+                }>
+                Upcoming Appointments
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-          {isLoading ? (
-            <Text style={styles.loadingText}>Loading therapies...</Text>
-          ) : (
-            <FlatList
-              data={getDisplayedTherapies()}
-              keyExtractor={item => item._id}
-              renderItem={renderTherapyItem}
-              ListEmptyComponent={
-                <Text style={styles.noTherapyText}>
-                  No {selectedView === 'all' ? '' : selectedView} Appointments
-                  available
-                </Text>
-              }
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
-            />
-          )}
-        </View>
-        {editingTherapy && (
-          <EditTherapy
-            therapy={editingTherapy}
-            onUpdate={handleUpdateTherapy}
-            onCancel={() => setEditingTherapy(null)}
+        {isLoading ? (
+          <Text style={styles.loadingText}>Loading therapies...</Text>
+        ) : (
+          <FlatList
+            data={getDisplayedTherapies()}
+            keyExtractor={item => item._id}
+            renderItem={renderTherapyItem}
+            ListEmptyComponent={
+              <Text style={styles.noTherapyText}>
+                No {selectedView === 'all' ? '' : selectedView} Appointments
+                available
+              </Text>
+            }
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
           />
         )}
-        <Modal
-          animationType="fade"
-          transparent={true}
-          visible={showRemarksPopup}
-          onRequestClose={() => setShowRemarksPopup(false)}>
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <Text style={styles.modalTitle}>Therapy Ended</Text>
+      </View>
+      {editingTherapy && (
+        <EditTherapy
+          therapy={editingTherapy}
+          onUpdate={handleUpdateTherapy}
+          onCancel={() => setEditingTherapy(null)}
+        />
+      )}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showRemarksPopup}
+        onRequestClose={() => setShowRemarksPopup(false)}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Therapy Ended</Text>
 
-              <Text style={styles.inputLabel}>Remarks:</Text>
-              <TextInput
-                style={styles.input}
-                multiline
-                numberOfLines={5}
-                value={remarks}
-                onChangeText={setRemarks}
-                placeholder="Enter remarks here"
-              />
-
-              <Text style={styles.inputLabel}>Improvements:</Text>
-              <TextInput
-                style={styles.input}
-                multiline
-                numberOfLines={4}
-                value={improvements}
-                onChangeText={setImprovements}
-                placeholder="Enter Improvements"
-              />
-
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonClose]}
-                  onPress={() => setShowRemarksPopup(false)}>
-                  <Text style={styles.textStyle}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonSave]}
-                  onPress={handleSaveRemarks}>
-                  <Text style={styles.textStyle}>Save</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-        <Modal
-          animationType="fade"
-          transparent={true}
-          visible={showDeleteConfirmation}
-          onRequestClose={() => setShowDeleteConfirmation(false)}>
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <Text style={styles.modalTitle}>Confirm Deletion</Text>
-              <Text style={styles.modalText}>
-                Are you sure you want to delete this therapy?
-              </Text>
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonClose]}
-                  onPress={() => setShowDeleteConfirmation(false)}>
-                  <Text style={styles.textStyle}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonDelete]}
-                  onPress={confirmDeleteTherapy}
-                  disabled={isDeleting} // Disable button during loading
-                >
-                  {isDeleting ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.textStyle}>Delete</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-        <Modal
-          transparent={true}
-          visible={showNewUserPopup}
-          onRequestClose={closeNewUserPopup}>
-          <View style={styles.centeredView}>
-            <Animated.View style={[styles.newUserPopup, animatedStyles]}>
-              <Text style={styles.newUserTitle}>Welcome!</Text>
-              <Text style={styles.newUserText}>
-                The patient is new here. Create your first therapy session to
-                get started!
-              </Text>
-              <TouchableOpacity
-                style={styles.createTherapyButton}
-                onPress={() => {
-                  closeNewUserPopup();
-                  // Navigate to create therapy screen or open create therapy modal
-                  navigation.navigate('CreateTherapyPlan', {
-                    patientId: patientId,
-                  });
-                }}>
-                <Text style={styles.createTherapyButtonText}>
-                  Create First Therapy
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-          </View>
-        </Modal>
-        {selectedAppointment && (
-          <View style={styles.fullScreenModal}>
-            <AppointmentDetails
-              appointment={selectedAppointment}
-              onClose={() => setSelectedAppointment(null)}
+            <Text style={styles.inputLabel}>Remarks:</Text>
+            <TextInput
+              style={styles.input}
+              multiline
+              numberOfLines={5}
+              value={remarks}
+              onChangeText={setRemarks}
+              placeholder="Enter remarks here"
             />
+
+            <Text style={styles.inputLabel}>Improvements:</Text>
+            <TextInput
+              style={styles.input}
+              multiline
+              numberOfLines={4}
+              value={improvements}
+              onChangeText={setImprovements}
+              placeholder="Enter Improvements"
+            />
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setShowRemarksPopup(false)}>
+                <Text style={styles.textStyle}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonSave]}
+                onPress={handleSaveRemarks}>
+                <Text style={styles.textStyle}>Save</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        )}
+        </View>
+      </Modal>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showDeleteConfirmation}
+        onRequestClose={() => setShowDeleteConfirmation(false)}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Confirm Deletion</Text>
+            <Text style={styles.modalText}>
+              Are you sure you want to delete this therapy?
+            </Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setShowDeleteConfirmation(false)}>
+                <Text style={styles.textStyle}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonDelete]}
+                onPress={confirmDeleteTherapy}
+                disabled={isDeleting} // Disable button during loading
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.textStyle}>Delete</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        transparent={true}
+        visible={showNewUserPopup}
+        onRequestClose={closeNewUserPopup}>
+        <View style={styles.centeredView}>
+          <Animated.View style={[styles.newUserPopup, animatedStyles]}>
+            <Text style={styles.newUserTitle}>Welcome!</Text>
+            <Text style={styles.newUserText}>
+              The patient is new here. Create your first therapy session to get
+              started!
+            </Text>
+            <TouchableOpacity
+              style={styles.createTherapyButton}
+              onPress={() => {
+                closeNewUserPopup();
+                // Navigate to create therapy screen or open create therapy modal
+                navigation.navigate('CreateTherapyPlan', {
+                  patientId: patientId,
+                });
+              }}>
+              <Text style={styles.createTherapyButtonText}>
+                Create First Therapy
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </Modal>
+      {selectedAppointment && (
+        <View style={styles.fullScreenModal}>
+          <AppointmentDetails
+            appointment={selectedAppointment}
+            onClose={() => setSelectedAppointment(null)}
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 };

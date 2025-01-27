@@ -109,7 +109,7 @@ const HomeStackNavigator = () => (
       options={{headerShown: false}}
     />
     <Stack.Screen
-      name="UpdateTherapy"
+      name="TherapyHistory"
       component={TherapyHistory}
       options={{headerShown: false}}
     />

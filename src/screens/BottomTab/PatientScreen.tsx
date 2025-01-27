@@ -267,7 +267,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             <TouchableOpacity
               style={styles.quickActionButton}
               onPress={() =>
-                navigation.navigate('UpdateTherapy', {
+                navigation.navigate('TherapyHistory', {
                   patientId: patientId,
                 })
               }>

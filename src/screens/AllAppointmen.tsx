@@ -367,7 +367,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
         <TouchableOpacity
           style={styles.mainContentTouchable}
           onPress={() => {
-            navigation.navigate('UpdateTherapy', {
+            navigation.navigate('TherapyHistory', {
               patientId: item.patient_id,
             });
           }}>

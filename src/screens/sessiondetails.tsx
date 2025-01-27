@@ -117,11 +117,19 @@ const TherapySessionsList: React.FC = () => {
 
       <View style={styles.sessionInfo}>
         <View style={styles.infoRow}>
-          <MaterialCommunityIcons name="doctor" size={20} color="black" />
+          <MaterialCommunityIcons
+            name="doctor"
+            size={20}
+            color={theme.colors.text}
+          />
           <Text style={styles.infoText}>{session.doctor_name}</Text>
         </View>
         <View style={styles.infoRow}>
-          <MaterialCommunityIcons name="calendar" size={20} color="black" />
+          <MaterialCommunityIcons
+            name="calendar"
+            size={20}
+            color={theme.colors.text}
+          />
           <Text style={styles.infoText}>{session.therepy_type}</Text>
         </View>
         {session.therepy_link && (
@@ -157,7 +165,7 @@ const TherapySessionsList: React.FC = () => {
             <MaterialCommunityIcons
               name="calendar-remove"
               size={64}
-              color="Black"
+              color={theme.colors.text}
             />
             <Text style={styles.noSessionsText}>No therapy sessions found</Text>
           </View>

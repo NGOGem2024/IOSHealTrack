@@ -213,7 +213,7 @@ const TherapyPlanDetails: React.FC = () => {
                       planId: plan._id,
                     })
                   }>
-                  <View key={session._id} style={styles.sessionItem}>
+                  <View key={session._id} style={styles.sessionSingleItem}>
                     <View style={styles.sessionHeader}>
                       <Text style={styles.sessionNumber}>
                         Session {index + 1}
@@ -483,10 +483,14 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginBottom: 8,
     },
     sessionItem: {
-      borderLeftWidth: 2,
-      borderLeftColor: '#119FB3',
       paddingLeft: 12,
       marginBottom: 12,
+    },
+    sessionSingleItem: {
+      borderLeftWidth: 2,
+      paddingLeft: 12,
+      marginBottom: 12,
+      borderLeftColor: '#119FB3',
     },
     sessionHeader: {
       flexDirection: 'row',

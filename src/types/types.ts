@@ -50,6 +50,7 @@ export type RootTabParamList = {
   Dashboard: undefined; // Add this for the DoctorDashboard screen
   AllPatients: undefined;
   MainStack: undefined;
+  SearchPatients: undefined;
   Patient: {patientId: string};
   AllAppointments: undefined;
 };

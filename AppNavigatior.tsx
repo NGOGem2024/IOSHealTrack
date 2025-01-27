@@ -189,6 +189,16 @@ const TabNavigator = () => (
       }}
     />
     <Tab.Screen
+      name="SearchPatients"
+      component={SearchPatients}
+      options={{
+        headerShown: false,
+        tabBarIcon: ({color, size}) => (
+          <Icon3 name="search" color={color} size={size} />
+        ),
+      }}
+    />
+    <Tab.Screen
       name="AddPatient"
       component={PatientRegister}
       options={{

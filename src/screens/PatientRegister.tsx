@@ -332,15 +332,14 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={[styles.container, {backgroundColor: colors.background}]}>
-      <BackTabTop screenName="Register Patient" />
-      <KeyboardAwareScrollView
-      style={styles.scrollView}
-        contentContainerStyle={styles.scrollContainer}
-        enableOnAndroid={true}
-        enableAutomaticScroll={Platform.OS === 'ios'}
-        extraScrollHeight={140}
-        keyboardShouldPersistTaps="handled">
-      
+        <BackTabTop screenName="Register Patient" />
+        <KeyboardAwareScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContainer}
+          enableOnAndroid={true}
+          enableAutomaticScroll={Platform.OS === 'ios'}
+          extraScrollHeight={140}
+          keyboardShouldPersistTaps="handled">
           <Animatable.View
             animation="fadeInUp"
             duration={1000}
@@ -506,8 +505,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
               </TouchableOpacity>
             </Animatable.View>
           </Animatable.View>
-        
-      </KeyboardAwareScrollView>
+        </KeyboardAwareScrollView>
       </View>
     </SafeAreaView>
   );
@@ -516,13 +514,13 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: 'Black',
+    backgroundColor: 'black',
   },
   container: {
     flex: 1,
   },
   scrollView: {
-    flex:1,
+    flex: 1,
   },
   phoneInputContainer: {
     flexDirection: 'row',
@@ -558,14 +556,14 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     paddingVertical: 20,
-    paddingBottom: 20, 
+    paddingBottom: 20,
   },
   card: {
     width: width * 0.9,
     alignSelf: 'center',
     borderRadius: 15,
     padding: 15,
-    marginBottom: 5, 
+    marginBottom: 5,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

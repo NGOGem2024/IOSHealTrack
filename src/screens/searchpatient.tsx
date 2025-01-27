@@ -147,7 +147,7 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    // backgroundColor: 'black',
+    backgroundColor: 'black',
   },
   container: {
     flex: 1,
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   patientName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000000'
+    color: '#000000',
   },
   patientDetails: {
     fontSize: 14,

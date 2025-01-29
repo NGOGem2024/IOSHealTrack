@@ -33,6 +33,7 @@ interface Doctor {
   doctor_email: string;
   is_admin: boolean;
   organization_name: string;
+  doctors_photo?: string;
 }
 
 const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
@@ -140,12 +141,16 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
             renderItem={({item}) => (
               <TouchableOpacity onPress={() => navigateToDoctor(item._id)}>
                 <View style={styles.doctorCard}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'flex-start',
-                    }}>
-                    <View style={{flexDirection: 'column', marginLeft: 10}}>
+                  <View style={styles.doctorCardContent}>
+                    <Image
+                      source={
+                        item.doctors_photo
+                          ? {uri: item.doctors_photo}
+                          : require('../assets/profile.png')
+                      }
+                      style={styles.doctorImage}
+                    />
+                    <View style={styles.doctorDetails}>
                       <Text style={styles.doctorName}>
                         {item.doctor_first_name} {item.doctor_last_name}
                       </Text>
@@ -193,6 +198,20 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
+    doctorCardContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    doctorImage: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      marginRight: 10,
+    },
+    doctorDetails: {
+      flex: 1,
+    },
+    // ... rest of the existing styles ...
     safeArea: {
       flex: 1,
       backgroundColor: 'black',

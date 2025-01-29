@@ -12,6 +12,12 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import {
+  launchImageLibrary,
+  ImageLibraryOptions,
+  PhotoQuality,
+} from 'react-native-image-picker';
+import {Platform} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
@@ -152,7 +158,61 @@ const DoctorProfileEdit: React.FC = () => {
       </View>
     );
   }
+  const handleImagePick = async () => {
+    const options: ImageLibraryOptions = {
+      mediaType: 'photo',
+      quality: 0.7 as PhotoQuality, // or use 1 as PhotoQuality
+      maxWidth: 800,
+      maxHeight: 800,
+      selectionLimit: 1,
+      includeBase64: false,
+    };
 
+    try {
+      const result = await launchImageLibrary(options);
+
+      if (result.didCancel || !result.assets?.[0]?.uri) {
+        return;
+      }
+
+      const imageUri = result.assets[0].uri;
+      const fileName = imageUri.split('/').pop() || 'profile.jpg';
+
+      // Create form data
+      const formData = new FormData();
+      formData.append('profile_photo', {
+        uri: Platform.OS === 'ios' ? imageUri.replace('file://', '') : imageUri,
+        type: result.assets[0].type || 'image/jpeg',
+        name: fileName,
+      } as any);
+
+      setIsSaving(true);
+
+      const response = await instance.put(
+        `/doctor/update-photo/${profileInfo._id}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${session.idToken}`,
+          },
+        },
+      );
+
+      if (response.data.imageUrl) {
+        setProfileInfo(prev => ({
+          ...prev,
+          doctors_photo: response.data.imageUrl,
+        }));
+        showSuccessToast('Profile photo updated successfully');
+        fetchDoctorInfo();
+      }
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
   if (!session.idToken) {
     return (
       <View style={styles.loadingContainer}>
@@ -175,6 +235,14 @@ const DoctorProfileEdit: React.FC = () => {
         showsVerticalScrollIndicator={false}>
         <View style={styles.profileImageContainer}>
           <Image source={profilePhoto} style={styles.profilePhoto} />
+          <TouchableOpacity
+            style={styles.changePhotoButton}
+            onPress={handleImagePick}
+            disabled={isSaving}>
+            <Text style={styles.changePhotoText}>
+              {isSaving ? 'Uploading...' : 'Change Photo'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.formContainer}>
@@ -311,7 +379,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderWidth: 3,
       borderColor: theme.colors.card,
     },
-   
+
     formContainer: {
       backgroundColor: theme.colors.card,
       borderTopLeftRadius: 30,
@@ -320,6 +388,27 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     inputGroup: {
       marginBottom: 20,
+    },
+    changePhotoButton: {
+      backgroundColor: '#119FB3',
+      borderRadius: 20,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      marginTop: 10,
+      marginBottom: 20,
+    },
+    changePhotoText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    photoOverlay: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      backgroundColor: '#119FB3',
+      borderRadius: 15,
+      padding: 8,
     },
     label: {
       fontSize: 16,

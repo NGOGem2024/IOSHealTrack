@@ -43,6 +43,7 @@ interface DoctorInfo {
   is_admin: boolean;
   qualification: string;
   patients?: any[];
+  doctors_photo: string;
 }
 
 interface Appointment {
@@ -387,7 +388,11 @@ const DoctorDashboard: React.FC = () => {
         {doctorInfo && (
           <View style={styles.profileSection}>
             <Image
-              source={require('../assets/profile.png')}
+              source={
+                doctorInfo.doctors_photo
+                  ? {uri: doctorInfo.doctors_photo}
+                  : require('../assets/profile.png')
+              }
               style={styles.profilePhoto}
             />
             <View style={styles.profileInfo}>

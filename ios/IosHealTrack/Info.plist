@@ -53,6 +53,10 @@
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen.storyboard</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+<string>We need access to photo library to update your profile picture</string>
+<key>NSCameraUsageDescription</key>
+<string>We need access to camera to take your profile picture</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>

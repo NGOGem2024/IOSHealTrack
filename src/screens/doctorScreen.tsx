@@ -147,7 +147,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                 color="#119FB3"
               />
               <Text style={styles.infoText}>
-                Patients: {doctorData?.patients.length}
+                Patients: {doctorData?.patients?.length}
               </Text>
             </View>
             <View style={styles.infoRow}>

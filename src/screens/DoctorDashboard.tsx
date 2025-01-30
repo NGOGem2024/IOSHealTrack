@@ -693,10 +693,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       shadowRadius: 4,
     },
     profilePhoto: {
-      width: 100,
-      height: 100,
+      width: 90,
+      height: 90,
       borderRadius: 50,
-      marginRight: 3,
+      marginRight: 4,
+      borderWidth: 1,
+      borderColor: '#c6eff5',
     },
     profileInfo: {
       flex: 1,

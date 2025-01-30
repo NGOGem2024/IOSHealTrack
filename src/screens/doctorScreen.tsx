@@ -2,20 +2,17 @@ import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
-  StyleSheet,
+  Image,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
+  StyleSheet,
   StatusBar,
   SafeAreaView,
 } from 'react-native';
-import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
-import {RootStackParamList} from '../types/types';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {StackScreenProps} from '@react-navigation/stack';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import {Title} from 'react-native-paper';
+import {RootStackParamList} from '../types/types';
 import {useSession} from '../context/SessionContext';
 import {handleError} from '../utils/errorHandler';
 import instance from '../utils/axiosConfig';
@@ -37,6 +34,7 @@ interface DoctorData {
   status: string;
   qualification: string;
   patients: string[];
+  doctors_photo?: string;
   todayAppointments: Appointment[];
 }
 
@@ -76,8 +74,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
             Authorization: 'Bearer ' + session.idToken,
           },
         });
-        const data = await response.data;
-        setDoctorData(data);
+        setDoctorData(response.data);
       } catch (error) {
         handleError(error);
       } finally {
@@ -88,7 +85,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     fetchDoctorData();
   }, [doctorId, session.idToken]);
 
-  if (isLoading) {
+  if (!doctorData || isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <LoadingScreen />
@@ -96,9 +93,10 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     );
   }
 
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <BackTabTop screenName="Doctor" />
+      <BackTabTop screenName="Doctor Profile" />
       <StatusBar
         barStyle="light-content"
         backgroundColor="black"
@@ -106,55 +104,69 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       />
 
       <ScrollView style={styles.container}>
-        {/* Doctor Information Card */}
-        <View style={styles.mainCard}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.doctorName}>
-              Dr. {doctorData?.doctor_first_name} {doctorData?.doctor_last_name}
-            </Text>
-            {doctorData?.is_admin && (
-              <View style={styles.adminBadge}>
-                <Text style={styles.adminBadgeText}>Admin</Text>
+        {/* Profile Header Card */}
+        <View style={styles.profileCard}>
+          {/* Profile Header with new layout */}
+          <View style={styles.profileHeader}>
+            <View style={styles.headerRow}>
+              <Image
+                source={
+                  doctorData?.doctors_photo
+                    ? {uri: doctorData.doctors_photo}
+                    : require('../assets/profile.png')
+                }
+                style={styles.profileImage}
+              />
+              <View style={styles.headerInfo}>
+                <View style={styles.nameContainer}>
+                  <Text style={styles.doctorName}>
+                    Dr. {doctorData?.doctor_first_name}{' '}
+                    {doctorData?.doctor_last_name}
+                  </Text>
+                  {doctorData?.is_admin && (
+                    <View style={styles.adminBadge}>
+                      <Text style={styles.adminBadgeText}>Admin</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.emailText}>{doctorData?.doctor_email}</Text>
               </View>
-            )}
+            </View>
           </View>
 
+          {/* Horizontal Line */}
+          <View style={styles.divider} />
+
+          {/* Rest of the contact information */}
           <View style={styles.contactInfo}>
-            {doctorData?.doctor_email && (
-              <View style={styles.infoRow}>
-                <MaterialIcons name="email" size={20} color="#119FB3" />
-                <Text style={styles.infoText}>{doctorData.doctor_email}</Text>
-              </View>
-            )}
             <View style={styles.infoRow}>
-              <MaterialIcons name="call" size={20} color="#119FB3" />
+              <MaterialIcons name="call" size={20} color="#007B8E" />
               <Text style={styles.infoText}>{doctorData?.doctor_phone}</Text>
             </View>
+
             <View style={styles.infoRow}>
-              <MaterialIcons name="business" size={20} color="#119FB3" />
+              <MaterialIcons name="business" size={20} color="#007B8E" />
               <Text style={styles.infoText}>
                 {doctorData?.organization_name}
               </Text>
             </View>
-            <View style={styles.infoRow}>
-              <MaterialCommunityIcons name="doctor" size={20} color="#119FB3" />
-              <Text style={styles.infoText}>{doctorData?.qualification}</Text>
-            </View>
+
             <View style={styles.infoRow}>
               <MaterialCommunityIcons
                 name="account-group"
                 size={20}
-                color="#119FB3"
+                color="#007B8E"
               />
               <Text style={styles.infoText}>
                 Patients: {doctorData?.patients?.length}
               </Text>
             </View>
+
             <View style={styles.infoRow}>
               <MaterialCommunityIcons
                 name="checkbox-marked-circle"
                 size={20}
-                color="#119FB3"
+                color="#007B8E"
               />
               <Text style={styles.infoText}>Status: {doctorData?.status}</Text>
             </View>
@@ -164,46 +176,64 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
         {/* Quick Actions Card */}
         {session.is_admin && (
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
-            <View style={styles.quickActionsContainer}>
-              <TouchableOpacity
-                style={styles.quickActionButton}
-                onPress={() =>
-                  navigation.navigate('UpdateDoctor', {
-                    doctorId: doctorId,
-                  })
-                }>
-                <MaterialCommunityIcons
-                  name="square-edit-outline"
-                  size={24}
-                  color="#007B8E"
-                />
-                <Text style={styles.quickActionText}>Update Profile</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.cardTitle}>Quick Actions</Text>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() =>
+                navigation.navigate('UpdateDoctor', {
+                  doctorId,
+                })
+              }>
+              <MaterialCommunityIcons
+                name="square-edit-outline"
+                size={24}
+                color="#007B8E"
+              />
+              <Text style={styles.actionButtonText}>Update Profile</Text>
+            </TouchableOpacity>
           </View>
         )}
 
         {/* Today's Appointments Card */}
-        {doctorData?.todayAppointments &&
-          doctorData.todayAppointments.length > 0 && (
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Today's Appointments</Text>
-              {doctorData.todayAppointments.map(appointment => (
-                <View key={appointment._id} style={styles.appointmentCard}>
+        {doctorData?.todayAppointments?.length > 0 && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Today's Appointments</Text>
+            {doctorData.todayAppointments.map(appointment => (
+              <View key={appointment._id} style={styles.appointmentCard}>
+                <View style={styles.appointmentRow}>
+                  <MaterialCommunityIcons
+                    name="account"
+                    size={20}
+                    color="#119FB3"
+                  />
                   <Text style={styles.appointmentText}>
-                    Patient: {appointment.patient_name}
-                  </Text>
-                  <Text style={styles.appointmentText}>
-                    Time: {appointment.therepy_start_time}
-                  </Text>
-                  <Text style={styles.appointmentText}>
-                    Type: {appointment.therepy_type}
+                    {appointment.patient_name}
                   </Text>
                 </View>
-              ))}
-            </View>
-          )}
+                <View style={styles.appointmentRow}>
+                  <MaterialCommunityIcons
+                    name="clock-outline"
+                    size={20}
+                    color="#119FB3"
+                  />
+                  <Text style={styles.appointmentText}>
+                    {appointment.therepy_start_time}
+                  </Text>
+                </View>
+                <View style={styles.appointmentRow}>
+                  <MaterialCommunityIcons
+                    name="medical-bag"
+                    size={20}
+                    color="#119FB3"
+                  />
+                  <Text style={styles.appointmentText}>
+                    {appointment.therepy_type}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -215,6 +245,77 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flex: 1,
       backgroundColor: 'black',
     },
+    nameContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginBottom: 8,
+      marginTop: 15,
+    },
+    profileCard: {
+      backgroundColor: theme.colors.card,
+      margin: 16,
+      borderRadius: 12,
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      overflow: 'hidden',
+    },
+    profileHeader: {
+      padding: 13,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    headerInfo: {
+      flex: 1,
+      marginLeft: 16,
+      justifyContent: 'center',
+    },
+    profileImage: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      borderWidth: 1,
+      borderColor: '#119FB3',
+    },
+    doctorName: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      
+    },
+    emailContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    emailText: {
+      fontSize: 14,
+      color: theme.colors.text,
+    },
+    adminBadge: {
+      backgroundColor: '#007B8E',
+      paddingHorizontal: 10,
+      paddingVertical: 3,
+      borderRadius: 16,
+      marginLeft: 15,
+    },
+    adminBadgeText: {
+      color: 'white',
+      fontSize: 12,
+      fontWeight: 'bold',
+    },
+    divider: {
+      height: 1,
+      backgroundColor: '#E0E0E0',
+      marginHorizontal: 16,
+    },
     container: {
       flex: 1,
       backgroundColor: '#007B8E',
@@ -224,53 +325,25 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    loadingText: {
-      marginTop: 10,
-      color: '#119FB3',
+
+    qualification: {
+      fontSize: 18,
+      color: '#666',
+      marginTop: 4,
     },
-    mainCard: {
-      backgroundColor: theme.colors.card,
-      margin: 16,
-      padding: 16,
-      borderRadius: 12,
-      elevation: 4,
-      shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-    },
-    cardHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 16,
-    },
-    doctorName: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-    },
-    adminBadge: {
-      backgroundColor: '#119FB3',
-      paddingHorizontal: 12,
-      paddingVertical: 4,
-      borderRadius: 16,
-    },
-    adminBadgeText: {
-      color: 'white',
-      fontSize: 12,
-      fontWeight: 'bold',
-    },
+
     contactInfo: {
-      marginTop: 8,
+      backgroundColor: '#f8f9fa',
+      padding: 20,
+      marginBottom: 5,
     },
     infoRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 12,
+      marginBottom: 10,
     },
     infoText: {
-      marginLeft: 12,
+      marginLeft: 16,
       fontSize: 16,
       color: theme.colors.text,
     },
@@ -278,7 +351,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: theme.colors.card,
       margin: 16,
       marginTop: 0,
-      padding: 16,
+      padding: 24,
       borderRadius: 12,
       elevation: 4,
       shadowColor: '#000',
@@ -286,41 +359,40 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
     },
-    sectionTitle: {
-      fontSize: 18,
+    cardTitle: {
+      fontSize: 20,
       fontWeight: 'bold',
-      marginBottom: 16,
       color: theme.colors.text,
+      marginBottom: 16,
     },
-    quickActionsContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
-    },
-    quickActionButton: {
+    actionButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: '#f5f5f5',
-      padding: 12,
+      backgroundColor: '#f8f9fa',
+      padding: 16,
       borderRadius: 8,
-      marginBottom: 8,
-      width: '100%',
     },
-    quickActionText: {
-      marginLeft: 12,
+    actionButtonText: {
+      marginLeft: 16,
       fontSize: 16,
-      color: '#333',
+      color: theme.colors.text,
+      fontWeight: '500',
     },
     appointmentCard: {
-      backgroundColor: '#f5f5f5',
-      padding: 12,
+      backgroundColor: '#f8f9fa',
+      padding: 16,
       borderRadius: 8,
+      marginBottom: 12,
+    },
+    appointmentRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
       marginBottom: 8,
     },
     appointmentText: {
-      fontSize: 14,
-      color: '#333',
-      marginBottom: 4,
+      marginLeft: 12,
+      fontSize: 16,
+      color: theme.colors.text,
     },
   });
 

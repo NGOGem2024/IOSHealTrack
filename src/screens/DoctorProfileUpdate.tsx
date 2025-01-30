@@ -162,7 +162,6 @@ const DoctorProfileEdit: React.FC = () => {
 
       const fileName = image.path.split('/').pop() || 'profile.jpg';
 
-      // Create form data
       const formData = new FormData();
       formData.append('profile_photo', {
         uri:
@@ -195,7 +194,6 @@ const DoctorProfileEdit: React.FC = () => {
         fetchDoctorInfo();
       }
     } catch (error: any) {
-      // Check if error is from image picker
       if (error?.code !== 'E_PICKER_CANCELLED') {
         handleError(error);
       }
@@ -229,82 +227,97 @@ const DoctorProfileEdit: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackTabTop screenName="Doctor Profile" />
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}>
-        <View style={styles.profileImageContainer}>
-          <Image source={profilePhoto} style={styles.profilePhoto} />
-          <TouchableOpacity
-            style={styles.changePhotoButton}
-            onPress={handleImagePick}
-            disabled={isSaving}>
-            <Text style={styles.changePhotoText}>
-              {isSaving ? 'Uploading...' : 'Change Photo'}
-            </Text>
-          </TouchableOpacity>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <View style={styles.headerSection}>
+          <View style={styles.profileImageContainer}>
+            <Image source={profilePhoto} style={styles.profilePhoto} />
+            <TouchableOpacity
+              style={styles.cameraButton}
+              onPress={handleImagePick}
+              disabled={isSaving}>
+              <Icon name="camera" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.profileName}>
+            Dr. {profileInfo.doctor_first_name} {profileInfo.doctor_last_name}
+          </Text>
+          <Text style={styles.profileQualification}>{profileInfo.qualification}</Text>
         </View>
 
         <View style={styles.formContainer}>
+          <Text style={styles.sectionTitle}>Personal Information</Text>
+          
           <View style={styles.inputGroup}>
             <Text style={styles.label}>First Name</Text>
-            <TextInput
-              style={styles.input}
-              value={profileInfo.doctor_first_name}
-              onChangeText={text =>
-                handleInputChange('doctor_first_name', text)
-              }
-              placeholderTextColor={theme.colors.text + '80'}
-            />
+            <View style={styles.inputWrapper}>
+              <Icon name="person-outline" size={20} color="#007B8E" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={profileInfo.doctor_first_name}
+                onChangeText={text => handleInputChange('doctor_first_name', text)}
+              />
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Last Name</Text>
-            <TextInput
-              style={styles.input}
-              value={profileInfo.doctor_last_name}
-              onChangeText={text => handleInputChange('doctor_last_name', text)}
-              placeholderTextColor={theme.colors.text + '80'}
-            />
+            <View style={styles.inputWrapper}>
+              <Icon name="person-outline" size={20} color="#007B8E" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={profileInfo.doctor_last_name}
+                onChangeText={text => handleInputChange('doctor_last_name', text)}
+              />
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Qualification</Text>
-            <TextInput
-              style={styles.input}
-              value={profileInfo.qualification}
-              onChangeText={text => handleInputChange('qualification', text)}
-              placeholderTextColor={theme.colors.text + '80'}
-            />
+            <View style={styles.inputWrapper}>
+              <Icon name="school-outline" size={20} color="#007B8E" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={profileInfo.qualification}
+                onChangeText={text => handleInputChange('qualification', text)}
+              />
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Organization</Text>
-            <TextInput
-              style={[styles.input, styles.disabledInput]}
-              value={profileInfo.organization_name}
-              editable={false}
-              placeholderTextColor={theme.colors.text + '80'}
-            />
+            <View style={styles.inputWrapper}>
+              <Icon name="business-outline" size={20} color="#007B8E" style={styles.inputIcon} />
+              <TextInput
+                style={[styles.input, styles.disabledInput]}
+                value={profileInfo.organization_name}
+                editable={false}
+              />
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Phone</Text>
-            <TextInput
-              style={styles.input}
-              value={profileInfo.doctor_phone}
-              onChangeText={text => handleInputChange('doctor_phone', text)}
-              placeholderTextColor={theme.colors.text + '80'}
-            />
+            <Text style={styles.label}>Phone Number</Text>
+            <View style={styles.inputWrapper}>
+              <Icon name="call-outline" size={20} color="#007B8E" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={profileInfo.doctor_phone}
+                onChangeText={text => handleInputChange('doctor_phone', text)}
+                keyboardType="phone-pad"
+              />
+            </View>
           </View>
 
           <TouchableOpacity
-            style={[styles.saveButton, isSaving && styles.savingButton]}
+            style={[styles.saveButton, (isSaving || !hasChanges()) && styles.savingButton]}
             onPress={handleSave}
             disabled={isSaving || !hasChanges()}>
             {isSaving ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <Text style={styles.saveButtonText}>Save Changes</Text>
+              <>
+                <Text style={styles.saveButtonText}>Save Changes</Text>
+              </>
             )}
           </TouchableOpacity>
         </View>
@@ -317,43 +330,11 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: 'black',
+      backgroundColor: '#F5F7FA',
     },
     scrollView: {
       flex: 1,
-      backgroundColor: '#007B8E',
-    },
-    input: {
-      backgroundColor: theme.colors.card,
-      borderRadius: 10,
-      padding: 12,
-      fontSize: 16,
-      color: theme.colors.text,
-      borderWidth: 1,
-      borderColor: '#119FB3',
-      elevation: 2,
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 1,
-      },
-      shadowOpacity: 0.2,
-      shadowRadius: 1.41,
-    },
-    disabledInput: {
-      backgroundColor: theme.colors.card,
-      color: '#888888',
-      borderColor: '#CCCCCC',
-      elevation: 0,
-    },
-    header: {
-      padding: 16,
-      backgroundColor: '#119FB3',
-    },
-    headerText: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: theme.colors.card,
+      backgroundColor: '#F5F7FA',
     },
     loadingContainer: {
       flex: 1,
@@ -366,71 +347,141 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 16,
       color: theme.colors.text,
     },
-    profileImageContainer: {
+    headerSection: {
+      backgroundColor: '#FFFFFF',
+      paddingVertical: 20,
       alignItems: 'center',
-      marginTop: 15,
+      borderBottomLeftRadius: 30,
+      borderBottomRightRadius: 30,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    profileImageContainer: {
+      position: 'relative',
       marginBottom: 15,
     },
     profilePhoto: {
-      width: 150,
-      height: 150,
-      borderRadius: 75,
-      borderWidth: 3,
-      borderColor: theme.colors.card,
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      borderWidth: 1,
+      borderColor: '#007B8E',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    cameraButton: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      backgroundColor: '#007B8E',
+      width: 28,
+      height: 28,
+      borderRadius: 18,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: '#FFFFFF',
+    },
+    profileName: {
+      fontSize: 24,
+      fontWeight: '600',
+      color: '#2C3E50',
+      marginBottom: 4,
+    },
+    profileQualification: {
+      fontSize: 16,
+      color: '#666666',
     },
     formContainer: {
-      backgroundColor: theme.colors.card,
-      borderTopLeftRadius: 30,
-      borderTopRightRadius: 30,
       padding: 20,
+      backgroundColor: '#F5F7FA',
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: '#007B8E',
+      marginBottom: 20,
+      marginTop: 10,
     },
     inputGroup: {
       marginBottom: 20,
     },
-    changePhotoButton: {
-      backgroundColor: '#119FB3',
-      borderRadius: 20,
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-      marginTop: 10,
-      marginBottom: 20,
-    },
-    changePhotoText: {
-      color: '#FFFFFF',
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    photoOverlay: {
-      position: 'absolute',
-      bottom: 0,
-      right: 0,
-      backgroundColor: '#119FB3',
-      borderRadius: 15,
-      padding: 8,
-    },
     label: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: '#2C3E50',
+      marginBottom: 8,
+    },
+    inputWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: '#c6eff5',
+      paddingHorizontal: 12,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    inputIcon: {
+      marginRight: 10,
+    },
+    input: {
+      flex: 1,
+      height: 48,
       fontSize: 16,
-      color: '#119FB3',
-      marginBottom: 5,
-      fontWeight: 'bold',
+      color: '#2C3E50',
+      paddingVertical: 8,
+    },
+    disabledInput: {
+      backgroundColor: '#F8F9FA',
+      color: '#666666',
     },
     saveButton: {
-      backgroundColor: '#007B8E',
-      borderRadius: 10,
-      padding: 15,
+      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      marginHorizontal: 2,
-      marginTop: 10,
-      marginBottom: 10,
+      backgroundColor: '#007B8E',
+      borderRadius: 12,
+      padding: 16,
+      marginTop: 20,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
     },
     savingButton: {
-      opacity: 0.7,
+      backgroundColor: '#bec8d4',
+    },
+    saveIcon: {
+      marginRight: 8,
     },
     saveButtonText: {
       color: '#FFFFFF',
-      fontSize: 18,
-      fontWeight: 'bold',
+      fontSize: 16,
+      fontWeight: '600',
     },
   });
 

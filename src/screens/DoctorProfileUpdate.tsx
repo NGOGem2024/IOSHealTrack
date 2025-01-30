@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -9,19 +9,13 @@ import {
   TouchableOpacity,
   TextInput,
   Dimensions,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
-import {
-  launchImageLibrary,
-  ImageLibraryOptions,
-  PhotoQuality,
-} from 'react-native-image-picker';
+import ImagePicker from 'react-native-image-crop-picker';
 import {Platform} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
-import axios from 'axios';
 import {useSession} from '../context/SessionContext';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import instance from '../utils/axiosConfig';
@@ -151,38 +145,31 @@ const DoctorProfileEdit: React.FC = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
-    );
-  }
   const handleImagePick = async () => {
-    const options: ImageLibraryOptions = {
-      mediaType: 'photo',
-      quality: 0.7 as PhotoQuality, // or use 1 as PhotoQuality
-      maxWidth: 800,
-      maxHeight: 800,
-      selectionLimit: 1,
-      includeBase64: false,
-    };
-
     try {
-      const result = await launchImageLibrary(options);
+      const image = await ImagePicker.openPicker({
+        width: 800,
+        height: 800,
+        cropping: true,
+        cropperCircleOverlay: true,
+        mediaType: 'photo',
+        compressImageQuality: 0.7,
+      });
 
-      if (result.didCancel || !result.assets?.[0]?.uri) {
+      if (!image) {
         return;
       }
 
-      const imageUri = result.assets[0].uri;
-      const fileName = imageUri.split('/').pop() || 'profile.jpg';
+      const fileName = image.path.split('/').pop() || 'profile.jpg';
 
       // Create form data
       const formData = new FormData();
       formData.append('profile_photo', {
-        uri: Platform.OS === 'ios' ? imageUri.replace('file://', '') : imageUri,
-        type: result.assets[0].type || 'image/jpeg',
+        uri:
+          Platform.OS === 'ios'
+            ? image.path.replace('file://', '')
+            : image.path,
+        type: image.mime || 'image/jpeg',
         name: fileName,
       } as any);
 
@@ -207,12 +194,24 @@ const DoctorProfileEdit: React.FC = () => {
         showSuccessToast('Profile photo updated successfully');
         fetchDoctorInfo();
       }
-    } catch (error) {
-      handleError(error);
+    } catch (error: any) {
+      // Check if error is from image picker
+      if (error?.code !== 'E_PICKER_CANCELLED') {
+        handleError(error);
+      }
     } finally {
       setIsSaving(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <LoadingScreen />
+      </View>
+    );
+  }
+
   if (!session.idToken) {
     return (
       <View style={styles.loadingContainer}>
@@ -331,9 +330,9 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 16,
       color: theme.colors.text,
       borderWidth: 1,
-      borderColor: '#119FB3', // Using the app's primary color for borders
-      elevation: 2, // Reduced elevation to make borders more visible
-      shadowColor: '#000', // Adding shadow properties for iOS
+      borderColor: '#119FB3',
+      elevation: 2,
+      shadowColor: '#000',
       shadowOffset: {
         width: 0,
         height: 1,
@@ -344,8 +343,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     disabledInput: {
       backgroundColor: theme.colors.card,
       color: '#888888',
-      borderColor: '#CCCCCC', // Lighter border color for disabled inputs
-      elevation: 0, // Remove elevation for disabled inputs
+      borderColor: '#CCCCCC',
+      elevation: 0,
     },
     header: {
       padding: 16,
@@ -379,7 +378,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderWidth: 3,
       borderColor: theme.colors.card,
     },
-
     formContainer: {
       backgroundColor: theme.colors.card,
       borderTopLeftRadius: 30,

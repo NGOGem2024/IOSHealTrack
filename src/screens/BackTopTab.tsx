@@ -14,7 +14,11 @@ import {useSession} from '../context/SessionContext';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import axiosInstance from '../utils/axiosConfig';
 
+interface DoctorInfo {
+  doctors_photo?: string;
+}
 const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   const navigation = useNavigation();
   const {theme} = useTheme();
@@ -29,13 +33,30 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   const route = useRoute();
   const {session} = useSession();
   const [isDropdownVisible, setDropdownVisible] = useState(false);
-
+  const [doctorInfo, setDoctorInfo] = useState<DoctorInfo | null>(null);
   const toggleDropdown = () => setDropdownVisible(!isDropdownVisible);
 
   const navigateToScreen = (screenName: string) => {
     navigation.navigate(screenName as never);
     setDropdownVisible(false);
   };
+
+  React.useEffect(() => {
+    const fetchDoctorInfo = async () => {
+      if (!session.idToken) return;
+      try {
+        const response = await axiosInstance.get(`/doctor`, {
+          headers: {Authorization: `Bearer ${session.idToken}`},
+        });
+        setDoctorInfo(response.data);
+      } catch (error) {
+        console.error('Error fetching doctor info:', error);
+      }
+    };
+
+    fetchDoctorInfo();
+  }, [session.idToken]);
+
 
   return (
     <View style={styles.header}>
@@ -54,9 +75,20 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
       <View style={styles.rightSection}>
         <Text style={styles.screenNameText}>{screenName}</Text>
         <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
-          <Ionicons name="person-circle-outline" size={30} color="#FFFFFF" />
+          {doctorInfo?.doctors_photo ? (
+            <Image
+              source={{uri: doctorInfo.doctors_photo}}
+              style={styles.profilePhoto}
+            />
+          ) : (
+            <Image
+              source={require('../assets/profile.png')}
+              style={styles.profilePhoto}
+            />
+          )}
         </TouchableOpacity>
       </View>
+
 
       <Modal
         isVisible={isDropdownVisible}
@@ -114,6 +146,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     rightSection: {
       flexDirection: 'row',
       alignItems: 'center',
+    },
+    profilePhoto: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      borderWidth: 1,
+      borderColor: '#c6eff5',
     },
     screenNameText: {
       color: '#FFFFFF',

@@ -144,7 +144,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
               {!isOtpSent ? (
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.inputLabel}>Email Address</Text>
                   <View style={styles.inputContainer}>
                     <Icon name="email" size={20} style={styles.iconStyle} />
                     <TextInput
@@ -160,7 +159,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 </View>
               ) : (
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.inputLabel}>OTP Code</Text>
                   <View style={styles.inputContainer}>
                     <Icon name="lock" size={20} style={styles.iconStyle} />
                     <TextInput

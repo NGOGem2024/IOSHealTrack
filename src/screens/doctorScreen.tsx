@@ -333,7 +333,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
 
     contactInfo: {
-      backgroundColor: '#f8f9fa',
+      backgroundColor: theme.colors.card,
       padding: 20,
       marginBottom: 5,
     },
@@ -368,7 +368,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     actionButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: '#f8f9fa',
+      backgroundColor: theme.colors.secondary,
       padding: 16,
       borderRadius: 8,
     },

@@ -114,12 +114,13 @@ const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
+    <SafeAreaView style={styles.safeArea}>
     <Modal
       animationType="fade"
       transparent={true}
       visible={isVisible}
       onRequestClose={onClose}>
-      <SafeAreaView style={styles.safeArea}>
+      
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalContainer}>
@@ -211,8 +212,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
             </View>
           </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+     
     </Modal>
+    </SafeAreaView>
   );
 };
 
@@ -264,27 +266,21 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     inputWrapper: {
       marginBottom: 20,
     },
-    inputLabel: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: 8,
-    },
     inputContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       borderWidth: 1.5,
-      borderColor: '#e1e1e1',
+      borderColor: theme.colors.secondary,
       borderRadius: 12,
       paddingHorizontal: 16,
       height: 52,
-      backgroundColor: '#fff',
+      backgroundColor: theme.colors.secondary,
     },
     input: {
       flex: 1,
       marginLeft: 12,
       fontSize: 16,
-      color: '#333',
+      color: theme.colors.text,
     },
     mainButton: {
       backgroundColor: '#007b8e',

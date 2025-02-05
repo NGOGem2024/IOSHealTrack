@@ -228,84 +228,90 @@ const DoctorProfileEdit: React.FC = () => {
     <SafeAreaView style={styles.safeArea}>
       <BackTabTop screenName="Doctor Profile" />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerSection}>
-          <View style={styles.profileImageContainer}>
-            <Image source={profilePhoto} style={styles.profilePhoto} />
-            <TouchableOpacity
-              style={styles.cameraButton}
-              onPress={handleImagePick}
-              disabled={isSaving}>
-              <Icon name="camera" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
+        <View style={styles.headerContainer}>
+        
+          <View style={styles.coverPhoto} >
+          <View style={styles.headerInfo}>
+              <Text style={styles.profileName}>
+                Dr. {profileInfo.doctor_first_name} {profileInfo.doctor_last_name}
+              </Text>
+              <Text style={styles.profileQualification}>{profileInfo.qualification}</Text>
+              <View style={styles.organizationContainer}>
+                <Icon name="business" size={16} color="#666" />
+                <Text style={styles.profileOrganization}>{profileInfo.organization_name}</Text>
+              </View>
+            </View>
+            </View>
+          <View style={styles.profileHeader}>
+            <View style={styles.profileImageContainer}>
+              <Image source={profilePhoto} style={styles.profilePhoto} />
+              <TouchableOpacity
+                style={styles.cameraButton}
+                onPress={handleImagePick}
+                disabled={isSaving}>
+                <Icon name="camera" size={18} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+           
           </View>
-          <Text style={styles.profileName}>
-            Dr. {profileInfo.doctor_first_name} {profileInfo.doctor_last_name}
-          </Text>
-          <Text style={styles.profileQualification}>{profileInfo.qualification}</Text>
         </View>
 
         <View style={styles.formContainer}>
-          <Text style={styles.sectionTitle}>Personal Information</Text>
-          
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>First Name</Text>
-            <View style={styles.inputWrapper}>
-              <Icon name="person-outline" size={20} color="#007B8E" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                value={profileInfo.doctor_first_name}
-                onChangeText={text => handleInputChange('doctor_first_name', text)}
-              />
-            </View>
+          <View style={styles.sectionHeader}>
+            <Icon name="person" size={22} color="#007B8E" />
+            <Text style={styles.sectionTitle}>Personal Information</Text>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Last Name</Text>
-            <View style={styles.inputWrapper}>
-              <Icon name="person-outline" size={20} color="#007B8E" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                value={profileInfo.doctor_last_name}
-                onChangeText={text => handleInputChange('doctor_last_name', text)}
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Qualification</Text>
-            <View style={styles.inputWrapper}>
-              <Icon name="school-outline" size={20} color="#007B8E" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                value={profileInfo.qualification}
-                onChangeText={text => handleInputChange('qualification', text)}
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Organization</Text>
-            <View style={styles.inputWrapper}>
-              <Icon name="business-outline" size={20} color="#007B8E" style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, styles.disabledInput]}
-                value={profileInfo.organization_name}
-                editable={false}
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Phone Number</Text>
-            <View style={styles.inputWrapper}>
-              <Icon name="call-outline" size={20} color="#007B8E" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                value={profileInfo.doctor_phone}
-                onChangeText={text => handleInputChange('doctor_phone', text)}
-                keyboardType="phone-pad"
-              />
-            </View>
+          <View style={styles.card}>
+            {[
+              {
+                label: 'First Name',
+                icon: 'person-outline',
+                value: profileInfo.doctor_first_name,
+                field: 'doctor_first_name',
+              },
+              {
+                label: 'Last Name',
+                icon: 'person-outline',
+                value: profileInfo.doctor_last_name,
+                field: 'doctor_last_name',
+              },
+              {
+                label: 'Qualification',
+                icon: 'school-outline',
+                value: profileInfo.qualification,
+                field: 'qualification',
+              },
+              {
+                label: 'Organization',
+                icon: 'business-outline',
+                value: profileInfo.organization_name,
+                field: 'organization_name',
+                disabled: true,
+              },
+              {
+                label: 'Phone Number',
+                icon: 'call-outline',
+                value: profileInfo.doctor_phone,
+                field: 'doctor_phone',
+                keyboardType: 'phone-pad',
+              },
+            ].map((item, index) => (
+              <View key={item.field} style={[styles.inputGroup, index !== 0 && styles.inputBorder]}>
+                <Text style={styles.label}>{item.label}</Text>
+                <View style={[styles.inputWrapper, item.disabled && styles.disabledWrapper]}>
+                  <Icon name={item.icon} size={20} color="#007B8E" style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, item.disabled && styles.disabledInput]}
+                    value={item.value}
+                    onChangeText={text => handleInputChange(item.field as keyof ProfileInfo, text)}
+                    editable={!item.disabled}
+                    keyboardType={item.keyboardType as any}
+                    placeholderTextColor="#999"
+                  />
+                </View>
+              </View>
+            ))}
           </View>
 
           <TouchableOpacity
@@ -334,126 +340,140 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     scrollView: {
       flex: 1,
-      backgroundColor: '#F5F7FA',
     },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: theme.colors.background,
-    },
-    loadingText: {
-      marginTop: 10,
-      fontSize: 16,
-      color: theme.colors.text,
-    },
-    headerSection: {
+    headerContainer: {
       backgroundColor: '#FFFFFF',
-      paddingVertical: 20,
-      alignItems: 'center',
-      borderBottomLeftRadius: 30,
-      borderBottomRightRadius: 30,
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      marginBottom: 20,
+    },
+    coverPhoto: {
+      height: 100,
+      backgroundColor: '#007B8E',
+      opacity: 0.9,
+    },
+    profileHeader: {
+      flexDirection: 'row',
+      marginTop: -60,
+      paddingHorizontal: 20,
+      paddingBottom: 20,
     },
     profileImageContainer: {
       position: 'relative',
-      marginBottom: 15,
     },
     profilePhoto: {
       width: 120,
       height: 120,
       borderRadius: 60,
-      borderWidth: 1,
-      borderColor: '#007B8E',
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 5,
+      borderWidth: 4,
+      borderColor: '#FFFFFF',
+      backgroundColor: '#FFFFFF',
     },
     cameraButton: {
       position: 'absolute',
-      bottom: 0,
-      right: 0,
+      bottom: 5,
+      right: 5,
       backgroundColor: '#007B8E',
-      width: 28,
-      height: 28,
-      borderRadius: 18,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       justifyContent: 'center',
       alignItems: 'center',
-      borderWidth: 1,
+      borderWidth: 2,
       borderColor: '#FFFFFF',
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    headerInfo: {
+      flex: 1,
+      marginLeft: 150,
+      marginTop: 65,
     },
     profileName: {
       fontSize: 24,
-      fontWeight: '600',
-      color: '#2C3E50',
-      marginBottom: 4,
+      fontWeight: '700',
+      color: '#ffffff',
+      marginTop: 6,
     },
     profileQualification: {
       fontSize: 16,
-      color: '#666666',
+      color: '#007B8E',
+      fontWeight: '600',
+      marginTop: 5,
+
+    },
+    organizationContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    profileOrganization: {
+      fontSize: 14,
+      color: '#666',
+      marginLeft: 4,
     },
     formContainer: {
-      padding: 20,
-      backgroundColor: '#F5F7FA',
+      padding: 15,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 15,
     },
     sectionTitle: {
-      fontSize: 18,
+      fontSize: 20,
       fontWeight: '700',
       color: '#007B8E',
-      marginBottom: 20,
-      marginTop: 10,
+      marginLeft: 10,
+    },
+    card: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 15,
+      padding: 20,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
     },
     inputGroup: {
       marginBottom: 20,
     },
+    inputBorder: {
+      borderTopWidth: 1,
+      borderTopColor: '#F0F0F0',
+      paddingTop: 20,
+    },
     label: {
       fontSize: 14,
-      fontWeight: '500',
+      fontWeight: '600',
       color: '#2C3E50',
       marginBottom: 8,
     },
     inputWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: '#FFFFFF',
+      backgroundColor: '#F8FAFC',
       borderRadius: 12,
       borderWidth: 1,
-      borderColor: '#c6eff5',
-      paddingHorizontal: 12,
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 1,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 2,
-      elevation: 2,
+      borderColor: '#E2E8F0',
+      height: 50,
+    },
+    disabledWrapper: {
+      backgroundColor: '#F1F5F9',
+      borderColor: '#E2E8F0',
     },
     inputIcon: {
-      marginRight: 10,
+      marginHorizontal: 12,
     },
     input: {
       flex: 1,
-      height: 48,
       fontSize: 16,
       color: '#2C3E50',
-      paddingVertical: 8,
+      height: '100%',
     },
     disabledInput: {
-      backgroundColor: '#F8F9FA',
-      color: '#666666',
+      color: '#94A3B8',
     },
     saveButton: {
       flexDirection: 'row',
@@ -464,16 +484,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       padding: 16,
       marginTop: 20,
       shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.2,
       shadowRadius: 4,
       elevation: 3,
     },
     savingButton: {
-      backgroundColor: '#bec8d4',
+      backgroundColor: '#94A3B8',
     },
     saveIcon: {
       marginRight: 8,
@@ -482,6 +499,17 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: '#FFFFFF',
       fontSize: 16,
       fontWeight: '600',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#F5F7FA',
+    },
+    loadingText: {
+      marginTop: 10,
+      fontSize: 16,
+      color: '#2C3E50',
     },
   });
 

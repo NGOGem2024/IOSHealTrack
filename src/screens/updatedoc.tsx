@@ -421,7 +421,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       width: 150,
       height: 150,
       borderRadius: 75,
-      borderWidth: 3,
+      borderWidth: 1,
       borderColor: theme.colors.card,
     },
     editImageButton: {

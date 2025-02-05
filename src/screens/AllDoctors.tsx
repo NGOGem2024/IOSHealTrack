@@ -119,13 +119,13 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
     }
   };
 
-  // if (isLoading) {
-  //   return (
-  //     <View style={styles.loadingContainer}>
-  //       <LoadingScreen />
-  //     </View>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <LoadingScreen />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -201,7 +201,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     doctorCardContent: {
       flexDirection: 'row',
       alignItems: 'center',
-      
     },
     doctorImage: {
       width: 50,

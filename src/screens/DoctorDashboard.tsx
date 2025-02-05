@@ -324,14 +324,18 @@ const DoctorDashboard: React.FC = () => {
           <Text style={styles.versionText}>v0.5</Text>
         </View>
         <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
-          <Ionicons name="person-circle-outline" size={30} color="#FFFFFF" />
+          <Ionicons name="menu" size={26} color="#FFFFFF" />
         </TouchableOpacity>
 
         <Modal
           isVisible={isDropdownVisible}
           onBackdropPress={toggleDropdown}
-          animationIn="fadeIn"
-          animationOut="fadeOut"
+          animationIn="slideInDown"
+          animationOut="slideOutUp"
+          animationInTiming={300}
+          animationOutTiming={300}
+          backdropTransitionInTiming={300}
+          backdropTransitionOutTiming={300}
           style={styles.modal}>
           <View style={styles.dropdown}>
             <TouchableOpacity onPress={() => navigateToScreen('AllPatients')}>
@@ -360,7 +364,11 @@ const DoctorDashboard: React.FC = () => {
   if (doctorLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar barStyle="light-content" translucent={false} />
+        <StatusBar
+          barStyle="light-content"
+          translucent={false}
+          backgroundColor="black"
+        />
         <LoadingScreen />
       </View>
     );

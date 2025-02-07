@@ -296,7 +296,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
     try {
       const formattedData = {
         ...doctorData,
-        doctor_phone: `+${selectedCountry.callingCode}${doctorData.doctor_phone}`,
+        doctor_phone: `+${selectedCountry.callingCode} ${doctorData.doctor_phone}`,
       };
 
       const response = await instance.post('/doctor/create', formattedData, {

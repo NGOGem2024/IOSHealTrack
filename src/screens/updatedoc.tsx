@@ -26,6 +26,7 @@ import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
 import {CustomPicker, CustomRadioGroup} from './customradio';
 import LoadingScreen from '../components/loadingScreen';
+import PhoneInput from 'react-native-phone-number-input';
 
 const {width} = Dimensions.get('window');
 
@@ -72,17 +73,19 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     useState<ProfileInfo>(initialProfileState);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [countryCode, setCountryCode] = useState('+91'); // This will be updated on fetch
+  const [phoneDigits, setPhoneDigits] = useState('');
+
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
-  const validatePhone = (phone: string): boolean => {
-    const cleanPhone = phone.replace(/[^\d+]/g, '');
-    const indianPhoneRegex = /^\+91[6-9]\d{9}$/;
-    const isValid = indianPhoneRegex.test(cleanPhone);
-
+  const validatePhone = (fullPhone: string): boolean => {
+    // This regex accepts a '+' followed by 1-4 digits (country code),
+    // then a mobile number starting with 6-9 followed by 9 more digits.
+    const phoneRegex = /^\+\d{1,4}[6-9]\d{9}$/;
+    const isValid = phoneRegex.test(fullPhone);
     setPhoneError(
       isValid ? null : 'Please enter a valid phone number starting with 6-9',
     );
-
     return isValid;
   };
 
@@ -93,6 +96,37 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       setIsLoading(false);
     }
   }, [session.idToken]);
+
+  useEffect(() => {
+    if (profileInfo.doctor_phone) {
+      // Assume the stored number is either in the format "+44 1234567890" (with space)
+      // or "+441234567890" (without a space).
+      let code = '';
+      let digits = '';
+
+      if (profileInfo.doctor_phone.includes(' ')) {
+        // Split on space
+        const parts = profileInfo.doctor_phone.split(' ');
+        code = parts[0];
+        digits = parts.slice(1).join(''); // In case there are extra spaces
+      } else {
+        // Use a regex to capture country code and the rest.
+        // This regex assumes the phone is in the format: +[1-4 digits][10 digits]
+        const match = profileInfo.doctor_phone.match(/^(\+\d{1,4})(\d{10})$/);
+        if (match) {
+          code = match[1];
+          digits = match[2];
+        } else {
+          // Fallback: use the first 3 or 4 characters as the code, adjust as needed.
+          code = profileInfo.doctor_phone.slice(0, 3);
+          digits = profileInfo.doctor_phone.slice(3);
+        }
+      }
+
+      setCountryCode(code);
+      setPhoneDigits(digits);
+    }
+  }, [profileInfo.doctor_phone]);
 
   const fetchDoctorInfo = async () => {
     if (!session.idToken) {
@@ -142,21 +176,15 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   };
 
   const handlePhoneChange = (value: string) => {
-    let formattedValue = value;
-    if (!value.startsWith('+91')) {
-      formattedValue = '+91 ' + value.replace(/[^\d]/g, '');
-    }
-    const maxLength = 14;
-    const truncatedValue = formattedValue.slice(0, maxLength);
-    const cleanValue = truncatedValue.replace(/[^\d+]/g, '');
-    const finalValue =
-      cleanValue.length > 3
-        ? `${cleanValue.slice(0, 3)} ${cleanValue.slice(3)}`
-        : cleanValue;
-
-    setProfileInfo(prev => ({...prev, doctor_phone: finalValue}));
-    validatePhone(finalValue);
+    // Allow only digits
+    const cleaned = value.replace(/[^\d]/g, '');
+    // Limit to 10 digits (or adjust as needed)
+    const limited = cleaned.slice(0, 10);
+    setPhoneDigits(limited);
+    // Validate the full number (combine country code and digits)
+    validatePhone(countryCode + limited);
   };
+
   const handleInputChange = (field: keyof ProfileInfo, value: any) => {
     if (field === 'doctor_phone') {
       handlePhoneChange(value);
@@ -166,20 +194,28 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   };
 
   const hasChanges = () => {
-    return JSON.stringify(profileInfo) !== JSON.stringify(originalProfileInfo);
+    const currentFullPhone = countryCode + phoneDigits;
+
+    return (
+      JSON.stringify(profileInfo) !== JSON.stringify(originalProfileInfo) ||
+      currentFullPhone !== originalProfileInfo.doctor_phone
+    );
   };
+  
 
   const handleSave = async () => {
-    if (!hasChanges()) {
-      showSuccessToast('No changes were made to the profile.');
+    const fullPhone = countryCode + phoneDigits;
+
+    if (!validatePhone(fullPhone)) {
+      Alert.alert(
+        'Invalid Phone Number',
+        'Please enter a valid 10-digit mobile number starting with a valid country code',
+      );
       return;
     }
 
-    if (!validatePhone(profileInfo.doctor_phone)) {
-      Alert.alert(
-        'Invalid Phone Number',
-        'Please enter a valid 10-digit Indian mobile number starting with 6-9',
-      );
+    if (!hasChanges()) {
+      showSuccessToast('No changes were made to the profile.');
       return;
     }
 
@@ -198,7 +234,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           doctor_last_name: profileInfo.doctor_last_name,
           qualification: profileInfo.qualification,
           doctor_email: profileInfo.doctor_email,
-          doctor_phone: profileInfo.doctor_phone,
+          doctor_phone: fullPhone, // Save the combined phone number
           is_admin: profileInfo.is_admin,
           status: profileInfo.status,
         },
@@ -209,7 +245,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
         },
       );
 
-      setOriginalProfileInfo(profileInfo);
+      setOriginalProfileInfo({...profileInfo, doctor_phone: fullPhone});
       showSuccessToast('Profile updated successfully');
 
       // Redirect to the doctor's profile
@@ -294,14 +330,38 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Phone</Text>
-            <TextInput
-              style={[styles.input, phoneError && styles.inputError]}
-              value={profileInfo.doctor_phone}
-              onChangeText={text => handleInputChange('doctor_phone', text)}
-              keyboardType="phone-pad"
-              placeholder="+91 Enter 10-digit mobile number"
-              maxLength={14} // +91 + space + 10 digits
-            />
+            <View style={styles.phoneContainer}>
+              {/* Country Code Picker */}
+              <Picker
+                selectedValue={countryCode}
+                onValueChange={itemValue => {
+                  setCountryCode(itemValue);
+                  // Re-validate when country code changes
+                  validatePhone(itemValue + phoneDigits);
+                }}
+                style={styles.picker}
+                mode="dropdown">
+                <Picker.Item label="+91 (India)" value="+91" />
+                <Picker.Item label="+1 (USA)" value="+1" />
+                <Picker.Item label="+44 (UK)" value="+44" />
+                <Picker.Item label="+61 (Australia)" value="+61" />
+                {/* Add more country codes as needed */}
+              </Picker>
+
+              {/* Phone Number Input (Digits Only) */}
+              <TextInput
+                style={[
+                  styles.phoneinput,
+                  phoneError && styles.inputError,
+                  {flex: 1}, // Make the TextInput take up remaining space
+                ]}
+                value={phoneDigits}
+                onChangeText={handlePhoneChange}
+                keyboardType="phone-pad"
+                placeholder="Enter mobile number"
+                maxLength={10} // 10 digits
+              />
+            </View>
             {phoneError && <Text style={styles.errorText}>{phoneError}</Text>}
           </View>
 
@@ -361,6 +421,21 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       paddingTop: 40,
       backgroundColor: '#119FB3',
     },
+    phoneContainer: {
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      backgroundColor: theme.colors.card,
+      borderWidth: 1,
+      borderColor: '#119FB3',
+      borderRadius: 10,
+      paddingHorizontal: 10,
+    },
+    phoneinput: {
+      backgroundColor: theme.colors.card,
+      padding: 12,
+      fontSize: 16,
+      color: theme.colors.text,
+    },
     input: {
       backgroundColor: theme.colors.card,
       borderRadius: 10,
@@ -385,12 +460,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       elevation: 0,
     },
     picker: {
+      width: 95,
       borderWidth: 1,
       borderColor: '#119FB3',
       borderRadius: 10,
       color: theme.colors.text,
       backgroundColor: theme.colors.card,
-      padding: 12,
+      // Remove padding if it conflicts with alignment
     },
     inputError: {
       borderColor: 'red',

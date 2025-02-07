@@ -72,6 +72,21 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
     fetchDoctors();
   }, [session]);
 
+  const formatPhoneNumber = (phone: string): string => {
+    // Remove all non-digit characters
+    const cleaned = phone.replace(/\D/g, '');
+
+    // Check if it starts with + and has country code
+    if (phone.startsWith('+')) {
+      // Format as +XX XXXXXXXXX
+      return `+${cleaned.slice(0, 2)} ${cleaned.slice(2)}`;
+    }
+
+    // If no + prefix, assume it needs to be added with default country code
+    // You can modify the default country code as needed
+    return `+91 ${cleaned}`;
+  };
+
   const fetchDoctors = async () => {
     if (!session) return;
     try {
@@ -157,7 +172,7 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
                       <View style={styles.microicon}>
                         <MaterialIcons name="call" size={12} color="#119FB3" />
                         <Text style={styles.doctorInfo}>
-                          {item.doctor_phone}
+                          {formatPhoneNumber(item.doctor_phone)}
                         </Text>
                       </View>
                       <View style={styles.microicon}>

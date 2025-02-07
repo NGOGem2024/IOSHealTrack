@@ -63,6 +63,21 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   const [doctorData, setDoctorData] = useState<DoctorData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const formatPhoneNumber = (phone: string): string => {
+    // Remove all non-digit characters
+    const cleaned = phone.replace(/\D/g, '');
+    
+    // Check if it starts with + and has country code
+    if (phone.startsWith('+')) {
+      // Format as +XX XXXXXXXXX
+      return `+${cleaned.slice(0, 2)} ${cleaned.slice(2)}`;
+    }
+    
+    // If no + prefix, assume it needs to be added with default country code
+    return `+91 ${cleaned}`;
+  };
+  
+
   useEffect(() => {
     const fetchDoctorData = async () => {
       if (!session.idToken) return;
@@ -141,7 +156,9 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           <View style={styles.contactInfo}>
             <View style={styles.infoRow}>
               <MaterialIcons name="call" size={20} color="#007B8E" />
-              <Text style={styles.infoText}>{doctorData?.doctor_phone}</Text>
+              <Text style={styles.infoText}>
+                {doctorData?.doctor_phone ? formatPhoneNumber(doctorData.doctor_phone) : ''}
+              </Text>
             </View>
 
             <View style={styles.infoRow}>
@@ -204,7 +221,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                   <MaterialCommunityIcons
                     name="account"
                     size={20}
-                    color="#119FB3"
+                    color="#007B8E"
                   />
                   <Text style={styles.appointmentText}>
                     {appointment.patient_name}
@@ -214,7 +231,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                   <MaterialCommunityIcons
                     name="clock-outline"
                     size={20}
-                    color="#119FB3"
+                    color="#007B8E"
                   />
                   <Text style={styles.appointmentText}>
                     {appointment.therepy_start_time}
@@ -224,7 +241,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                   <MaterialCommunityIcons
                     name="medical-bag"
                     size={20}
-                    color="#119FB3"
+                    color="#007B8E"
                   />
                   <Text style={styles.appointmentText}>
                     {appointment.therepy_type}
@@ -379,7 +396,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontWeight: '500',
     },
     appointmentCard: {
-      backgroundColor: '#f8f9fa',
+      backgroundColor: theme.colors.secondary,
       padding: 16,
       borderRadius: 8,
       marginBottom: 12,

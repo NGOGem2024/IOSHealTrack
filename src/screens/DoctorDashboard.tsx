@@ -32,6 +32,7 @@ import NoAppointmentsPopup from './Noappointmentspopup';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ActiveTherapyPlans from './Activeplans';
 import LoadingScreen from '../components/loadingScreen';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 interface DoctorInfo {
   _id: string;
@@ -288,13 +289,38 @@ const DoctorDashboard: React.FC = () => {
     setShowAllAppointments(prev => !prev);
   };
 
+  const renderCard = (item: Item, index: number) => {
+    const IconComponent = item.label === "All Doctors" ? FontAwesome : Icon;
+    const iconName = item.label === "All Doctors" ? "user-md" : item.icon;
+
+    return (
+      <TouchableOpacity
+        key={index}
+        style={[
+          styles.card,
+          !item.screen && { opacity: 0.5 },
+          { width: (width - 64) / 3 },
+        ]}
+        onPress={() => item.screen && handleNavigation(item.screen)}
+        disabled={!item.screen}
+      >
+        <IconComponent
+          name={iconName}
+          size={32}
+          color={styles.cardIcon.color}
+        />
+        <Text style={styles.cardText}>{item.label}</Text>
+      </TouchableOpacity>
+    );
+  };
+
   const items: Item[] = [
-    {icon: 'medical-outline', label: 'All Doctors', screen: 'AllDoctors'},
-    {icon: 'list-outline', label: 'View Patients', screen: 'AllPatients'},
+    { icon: "user-md", label: "All Doctors", screen: "AllDoctors" },
+    { icon: "list-outline", label: "View Patients", screen: "AllPatients" },
     {
-      icon: 'add-circle-outline',
-      label: 'Add Doctor',
-      screen: doctorInfo?.is_admin ? 'DoctorRegister' : undefined,
+      icon: "add-circle-outline",
+      label: "Add Doctor",
+      screen: doctorInfo?.is_admin ? "DoctorRegister" : undefined,
     },
   ];
 
@@ -326,37 +352,62 @@ const DoctorDashboard: React.FC = () => {
         <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
           <Ionicons name="menu" size={26} color="#FFFFFF" />
         </TouchableOpacity>
-
         <Modal
-          isVisible={isDropdownVisible}
-          onBackdropPress={toggleDropdown}
-          animationIn="slideInDown"
-          animationOut="slideOutUp"
-          animationInTiming={300}
-          animationOutTiming={300}
-          backdropTransitionInTiming={300}
-          backdropTransitionOutTiming={300}
-          style={styles.modal}>
-          <View style={styles.dropdown}>
-            <TouchableOpacity onPress={() => navigateToScreen('AllPatients')}>
-              <Text style={styles.dropdownItem}>All Patients</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigateToScreen('DoctorDashboard')}>
-              <Text style={styles.dropdownItem}>Dashboard</Text>
-            </TouchableOpacity>
-            {session.is_admin && ( // Only show Settings if the user is an admin
-              <TouchableOpacity onPress={() => navigateToScreen('Settings')}>
-                <Text style={styles.dropdownItem}>Settings</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity onPress={() => navigateToScreen('Logout')}>
-              <Text style={[styles.dropdownItem, styles.logoutText]}>
-                Logout
-              </Text>
+        isVisible={isDropdownVisible}
+        onBackdropPress={toggleDropdown}
+        animationIn="slideInRight"
+        animationOut="slideOutRight"
+        animationInTiming={300}
+        animationOutTiming={300}
+        backdropTransitionInTiming={300}
+        backdropTransitionOutTiming={300}
+        style={styles.modal}
+        propagateSwipe={true}
+        backdropOpacity={0.5}>
+        <View style={[styles.dropdown, { width: width * 0.50 }]}>
+          <View style={styles.drawerHeader}>
+            <Text style={styles.drawerTitle}>Menu</Text>
+            <TouchableOpacity onPress={toggleDropdown}>
+              <Ionicons name="close" size={24} color="#007B8E" />
             </TouchableOpacity>
           </View>
-        </Modal>
+          <View style={styles.drawerDivider} />
+          
+          <TouchableOpacity 
+            style={styles.drawerItem} 
+            onPress={() => navigateToScreen('AllPatients')}>
+            <Ionicons name="people-outline" size={24} color="#007B8E" />
+            <Text style={styles.drawerItemText}>All Patients</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.drawerItem} 
+            onPress={() => navigateToScreen('DoctorDashboard')}>
+            <Ionicons name="grid-outline" size={24} color="#007B8E" />
+            <Text style={styles.drawerItemText}>Dashboard</Text>
+          </TouchableOpacity>
+          
+          {session.is_admin && (
+            <TouchableOpacity 
+              style={styles.drawerItem} 
+              onPress={() => navigateToScreen('Settings')}>
+              <Ionicons name="settings-outline" size={24} color="#007B8E" />
+              <Text style={styles.drawerItemText}>Settings</Text>
+            </TouchableOpacity>
+          )}
+          
+          <View style={styles.drawerDivider} />
+          
+          <TouchableOpacity 
+            style={[styles.drawerItem, styles.logoutItem]} 
+            onPress={() => navigateToScreen('Logout')}>
+            <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
+            <Text style={[styles.drawerItemText, styles.logoutText]}>
+              Logout
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
       </View>
     );
   };
@@ -458,24 +509,7 @@ const DoctorDashboard: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Management</Text>
           <View style={styles.cardContainer}>
-            {items.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.card,
-                  !item.screen && {opacity: 0.5},
-                  {width: (width - 64) / 3},
-                ]}
-                onPress={() => item.screen && handleNavigation(item.screen)}
-                disabled={!item.screen}>
-                <Icon
-                  name={item.icon}
-                  size={32}
-                  color={styles.cardIcon.color}
-                />
-                <Text style={styles.cardText}>{item.label}</Text>
-              </TouchableOpacity>
-            ))}
+            {items.map((item, index) => renderCard(item, index))}
           </View>
         </View>
 
@@ -532,6 +566,60 @@ const DoctorDashboard: React.FC = () => {
 
 const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
   StyleSheet.create({
+    modal: {
+      margin: 0,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-end',
+    },
+    dropdown: {
+      backgroundColor: '#FFFFFF',
+      height: '35%',
+      padding: 0,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: -2,
+        height: 0,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    drawerHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 10,
+      backgroundColor: '#F8F8F8',
+    },
+    drawerTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#007B8E',
+    },
+    drawerDivider: {
+      height: 1,
+      backgroundColor: '#E0E0E0',
+      marginVertical: 2,
+    },
+    drawerItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+    },
+    drawerItemText: {
+      fontSize: 16,
+      color: '#333333',
+      marginLeft: 16,
+    },
+    logoutItem: {
+      marginTop: 20,
+      marginBottom: 28,
+    },
+    logoutText: {
+      color: '#FF3B30',
+    },
     loadingContainer: {
       flex: 1,
       justifyContent: 'center',
@@ -577,11 +665,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     profileButton: {
       alignItems: 'flex-end',
     },
-    modal: {
-      margin: 0,
-      justifyContent: 'flex-start',
-      alignItems: 'flex-end',
-    },
     modalOverlay: {
       flex: 1,
       justifyContent: 'center',
@@ -593,28 +676,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       width: '98%',
       maxHeight: '95%',
     },
-    dropdown: {
-      backgroundColor: theme.colors.card,
-      borderRadius: 5,
-      padding: 10,
-      marginTop: 44,
-      marginRight: 20,
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
-    },
     dropdownItem: {
       padding: 10,
       color: theme.colors.text,
       fontSize: 16,
-    },
-    logoutText: {
-      color: 'red',
     },
     safeArea: {
       flex: 1,

@@ -34,12 +34,11 @@ import DoctorPatients from './src/screens/DoctorPatients';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AnimatedSplashScreen from './src/components/AnimatedSplashScreen';
 import TherapySessionsList from './src/screens/sessiondetails';
-// Import your screens...
+import ProfileScreen from './src/screens/ProfileScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-// Create a stack navigator for the main content
 const HomeStackNavigator = () => (
   <Stack.Navigator initialRouteName="DoctorDashboard">
     <Stack.Screen
@@ -208,17 +207,13 @@ const TabNavigator = () => (
         ),
       }}
     />
-    <Tab.Screen
-      name="DoctorProfileEdit"
-      component={DoctorProfileEdit}
+     <Tab.Screen
+      name="Profile"
+      component={ProfileScreen}
       options={{
         headerShown: false,
         tabBarIcon: ({color, size}) => (
-          <MaterialCommunityIcons
-            name="square-edit-outline"
-            color={color}
-            size={size}
-          />
+          <Icon name="person-circle-outline" color={color} size={30} />
         ),
       }}
     />

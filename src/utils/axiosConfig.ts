@@ -5,7 +5,7 @@ import {Platform} from 'react-native';
 
 const instance = axios.create({
   // baseURL: 'https://healtrack.azurewebsites.net/',
-  // baseURL: 'http://192.168.1.2:5000',
+  //baseURL: 'http://192.168.1.2:5000',
   baseURL: 'https://healtrackapp-production-b2ab.up.railway.app',
   headers: {
     'Content-Type': 'application/json',

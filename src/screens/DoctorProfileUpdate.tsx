@@ -21,6 +21,7 @@ import {handleError, showSuccessToast} from '../utils/errorHandler';
 import instance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
 import LoadingScreen from '../components/loadingScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const {width} = Dimensions.get('window');
 
@@ -83,6 +84,25 @@ const DoctorProfileEdit: React.FC = () => {
           Authorization: `Bearer ${session.idToken}`,
         },
       });
+      await AsyncStorage.removeItem('doctor_photo');
+      const imageResponse = await fetch(response.data.doctors_photo);
+      const imageBlob = await imageResponse.blob();
+      const base64Image = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === 'string') {
+            resolve(reader.result);
+          } else {
+            reject(new Error('Failed to convert image to base64'));
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(imageBlob);
+      });
+
+      // Store in AsyncStorage
+      await AsyncStorage.setItem('doctor_photo', base64Image);
+
       setProfileInfo(response.data);
       setOriginalProfileInfo(response.data);
     } catch (error) {
@@ -186,6 +206,7 @@ const DoctorProfileEdit: React.FC = () => {
       );
 
       if (response.data.imageUrl) {
+        // Update the state
         setProfileInfo(prev => ({
           ...prev,
           doctors_photo: response.data.imageUrl,
@@ -227,21 +248,27 @@ const DoctorProfileEdit: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackTabTop screenName="Doctor Profile" />
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}>
         <View style={styles.headerContainer}>
-        
-          <View style={styles.coverPhoto} >
-          <View style={styles.headerInfo}>
+          <View style={styles.coverPhoto}>
+            <View style={styles.headerInfo}>
               <Text style={styles.profileName}>
-                Dr. {profileInfo.doctor_first_name} {profileInfo.doctor_last_name}
+                Dr. {profileInfo.doctor_first_name}{' '}
+                {profileInfo.doctor_last_name}
               </Text>
-              <Text style={styles.profileQualification}>{profileInfo.qualification}</Text>
+              <Text style={styles.profileQualification}>
+                {profileInfo.qualification}
+              </Text>
               <View style={styles.organizationContainer}>
                 <Icon name="business" size={16} color="#666" />
-                <Text style={styles.profileOrganization}>{profileInfo.organization_name}</Text>
+                <Text style={styles.profileOrganization}>
+                  {profileInfo.organization_name}
+                </Text>
               </View>
             </View>
-            </View>
+          </View>
           <View style={styles.profileHeader}>
             <View style={styles.profileImageContainer}>
               <Image source={profilePhoto} style={styles.profilePhoto} />
@@ -252,7 +279,6 @@ const DoctorProfileEdit: React.FC = () => {
                 <Icon name="camera" size={18} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
-           
           </View>
         </View>
 
@@ -297,14 +323,30 @@ const DoctorProfileEdit: React.FC = () => {
                 keyboardType: 'phone-pad',
               },
             ].map((item, index) => (
-              <View key={item.field} style={[styles.inputGroup, index !== 0 && styles.inputBorder]}>
+              <View
+                key={item.field}
+                style={[styles.inputGroup, index !== 0 && styles.inputBorder]}>
                 <Text style={styles.label}>{item.label}</Text>
-                <View style={[styles.inputWrapper, item.disabled && styles.disabledWrapper]}>
-                  <Icon name={item.icon} size={20} color="#007B8E" style={styles.inputIcon} />
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    item.disabled && styles.disabledWrapper,
+                  ]}>
+                  <Icon
+                    name={item.icon}
+                    size={20}
+                    color="#007B8E"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
-                    style={[styles.input, item.disabled && styles.disabledInput]}
+                    style={[
+                      styles.input,
+                      item.disabled && styles.disabledInput,
+                    ]}
                     value={item.value}
-                    onChangeText={text => handleInputChange(item.field as keyof ProfileInfo, text)}
+                    onChangeText={text =>
+                      handleInputChange(item.field as keyof ProfileInfo, text)
+                    }
                     editable={!item.disabled}
                     keyboardType={item.keyboardType as any}
                     placeholderTextColor="#999"
@@ -315,7 +357,10 @@ const DoctorProfileEdit: React.FC = () => {
           </View>
 
           <TouchableOpacity
-            style={[styles.saveButton, (isSaving || !hasChanges()) && styles.savingButton]}
+            style={[
+              styles.saveButton,
+              (isSaving || !hasChanges()) && styles.savingButton,
+            ]}
             onPress={handleSave}
             disabled={isSaving || !hasChanges()}>
             {isSaving ? (
@@ -401,7 +446,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: '#007B8E',
       fontWeight: '600',
       marginTop: 5,
-
     },
     organizationContainer: {
       flexDirection: 'row',

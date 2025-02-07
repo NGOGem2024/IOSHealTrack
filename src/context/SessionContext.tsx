@@ -75,6 +75,7 @@ export const SessionProvider: React.FC<{children: ReactNode}> = ({
     await AsyncStorage.removeItem('doctor_id');
     await AsyncStorage.removeItem('googleAccessToken');
     await AsyncStorage.removeItem('LiveTokens');
+    await AsyncStorage.removeItem('doctor_photo');
     await AsyncStorage.removeItem('expires_in');
     setSession({
       isLoggedIn: false,

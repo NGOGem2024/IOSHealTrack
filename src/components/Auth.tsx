@@ -20,11 +20,13 @@ import {ActivityIndicator} from 'react-native-paper';
 import {useTheme} from '../screens/ThemeContext';
 import {getTheme} from '../screens/Theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useNavigation} from '@react-navigation/native';
 
 interface AuthModalProps {
   isVisible: boolean;
   onClose: () => void;
   onLoginSuccess: () => void;
+  onForgotPassword: () => void;
 }
 
 const {width, height} = Dimensions.get('window');
@@ -33,6 +35,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   isVisible,
   onClose,
   onLoginSuccess,
+  onForgotPassword,
 }) => {
   const {setSession} = useSession();
   const {theme} = useTheme();
@@ -41,10 +44,13 @@ const AuthModal: React.FC<AuthModalProps> = ({
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
     ),
   );
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isPasswordLogin, setIsPasswordLogin] = useState(false);
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -74,14 +80,27 @@ const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const verifyOtp = async () => {
+  const loginWithPassword = async () => {
+    const lowerCaseEmail = email.toLowerCase();
+    if (!isValidEmail(lowerCaseEmail)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      Alert.alert('Invalid Password', 'Please enter a valid password.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await axiosInstance.post('/otpVerify', {
-        email: email.toLowerCase(),
-        otp,
+      const response = await axiosInstance.post('/verify/password', {
+        email: lowerCaseEmail,
+        password,
       });
+
       if (response.data.token) {
+        // Store token and other basic info
         await AsyncStorage.setItem('userToken', response.data.token);
         await AsyncStorage.setItem(
           'is_admin',
@@ -89,6 +108,39 @@ const AuthModal: React.FC<AuthModalProps> = ({
         );
         await AsyncStorage.setItem('doctor_id', response.data.doctor_id);
 
+        // Download and store image if available
+        if (response.data.doctor_photo) {
+          try {
+            const imageResponse = await fetch(response.data.doctor_photo);
+            if (imageResponse.ok) {
+              const imageBlob = await imageResponse.blob();
+              const base64Image: string = await new Promise<string>(
+                (resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const result = reader.result;
+                    if (typeof result === 'string') {
+                      resolve(result);
+                    } else {
+                      reject(new Error('FileReader result is not a string'));
+                    }
+                  };
+                  reader.onerror = reject;
+                  reader.readAsDataURL(imageBlob);
+                },
+              );
+
+              await AsyncStorage.setItem('doctor_photo', base64Image);
+            } else {
+              console.warn('Failed to download doctor photo');
+            }
+          } catch (imageError) {
+            console.error('Error downloading doctor photo:', imageError);
+            // Continue with login even if image download fails
+          }
+        }
+
+        // Set session
         const newSession = {
           isLoggedIn: true,
           idToken: response.data.token,
@@ -97,6 +149,74 @@ const AuthModal: React.FC<AuthModalProps> = ({
           doctor_id: response.data.doctor_id,
         };
         setSession(newSession);
+        onLoginSuccess();
+      }
+    } catch (error) {
+      console.error('Error logging in:', error);
+      Alert.alert('Error', 'Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOtp = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.post('/otpVerify', {
+        email: email.toLowerCase(),
+        otp,
+      });
+
+      if (response.data.token) {
+        // Store token and other basic info
+        await AsyncStorage.setItem('userToken', response.data.token);
+        await AsyncStorage.setItem(
+          'is_admin',
+          JSON.stringify(response.data.is_admin),
+        );
+        await AsyncStorage.setItem('doctor_id', response.data.doctor_id);
+
+        // Download and store image if available
+        if (response.data.doctor_photo) {
+          try {
+            const imageResponse = await fetch(response.data.doctor_photo);
+            if (imageResponse.ok) {
+              const imageBlob = await imageResponse.blob();
+              const base64Image = await new Promise<string>(
+                (resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    if (typeof reader.result === 'string') {
+                      resolve(reader.result);
+                    } else {
+                      reject(new Error('FileReader result is not a string'));
+                    }
+                  };
+                  reader.onerror = reject;
+                  reader.readAsDataURL(imageBlob);
+                },
+              );
+
+              await AsyncStorage.setItem('doctor_photo', base64Image);
+            } else {
+              console.warn('Failed to download doctor photo');
+            }
+          } catch (imageError) {
+            console.error('Error downloading doctor photo:', imageError);
+            // Continue with login even if image download fails
+          }
+        }
+
+        // Set session
+        const newSession = {
+          isLoggedIn: true,
+          idToken: response.data.token,
+          accessToken: null,
+          is_admin: response.data.is_admin,
+          doctor_id: response.data.doctor_id,
+        };
+        setSession(newSession);
+        onLoginSuccess();
       } else {
         Alert.alert('Error', 'OTP verification failed');
       }
@@ -107,20 +227,33 @@ const AuthModal: React.FC<AuthModalProps> = ({
       setLoading(false);
     }
   };
-
-  const resetEmailInput = () => {
+  const handleForgotPassword = () => {
+    // Instead of navigating, simply call the onForgotPassword callback
+    if (onForgotPassword) {
+      onForgotPassword();
+    }
+  };
+  const resetForm = () => {
     setIsOtpSent(false);
     setOtp('');
+    setPassword('');
+    setIsPasswordLogin(false);
+  };
+
+  const toggleLoginMethod = () => {
+    setIsPasswordLogin(!isPasswordLogin);
+    setIsOtpSent(false); // Reset OTP state when switching
+    setOtp(''); // Clear OTP when switching
+    // Don't clear email when switching methods
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-    <Modal
-      animationType="fade"
-      transparent={true}
-      visible={isVisible}
-      onRequestClose={onClose}>
-      
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isVisible}
+        onRequestClose={onClose}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalContainer}>
@@ -135,15 +268,21 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
             <View style={styles.formSection}>
               <Text style={styles.title}>
-                {!isOtpSent ? 'Sign In' : 'Verify OTP'}
+                {isPasswordLogin
+                  ? 'Password Login'
+                  : !isOtpSent
+                  ? 'OTP Login'
+                  : 'Verify OTP'}
               </Text>
               <Text style={styles.subtitle}>
-                {!isOtpSent
+                {isPasswordLogin
+                  ? 'Login with your email and password'
+                  : !isOtpSent
                   ? 'Login with your email address'
                   : `Enter the verification code sent to ${email}`}
               </Text>
 
-              {!isOtpSent ? (
+              {!isOtpSent && (
                 <View style={styles.inputWrapper}>
                   <View style={styles.inputContainer}>
                     <Icon name="email" size={20} style={styles.iconStyle} />
@@ -158,7 +297,34 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     />
                   </View>
                 </View>
-              ) : (
+              )}
+
+              {isPasswordLogin && !isOtpSent && (
+                <>
+                  <View style={styles.inputWrapper}>
+                    <View style={styles.inputContainer}>
+                      <Icon name="lock" size={20} style={styles.iconStyle} />
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Enter password"
+                        placeholderTextColor="#999"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                      />
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.forgotPasswordButton}
+                    onPress={handleForgotPassword}>
+                    <Text style={styles.forgotPasswordText}>
+                      Forgot Password?
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {isOtpSent && !isPasswordLogin && (
                 <View style={styles.inputWrapper}>
                   <View style={styles.inputContainer}>
                     <Icon name="lock" size={20} style={styles.iconStyle} />
@@ -177,22 +343,42 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
               <TouchableOpacity
                 style={styles.mainButton}
-                onPress={!isOtpSent ? sendOtp : verifyOtp}
+                onPress={
+                  isPasswordLogin
+                    ? loginWithPassword
+                    : !isOtpSent
+                    ? sendOtp
+                    : verifyOtp
+                }
                 disabled={loading}>
                 {loading ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
                   <Text style={styles.mainButtonText}>
-                    {!isOtpSent ? 'Send OTP' : 'Verify & Login'}
+                    {isPasswordLogin
+                      ? 'Login'
+                      : !isOtpSent
+                      ? 'Send OTP'
+                      : 'Verify & Login'}
                   </Text>
                 )}
               </TouchableOpacity>
 
-              {isOtpSent && (
+              {!isOtpSent && (
+                <TouchableOpacity
+                  style={styles.switchButton}
+                  onPress={toggleLoginMethod}>
+                  <Text style={styles.switchButtonText}>
+                    {isPasswordLogin ? 'Use OTP Login' : 'Use Password Login'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {isOtpSent && !isPasswordLogin && (
                 <View style={styles.actionButtons}>
                   <TouchableOpacity
                     style={styles.linkButton}
-                    onPress={resetEmailInput}>
+                    onPress={resetForm}>
                     <Icon
                       name="arrow-left"
                       size={16}
@@ -212,8 +398,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
             </View>
           </View>
         </KeyboardAvoidingView>
-     
-    </Modal>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -240,6 +425,17 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginTop: 40,
       alignItems: 'center',
       position: 'relative',
+    },
+    forgotPasswordButton: {
+      alignSelf: 'flex-end',
+      marginTop: -12,
+      marginBottom: 16,
+      paddingHorizontal: 4,
+    },
+    forgotPasswordText: {
+      color: '#007b8e',
+      fontSize: 14,
+      fontWeight: '500',
     },
     formSection: {
       padding: 20,
@@ -316,6 +512,16 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     linkButtonText: {
       color: '#007b8e',
       marginLeft: 4,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    switchButton: {
+      marginTop: 16,
+      padding: 8,
+      alignItems: 'center',
+    },
+    switchButtonText: {
+      color: '#007b8e',
       fontSize: 14,
       fontWeight: '600',
     },

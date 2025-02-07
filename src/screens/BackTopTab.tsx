@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Image,
   StatusBar,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Modal from 'react-native-modal';
@@ -14,11 +15,7 @@ import {useSession} from '../context/SessionContext';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import axiosInstance from '../utils/axiosConfig';
 
-interface DoctorInfo {
-  doctors_photo?: string;
-}
 const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   const navigation = useNavigation();
   const {theme} = useTheme();
@@ -33,7 +30,8 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   const route = useRoute();
   const {session} = useSession();
   const [isDropdownVisible, setDropdownVisible] = useState(false);
-  const [doctorInfo, setDoctorInfo] = useState<DoctorInfo | null>(null);
+  const [storedPhoto, setStoredPhoto] = useState<string | null>(null);
+
   const toggleDropdown = () => setDropdownVisible(!isDropdownVisible);
 
   const navigateToScreen = (screenName: string) => {
@@ -41,22 +39,20 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
     setDropdownVisible(false);
   };
 
-  React.useEffect(() => {
-    const fetchDoctorInfo = async () => {
-      if (!session.idToken) return;
+  // Fetch stored photo from AsyncStorage
+  useEffect(() => {
+    const getStoredPhoto = async () => {
       try {
-        const response = await axiosInstance.get(`/doctor`, {
-          headers: {Authorization: `Bearer ${session.idToken}`},
-        });
-        setDoctorInfo(response.data);
+        const photo = await AsyncStorage.getItem('doctor_photo');
+        if (photo) {
+          setStoredPhoto(photo);
+        }
       } catch (error) {
-        console.error('Error fetching doctor info:', error);
+        console.error('Error fetching stored photo:', error);
       }
     };
-
-    fetchDoctorInfo();
-  }, [session.idToken]);
-
+    getStoredPhoto();
+  }, []);
 
   return (
     <View style={styles.header}>
@@ -75,11 +71,8 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
       <View style={styles.rightSection}>
         <Text style={styles.screenNameText}>{screenName}</Text>
         <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
-          {doctorInfo?.doctors_photo ? (
-            <Image
-              source={{uri: doctorInfo.doctors_photo}}
-              style={styles.profilePhoto}
-            />
+          {storedPhoto ? (
+            <Image source={{uri: storedPhoto}} style={styles.profilePhoto} />
           ) : (
             <Image
               source={require('../assets/profile.png')}
@@ -88,7 +81,6 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
           )}
         </TouchableOpacity>
       </View>
-
 
       <Modal
         isVisible={isDropdownVisible}
@@ -107,7 +99,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
           <TouchableOpacity onPress={() => navigateToScreen('DoctorDashboard')}>
             <Text style={styles.dropdownItem}>Dashboard</Text>
           </TouchableOpacity>
-          {session.is_admin && ( // Only show Settings if the user is an admin
+          {session.is_admin && (
             <TouchableOpacity onPress={() => navigateToScreen('Settings')}>
               <Text style={styles.dropdownItem}>Settings</Text>
             </TouchableOpacity>

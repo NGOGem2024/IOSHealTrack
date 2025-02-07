@@ -1,8 +1,26 @@
-import React from 'react';
-import {View, StyleSheet, SafeAreaView, Image, StatusBar} from 'react-native';
+// AuthScreen.tsx
+import React, {useState} from 'react';
+import {View, StyleSheet, SafeAreaView, StatusBar} from 'react-native';
 import AuthModal from '../../src/components/Auth';
+import ForgotPasswordModal from './forgotpassword';
 
 const AuthScreen: React.FC = () => {
+  const [isAuthModalVisible, setIsAuthModalVisible] = useState(true);
+  const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] =
+    useState(false);
+
+  // Called when the user taps "Forgot Password" in the AuthModal.
+  const handleForgotPassword = () => {
+    setIsAuthModalVisible(false);
+    setIsForgotPasswordModalVisible(true);
+  };
+
+  // Called when the forgot password process completes.
+  const handleForgotPasswordComplete = () => {
+    setIsForgotPasswordModalVisible(false);
+    setIsAuthModalVisible(true);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -11,11 +29,20 @@ const AuthScreen: React.FC = () => {
         translucent={false}
       />
       <View style={styles.content}>
-        <AuthModal
-          isVisible={true}
-          onClose={() => {}}
-          onLoginSuccess={() => {}}
-        />
+        {isAuthModalVisible && (
+          <AuthModal
+            isVisible={isAuthModalVisible}
+            onClose={() => {}}
+            onLoginSuccess={() => {}}
+            onForgotPassword={handleForgotPassword} // Pass the callback to trigger forgot password modal
+          />
+        )}
+        {isForgotPasswordModalVisible && (
+          <ForgotPasswordModal
+            isVisible={isForgotPasswordModalVisible}
+            onClose={handleForgotPasswordComplete} // When done, call this to return to AuthModal
+          />
+        )}
       </View>
     </SafeAreaView>
   );

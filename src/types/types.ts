@@ -30,6 +30,7 @@ export type RootStackParamList = {
     screen?: keyof RootTabParamList;
     params?: object;
   };
+  forgotPassword: undefined;
   AppointmentDetails: {appointment: any};
   AppointmentDetailsScreen: {appointment: any};
   UpdateDoctor: {doctorId?: string};

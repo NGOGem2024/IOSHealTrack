@@ -606,7 +606,7 @@ const styles = StyleSheet.create({
     height: 50,
   },
   inputIcon: {
-    marginRight: 10,
+    marginRight: 1,
   },
   input: {
     flex: 1,

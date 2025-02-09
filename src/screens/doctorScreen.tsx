@@ -301,7 +301,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderColor: '#119FB3',
     },
     doctorName: {
-      fontSize: 20,
+      fontSize: 18,
       fontWeight: 'bold',
       color: theme.colors.text,
       
@@ -368,7 +368,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: theme.colors.card,
       margin: 16,
       marginTop: 0,
-      padding: 24,
+      padding: 20,
       borderRadius: 12,
       elevation: 4,
       shadowColor: '#000',
@@ -377,7 +377,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       shadowRadius: 3.84,
     },
     cardTitle: {
-      fontSize: 20,
+      fontSize: 18,
       fontWeight: 'bold',
       color: theme.colors.text,
       marginBottom: 16,
@@ -391,7 +391,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     actionButtonText: {
       marginLeft: 16,
-      fontSize: 16,
+      fontSize: 14,
       color: theme.colors.text,
       fontWeight: '500',
     },

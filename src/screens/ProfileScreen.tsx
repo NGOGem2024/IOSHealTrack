@@ -89,7 +89,7 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
           <View style={styles.tabContent}>
             <View style={styles.infoCard}>
               <View style={styles.infoHeader}>
-                <Icon name="call" size={24} color="#007B8E" />
+                <Icon name="call" size={20} color="#007B8E" />
                 <Text style={styles.infoHeaderText}>Contact</Text>
               </View>
               <Text style={styles.infoText}>{doctorInfo?.doctor_phone}</Text>
@@ -102,14 +102,14 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
           <View style={styles.tabContent}>
             <View style={styles.statsGrid}>
               <View style={styles.statCard}>
-                <Icon name="people" size={32} color="#007B8E" />
+                <Icon name="people" size={28} color="#007B8E" />
                 <Text style={styles.statNumber}>
                   {doctorInfo?.patients?.length || 0}
                 </Text>
                 <Text style={styles.statLabel}>Total Patients</Text>
               </View>
               <View style={styles.statCard}>
-                <Icon name="calendar" size={32} color="#007B8E" />
+                <Icon name="calendar" size={28} color="#007B8E" />
                 <Text style={styles.statNumber}>{appointments.length}</Text>
                 <Text style={styles.statLabel}>Appointments</Text>
               </View>
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     marginLeft:10,
   },
   profileInfoContainer1: {
-    width: 70,
+    width: 80,
     height: 30,
   },
   profileImage: {
@@ -245,25 +245,25 @@ const styles = StyleSheet.create({
     borderColor: '#000',
   },
   name: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 8,
   },
   specialization: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#666',
     marginBottom: 4,
   },
   organization: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#007B8E',
     marginBottom: 16,
   },
   editButton: {
     flexDirection: 'row',
     backgroundColor: '#ffffff',
-    padding: 5,
+    padding: 6,
     borderRadius: 10,
     borderColor: '#000000',
     borderWidth: 1,
@@ -272,20 +272,20 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     color: '#000000',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
   },
   tabContainer: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
+    marginHorizontal: 10,
     borderRadius: 12,
     padding: 4,
-    marginBottom: 16,
+    marginBottom: 9,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 10,
     alignItems: 'center',
     borderRadius: 8,
   },
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#007B8E',
   },
   tabText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#666',
     fontWeight: '600',
   },
@@ -315,13 +315,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   infoHeaderText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#333',
     marginLeft: 8,
   },
   infoText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#666',
     marginBottom: 8,
   },
@@ -339,13 +339,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#333',
     marginTop: 8,
   },
   statLabel: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#666',
     marginTop: 4,
   },

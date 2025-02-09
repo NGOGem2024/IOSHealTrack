@@ -7,6 +7,8 @@ import {
   TextInput,
   Modal,
   Platform,
+  KeyboardAvoidingView,
+  ScrollView,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -157,121 +159,132 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       animationType="slide"
       transparent={true}
       onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          {/* Modal Header */}
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Record Payment</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>✕</Text>
-            </TouchableOpacity>
-          </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.modalOverlay}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled">
+              {/* Modal Header */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Record Payment</Text>
+                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                  <Text style={styles.closeButtonText}>✕</Text>
+                </TouchableOpacity>
+              </View>
 
-          {paymentInfo.payment_structure.next_payment_number && (
-            <View style={styles.paymentNumberBadge}>
-              <Text style={styles.paymentNumberBadgeText}>
-                Payment #{paymentInfo.payment_structure.next_payment_number}
-              </Text>
-            </View>
-          )}
+              {paymentInfo.payment_structure.next_payment_number && (
+                <View style={styles.paymentNumberBadge}>
+                  <Text style={styles.paymentNumberBadgeText}>
+                    Payment #{paymentInfo.payment_structure.next_payment_number}
+                  </Text>
+                </View>
+              )}
 
-          {/* Payment Amount Section */}
-          <View style={styles.inputSection}>
-            <Text style={styles.inputLabel}>Base Session Payment</Text>
-            <View style={styles.currencyInputContainer}>
-              <Text style={styles.currencySymbol}>₹</Text>
-              <TextInput
-                style={styles.currencyInput}
-                placeholder="Enter amount"
-                keyboardType="numeric"
-                value={amount}
-                onChangeText={setAmount}
-              />
-            </View>
-          </View>
-
-          {/* Payment Method Section */}
-          <View style={styles.inputSection}>
-            <Text style={styles.inputLabel}>Payment Method</Text>
-            {renderPaymentMethodSelector()}
-          </View>
-
-          {/* Rest of your JSX remains the same */}
-          {/* Additional Services Section */}
-          <View style={styles.servicesSection}>
-            <TouchableOpacity
-              style={styles.servicesHeader}
-              onPress={() =>
-                setIsAdditionalServicesOpen(!isAdditionalServicesOpen)
-              }>
-              <Icon
-                name={isAdditionalServicesOpen ? 'minus' : 'plus'}
-                size={20}
-                color="#007B8E"
-              />
-              <Text style={styles.servicesHeaderText}>Additional Services</Text>
-            </TouchableOpacity>
-
-            {isAdditionalServicesOpen && (
-              <View style={styles.addonInputContainer}>
-                <TextInput
-                  style={styles.addonNameInput}
-                  placeholder="Service Name"
-                  value={addonInput}
-                  onChangeText={setAddonInput}
-                />
-                <View style={styles.addonAmountWrapper}>
+              {/* Payment Amount Section */}
+              <View style={styles.inputSection}>
+                <Text style={styles.inputLabel}>Base Session Payment</Text>
+                <View style={styles.currencyInputContainer}>
                   <Text style={styles.currencySymbol}>₹</Text>
                   <TextInput
-                    style={styles.addonAmountInput}
-                    placeholder="Amount"
+                    style={styles.currencyInput}
+                    placeholder="Enter amount"
                     keyboardType="numeric"
-                    value={addonAmount}
-                    onChangeText={handleAddonAmountChange}
-                    onSubmitEditing={handleAddonSubmit}
-                    returnKeyType="done"
+                    value={amount}
+                    onChangeText={setAmount}
                   />
                 </View>
               </View>
-            )}
 
-            {/* Added Services List */}
-            {addons.map((addon, index) => (
-              <View key={index} style={styles.addonItem}>
-                <Text style={styles.addonName}>{addon.name}</Text>
-                <Text style={styles.addonAmount}>₹{addon.amount}</Text>
+              {/* Payment Method Section */}
+              <View style={styles.inputSection}>
+                <Text style={styles.inputLabel}>Payment Method</Text>
+                {renderPaymentMethodSelector()}
+              </View>
+
+              {/* Rest of your JSX remains the same */}
+              {/* Additional Services Section */}
+              <View style={styles.servicesSection}>
                 <TouchableOpacity
+                  style={styles.servicesHeader}
+                  onPress={() =>
+                    setIsAdditionalServicesOpen(!isAdditionalServicesOpen)
+                  }>
+                  <Icon
+                    name={isAdditionalServicesOpen ? 'minus' : 'plus'}
+                    size={20}
+                    color="#007B8E"
+                  />
+                  <Text style={styles.servicesHeaderText}>
+                    Additional Services
+                  </Text>
+                </TouchableOpacity>
+
+                {isAdditionalServicesOpen && (
+                  <View style={styles.addonInputContainer}>
+                    <TextInput
+                      style={styles.addonNameInput}
+                      placeholder="Service Name"
+                      value={addonInput}
+                      onChangeText={setAddonInput}
+                    />
+                    <View style={styles.addonAmountWrapper}>
+                      <Text style={styles.currencySymbol}>₹</Text>
+                      <TextInput
+                        style={styles.addonAmountInput}
+                        placeholder="Amount"
+                        keyboardType="numeric"
+                        value={addonAmount}
+                        onChangeText={handleAddonAmountChange}
+                        onSubmitEditing={handleAddonSubmit}
+                        returnKeyType="done"
+                      />
+                    </View>
+                  </View>
+                )}
+
+                {/* Added Services List */}
+                {addons.map((addon, index) => (
+                  <View key={index} style={styles.addonItem}>
+                    <Text style={styles.addonName}>{addon.name}</Text>
+                    <Text style={styles.addonAmount}>₹{addon.amount}</Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        const newAddons = addons.filter((_, i) => i !== index);
+                        setAddons(newAddons);
+                      }}>
+                      <Icon name="times" size={20} color="#e74c3c" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+
+              {/* Total Amount */}
+              <View style={styles.totalContainer}>
+                <Text style={styles.totalLabel}>Total Payment</Text>
+                <Text style={styles.totalAmount}>
+                  ₹{calculateTotalAmount().toLocaleString()}
+                </Text>
+              </View>
+
+              {/* Footer Buttons */}
+              <View style={styles.footer}>
+                <TouchableOpacity
+                  style={styles.confirmButton}
                   onPress={() => {
-                    const newAddons = addons.filter((_, i) => i !== index);
-                    setAddons(newAddons);
+                    onSubmit(calculateBaseAmount(), paymentMethod, addons);
+                    onClose();
                   }}>
-                  <Icon name="times" size={20} color="#e74c3c" />
+                  <Text style={styles.buttonText}>Confirm Payment</Text>
                 </TouchableOpacity>
               </View>
-            ))}
-          </View>
-
-          {/* Total Amount */}
-          <View style={styles.totalContainer}>
-            <Text style={styles.totalLabel}>Total Payment</Text>
-            <Text style={styles.totalAmount}>
-              ₹{calculateTotalAmount().toLocaleString()}
-            </Text>
-          </View>
-
-          {/* Footer Buttons */}
-          <View style={styles.footer}>
-            <TouchableOpacity
-              style={styles.confirmButton}
-              onPress={() => {
-                onSubmit(calculateBaseAmount(), paymentMethod, addons);
-                onClose();
-              }}>
-              <Text style={styles.buttonText}>Confirm Payment</Text>
-            </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -290,7 +303,7 @@ const COLORS = {
 const getModalStyles = () =>
   StyleSheet.create({
     item1: {
-      color: 'gray', // Set the color for selected items to black
+      color: 'gray', 
     },
 
     item: {
@@ -303,19 +316,18 @@ const getModalStyles = () =>
       flex: 1,
       backgroundColor: COLORS.overlay,
       justifyContent: 'center',
+      width: '100%',
       alignItems: 'center',
     },
     modalContainer: {
       width: '90%',
-      maxWidth: 500,
+      maxWidth: 600,
       backgroundColor: 'white',
       borderRadius: 16,
-      padding: 20,
-      shadowColor: '#000',
-      shadowOffset: {width: 0, height: 4},
-      shadowOpacity: 0.25,
-      shadowRadius: 10,
-      elevation: 5,
+      padding: 30,
+    },
+    scrollContent: {
+      backgroundColor: '#fff',
     },
     modalHeader: {
       flexDirection: 'row',
@@ -332,7 +344,8 @@ const getModalStyles = () =>
     },
     closeButtonText: {
       fontSize: 24,
-      color: '#6c757d',
+      color: '#119FB3',
+      fontWeight: '700',
     },
     inputSection: {
       marginBottom: 20,

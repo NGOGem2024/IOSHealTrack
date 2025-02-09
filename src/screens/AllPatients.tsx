@@ -265,7 +265,7 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
                 color="#333333"
                 style={styles.searchIcon}
               />
-              <Text style={styles.searchPlaceholder}>Search by name</Text>
+              <Text style={styles.searchPlaceholder}>Search by name / phone number</Text>
             </View>
           </TouchableOpacity>
           <View style={styles.filtersContainer1}>
@@ -341,7 +341,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginRight: 12,
     },
     searchPlaceholder: {
-      fontSize: 16,
+      fontSize: 14,
       color: 'rgba(255, 255, 255, 0.8)',
       flex: 1,
     },

@@ -116,7 +116,7 @@ const RolePicker: React.FC<RolePickerProps> = ({
         name="account-cog"
         size={20}
         color={colors.secondary}
-        style={parentStyles.inputIcon}
+        style={[parentStyles.inputIcon, styles.iconSpacing]}
       />
       <Picker
         selectedValue={value}
@@ -141,6 +141,7 @@ interface StylesType {
   doneButton: ViewStyle;
   doneText: TextStyle;
   iosPicker: ViewStyle;
+  iconSpacing: ViewStyle;
 }
 
 const styles = StyleSheet.create<StylesType>({
@@ -148,6 +149,7 @@ const styles = StyleSheet.create<StylesType>({
     flex: 1,
     fontSize: 16,
     paddingVertical: 8,
+    marginLeft : 12,
   },
   chevron: {
     marginLeft: 8,
@@ -178,6 +180,9 @@ const styles = StyleSheet.create<StylesType>({
   iosPicker: {
     width: '100%',
     height: 200,
+  },
+  iconSpacing: {
+    marginRight: 8, 
   },
 });
 

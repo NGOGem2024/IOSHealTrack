@@ -720,7 +720,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     amountBox: {
       flex: 1,
       padding: 12,
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.border,
       borderRadius: 8,
       marginHorizontal: 4,
       alignItems: 'center',
@@ -766,7 +766,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     sessionItem: {
       width: '48%',
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.border,
       padding: 12,
       borderRadius: 8,
       marginBottom: 8,
@@ -816,12 +816,14 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontWeight: '500',
     },
     nextPaymentContainer: {
-      marginTop: 8,
+      marginRight: 8,
+      flexDirection: 'row',
     },
     nextPaymentLabel: {
       fontSize: 16,
       color: '#6c757d',
       marginBottom: 4,
+      marginRight: 5,
     },
     nextPaymentDate: {
       fontSize: 16,

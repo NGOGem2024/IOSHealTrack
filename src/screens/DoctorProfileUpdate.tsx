@@ -223,13 +223,13 @@ const DoctorProfileEdit: React.FC = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <View style={styles.loadingContainer}>
+  //       <LoadingScreen />
+  //     </View>
+  //   );
+  // }
 
   if (!session.idToken) {
     return (
@@ -391,7 +391,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginBottom: 20,
     },
     coverPhoto: {
-      height: 100,
+      height: 90,
       backgroundColor: '#007B8E',
       opacity: 0.9,
     },
@@ -405,10 +405,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       position: 'relative',
     },
     profilePhoto: {
-      width: 120,
-      height: 120,
+      width: 110,
+      height: 110,
       borderRadius: 60,
-      borderWidth: 4,
+      borderWidth: 2,
       borderColor: '#FFFFFF',
       backgroundColor: '#FFFFFF',
     },
@@ -417,8 +417,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       bottom: 5,
       right: 5,
       backgroundColor: '#007B8E',
-      width: 32,
-      height: 32,
+      width: 30,
+      height: 30,
       borderRadius: 16,
       justifyContent: 'center',
       alignItems: 'center',
@@ -432,17 +432,17 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     headerInfo: {
       flex: 1,
-      marginLeft: 150,
+      marginLeft: 135,
       marginTop: 65,
     },
     profileName: {
-      fontSize: 24,
+      fontSize: 20,
       fontWeight: '700',
       color: '#ffffff',
-      marginTop: 6,
+      marginTop: 1,
     },
     profileQualification: {
-      fontSize: 16,
+      fontSize: 14,
       color: '#007B8E',
       fontWeight: '600',
       marginTop: 5,
@@ -452,7 +452,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignItems: 'center',
     },
     profileOrganization: {
-      fontSize: 14,
+      fontSize: 13,
       color: '#666',
       marginLeft: 4,
     },
@@ -462,10 +462,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     sectionHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 15,
+      marginBottom: 10,
     },
     sectionTitle: {
-      fontSize: 20,
+      fontSize: 18,
       fontWeight: '700',
       color: '#007B8E',
       marginLeft: 10,
@@ -473,7 +473,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     card: {
       backgroundColor: '#FFFFFF',
       borderRadius: 15,
-      padding: 20,
+      padding: 15,
       shadowColor: '#000',
       shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.1,
@@ -508,13 +508,14 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderColor: '#E2E8F0',
     },
     inputIcon: {
-      marginHorizontal: 12,
+      marginLeft: 12,
     },
     input: {
       flex: 1,
       fontSize: 16,
       color: '#2C3E50',
       height: '100%',
+      marginLeft: 2,
     },
     disabledInput: {
       color: '#94A3B8',

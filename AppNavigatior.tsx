@@ -35,6 +35,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import AnimatedSplashScreen from './src/components/AnimatedSplashScreen';
 import TherapySessionsList from './src/screens/sessiondetails';
 import ProfileScreen from './src/screens/ProfileScreen';
+import { TouchableOpacity } from 'react-native';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -167,15 +168,30 @@ const TabNavigator = () => (
       },
       tabBarHideOnKeyboard: true,
     }}>
-    <Tab.Screen
+     <Tab.Screen
       name="HomeStackNavigator"
       component={HomeStackNavigator}
-      options={{
+      options={({ navigation }) => ({
         headerShown: false,
         tabBarIcon: ({color, size}) => (
           <Icon name="home-outline" color={color} size={size} />
         ),
-      }}
+        tabBarButton: (props) => (
+          <TouchableOpacity
+            {...props}
+            onPress={() => {
+              // If we're already on the HomeStack, navigate to DoctorDashboard
+              navigation.navigate('HomeStackNavigator', {
+                screen: 'DoctorDashboard',
+                params: {
+                  scrollToTop: true,
+                  timestamp: Date.now(), // Force re-render
+                },
+              });
+            }}
+          />
+        ),
+      })}
     />
     <Tab.Screen
       name="AllAppointments"

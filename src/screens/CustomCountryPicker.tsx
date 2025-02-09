@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,9 @@ import {
   FlatList,
   TextInput,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard
 } from 'react-native';
 
 interface Country {
@@ -56,6 +59,27 @@ const CustomCountryPicker: React.FC<CustomCountryPickerProps> = ({
   theme,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
 
   const filteredCountries = countries.filter(country =>
     country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -77,10 +101,29 @@ const CustomCountryPicker: React.FC<CustomCountryPickerProps> = ({
     </TouchableOpacity>
   );
 
+  const ListEmptyComponent = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={[styles.emptyText, { color: theme.text }]}>
+        No search results found
+      </Text>
+    </View>
+  );
+
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.modalContainer}>
-        <View style={[styles.pickerContainer, { backgroundColor: theme.card }]}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.modalContainer}
+      >
+        <View 
+          style={[
+            styles.pickerContainer, 
+            { 
+              backgroundColor: theme.card,
+              maxHeight: Dimensions.get('window').height * 0.7 - keyboardHeight
+            }
+          ]}
+        >
           <View style={[styles.header, { borderBottomColor: theme.inputBorder }]}>
             <TextInput
               style={[styles.searchInput, { 
@@ -106,9 +149,11 @@ const CustomCountryPicker: React.FC<CustomCountryPickerProps> = ({
             renderItem={renderItem}
             keyExtractor={item => item.code}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={ListEmptyComponent}
           />
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -120,7 +165,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   pickerContainer: {
-    height: Dimensions.get('window').height * 0.7,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 16,
@@ -128,8 +172,8 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: 16,
-    marginBottom: 16,
+    paddingBottom: 10,
+    marginBottom: 2,
     borderBottomWidth: 1,
   },
   searchInput: {
@@ -164,6 +208,16 @@ const styles = StyleSheet.create({
   callingCode: {
     fontSize: 16,
     marginLeft: 8,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 

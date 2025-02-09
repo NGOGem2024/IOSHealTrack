@@ -27,6 +27,7 @@ import BackTabTop from './BackTopTab';
 import {CustomPicker, CustomRadioGroup} from './customradio';
 import LoadingScreen from '../components/loadingScreen';
 import PhoneInput from 'react-native-phone-number-input';
+import CountryPicker from './CountryPickerDoctors';
 
 const {width} = Dimensions.get('window');
 
@@ -331,37 +332,28 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Phone</Text>
             <View style={styles.phoneContainer}>
-              {/* Country Code Picker */}
-              <Picker
-                selectedValue={countryCode}
-                onValueChange={itemValue => {
-                  setCountryCode(itemValue);
-                  // Re-validate when country code changes
-                  validatePhone(itemValue + phoneDigits);
-                }}
-                style={styles.picker}
-                mode="dropdown">
-                <Picker.Item label="+91 (India)" value="+91" />
-                <Picker.Item label="+1 (USA)" value="+1" />
-                <Picker.Item label="+44 (UK)" value="+44" />
-                <Picker.Item label="+61 (Australia)" value="+61" />
-                {/* Add more country codes as needed */}
-              </Picker>
+  <CountryPicker
+    selectedCode={countryCode}
+    onValueChange={(code) => {
+      setCountryCode(code);
+      
+      validatePhone(code + phoneDigits);
+    }}
+  />
 
-              {/* Phone Number Input (Digits Only) */}
-              <TextInput
-                style={[
-                  styles.phoneinput,
-                  phoneError && styles.inputError,
-                  {flex: 1}, // Make the TextInput take up remaining space
-                ]}
-                value={phoneDigits}
-                onChangeText={handlePhoneChange}
-                keyboardType="phone-pad"
-                placeholder="Enter mobile number"
-                maxLength={10} // 10 digits
-              />
-            </View>
+  <TextInput
+    style={[
+      styles.phoneinput,
+      phoneError && styles.inputError,
+      { flex: 1 },
+    ]}
+    value={phoneDigits}
+    onChangeText={handlePhoneChange}
+    keyboardType="phone-pad"
+    placeholder="Enter mobile number"
+    maxLength={10}
+  />
+</View>
             {phoneError && <Text style={styles.errorText}>{phoneError}</Text>}
           </View>
 
@@ -429,17 +421,19 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderColor: '#119FB3',
       borderRadius: 10,
       paddingHorizontal: 10,
+      overflow: 'hidden',
     },
     phoneinput: {
       backgroundColor: theme.colors.card,
       padding: 12,
       fontSize: 16,
       color: theme.colors.text,
+      marginLeft: 0,
     },
     input: {
       backgroundColor: theme.colors.card,
       borderRadius: 10,
-      padding: 12,
+      padding: 10,
       fontSize: 16,
       color: theme.colors.text,
       borderWidth: 1,
@@ -460,13 +454,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       elevation: 0,
     },
     picker: {
-      width: 95,
+      width: 110,
       borderWidth: 1,
       borderColor: '#119FB3',
       borderRadius: 10,
       color: theme.colors.text,
       backgroundColor: theme.colors.card,
-      // Remove padding if it conflicts with alignment
+      marginRight: -8,
     },
     inputError: {
       borderColor: 'red',
@@ -515,7 +509,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       padding: 20,
     },
     inputGroup: {
-      marginBottom: 20,
+      marginBottom: 15,
     },
     label: {
       fontSize: 16,

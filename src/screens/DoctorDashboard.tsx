@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -85,11 +85,11 @@ const DoctorDashboard: React.FC = () => {
     ),
     insets,
   );
-
+  const scrollViewRef = useRef<ScrollView>(null);
   const navigation = useNavigation<DashboardScreenNavigationProp>();
   const {session} = useSession();
   const {width} = useWindowDimensions();
-
+  
   const [refreshing, setRefreshing] = useState(false);
   const [doctorLoading, setDoctorLoading] = useState(true);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
@@ -117,6 +117,15 @@ const DoctorDashboard: React.FC = () => {
       setDoctorLoading(false);
     }
   };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Scroll to top when screen comes into focus
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const fetchAppointments = async () => {
     if (!session.idToken) return;
@@ -439,6 +448,7 @@ const DoctorDashboard: React.FC = () => {
     <SafeAreaView style={styles.safeArea}>
       <DashboardHeader />
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -593,7 +603,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       backgroundColor: '#F8F8F8',
     },
     drawerTitle: {
-      fontSize: 20,
+      fontSize: 18,
       fontWeight: 'bold',
       color: '#007B8E',
     },
@@ -614,8 +624,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       marginLeft: 16,
     },
     logoutItem: {
-      marginTop: 20,
-      marginBottom: 28,
+      marginTop: 5,
+      marginBottom: 5,
     },
     logoutText: {
       color: '#FF3B30',
@@ -692,9 +702,9 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     versionText: {
       position: 'absolute',
       bottom: 1,
-      right: -14,
+      right: -12,
       color: '#FFFFFF',
-      fontSize: 12,
+      fontSize: 10,
       opacity: 0.8,
       fontWeight: 'bold',
     },
@@ -769,7 +779,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       width: 90,
       height: 90,
       borderRadius: 50,
-      marginRight: 4,
+      marginRight: 5,
+      marginLeft: 5,
       borderWidth: 1,
       borderColor: '#c6eff5',
     },
@@ -780,13 +791,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       marginRight: 5,
     },
     profileName: {
-      fontSize: 24,
+      fontSize: 22,
       fontWeight: 'bold',
       color: theme.colors.text,
       marginBottom: 4,
     },
     profileOrg: {
-      fontSize: 18,
+      fontSize: 15,
       // color: theme.colors.primary,
       color: '#007B8E',
     },
@@ -803,12 +814,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       marginRight: 12,
     },
     profileDetailText: {
-      fontSize: 16,
+      fontSize: 15,
       color: theme.colors.text,
       marginLeft: 5,
     },
     profileDetailText1: {
-      fontSize: 16,
+      fontSize: 15,
       color: theme.colors.text,
     },
     statsSection: {

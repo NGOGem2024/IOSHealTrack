@@ -59,7 +59,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}>
-        <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+        <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
         <Image
           source={require('../assets/healtrack_logo1.png')}
           style={styles.logoImage}
@@ -130,10 +130,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     backButton: {
       flexDirection: 'row',
       alignItems: 'center',
+      marginLeft:-5,
     },
     logoImage: {
       width: 110,
       height: 35,
+      marginLeft: -5,
     },
     rightSection: {
       flexDirection: 'row',
@@ -149,8 +151,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     screenNameText: {
       color: '#FFFFFF',
       fontWeight: 'bold',
-      fontSize: 18,
-      marginRight: 15,
+      fontSize: 16,
+      marginRight: 10,
     },
     profileButton: {
       alignItems: 'flex-end',
@@ -161,9 +163,9 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     versionText: {
       position: 'absolute',
       bottom: 1,
-      right: -14,
+      right: -11,
       color: '#FFFFFF',
-      fontSize: 12,
+      fontSize: 10,
       opacity: 0.8,
       fontWeight: 'bold',
     },

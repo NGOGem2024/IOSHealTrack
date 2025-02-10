@@ -84,25 +84,26 @@ const DoctorProfileEdit: React.FC = () => {
           Authorization: `Bearer ${session.idToken}`,
         },
       });
-      await AsyncStorage.removeItem('doctor_photo');
-      const imageResponse = await fetch(response.data.doctors_photo);
-      const imageBlob = await imageResponse.blob();
-      const base64Image = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === 'string') {
-            resolve(reader.result);
-          } else {
-            reject(new Error('Failed to convert image to base64'));
-          }
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(imageBlob);
-      });
+      if (response.data.doctors_photo) {
+        await AsyncStorage.removeItem('doctor_photo');
+        const imageResponse = await fetch(response.data.doctors_photo);
+        const imageBlob = await imageResponse.blob();
+        const base64Image = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (typeof reader.result === 'string') {
+              resolve(reader.result);
+            } else {
+              reject(new Error('Failed to convert image to base64'));
+            }
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(imageBlob);
+        });
 
-      // Store in AsyncStorage
-      await AsyncStorage.setItem('doctor_photo', base64Image);
-
+        // Store in AsyncStorage
+        await AsyncStorage.setItem('doctor_photo', base64Image);
+      }
       setProfileInfo(response.data);
       setOriginalProfileInfo(response.data);
     } catch (error) {
@@ -223,13 +224,13 @@ const DoctorProfileEdit: React.FC = () => {
     }
   };
 
-  // if (isLoading) {
-  //   return (
-  //     <View style={styles.loadingContainer}>
-  //       <LoadingScreen />
-  //     </View>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <LoadingScreen />
+      </View>
+    );
+  }
 
   if (!session.idToken) {
     return (

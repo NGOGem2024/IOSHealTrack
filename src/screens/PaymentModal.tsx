@@ -9,12 +9,11 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  Keyboard,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {useTheme} from './ThemeContext';
-import { getTheme } from './Theme';
+import {getTheme} from './Theme';
 
 interface Addon {
   name: string;
@@ -45,11 +44,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<string>('CASH');
   const [showPicker, setShowPicker] = useState(false);
   const {theme} = useTheme();
-    const styles = getStyles(
-      getTheme(
-        theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
-      ),
-    );
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
 
   useEffect(() => {
     if (visible && paymentInfo?.session_info?.per_session_amount) {

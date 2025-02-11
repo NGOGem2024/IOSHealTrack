@@ -10,6 +10,7 @@ import {
   TextInput,
   Dimensions,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import {Platform} from 'react-native';
@@ -193,7 +194,7 @@ const DoctorProfileEdit: React.FC = () => {
         name: fileName,
       } as any);
 
-      setIsSaving(true);
+      setIsLoading(true);
 
       const response = await instance.put(
         `/doctor/update-photo/${profileInfo._id}`,
@@ -220,8 +221,66 @@ const DoctorProfileEdit: React.FC = () => {
         handleError(error);
       }
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
+  };
+
+  const handleDeletePhoto = async () => {
+    Alert.alert(
+      'Delete Profile Photo',
+      'Are you sure you want to delete your profile photo?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsLoading(true);
+              await instance.delete(`/doctor/photo`, {
+                headers: {
+                  Authorization: `Bearer ${session.idToken}`,
+                },
+              });
+
+              // Update local state
+              setProfileInfo(prev => ({...prev, doctors_photo: ''}));
+              await AsyncStorage.removeItem('doctor_photo');
+
+              showSuccessToast('Profile photo deleted successfully');
+            } catch (error) {
+              handleError(error);
+            } finally {
+              setIsLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const renderProfilePhotoControls = () => {
+    return (
+      <View style={styles.photoControlsContainer}>
+        <TouchableOpacity
+          style={styles.cameraButton}
+          onPress={handleImagePick}
+          disabled={isSaving}>
+          <Icon name="camera" size={18} color="#FFFFFF" />
+        </TouchableOpacity>
+        {profileInfo.doctors_photo && (
+          <TouchableOpacity
+            style={styles.deletePhotoButton}
+            onPress={handleDeletePhoto}
+            disabled={isSaving}>
+            <Icon name="trash" size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+        )}
+      </View>
+    );
   };
 
   if (isLoading) {
@@ -274,12 +333,7 @@ const DoctorProfileEdit: React.FC = () => {
           <View style={styles.profileHeader}>
             <View style={styles.profileImageContainer}>
               <Image source={profilePhoto} style={styles.profilePhoto} />
-              <TouchableOpacity
-                style={styles.cameraButton}
-                onPress={handleImagePick}
-                disabled={isSaving}>
-                <Icon name="camera" size={18} color="#FFFFFF" />
-              </TouchableOpacity>
+              {renderProfilePhotoControls()}
             </View>
           </View>
         </View>
@@ -381,6 +435,43 @@ const DoctorProfileEdit: React.FC = () => {
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
+    photoControlsContainer: {
+      position: 'absolute',
+      bottom: 5,
+      right: 5,
+      flexDirection: 'row',
+      gap: 8,
+    },
+    cameraButton: {
+      backgroundColor: '#007B8E',
+      width: 30,
+      height: 30,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: '#FFFFFF',
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    deletePhotoButton: {
+      backgroundColor: '#DC2626',
+      width: 30,
+      height: 30,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: '#FFFFFF',
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
     safeArea: {
       flex: 1,
       backgroundColor: '#F5F7FA',
@@ -413,24 +504,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderWidth: 2,
       borderColor: '#FFFFFF',
       backgroundColor: '#FFFFFF',
-    },
-    cameraButton: {
-      position: 'absolute',
-      bottom: 5,
-      right: 5,
-      backgroundColor: '#007B8E',
-      width: 30,
-      height: 30,
-      borderRadius: 16,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: 2,
-      borderColor: '#FFFFFF',
-      shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
     },
     headerInfo: {
       flex: 1,

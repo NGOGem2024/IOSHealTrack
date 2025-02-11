@@ -14,6 +14,7 @@ import {
 import {Picker} from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {useTheme} from './ThemeContext';
+import { getTheme } from './Theme';
 
 interface Addon {
   name: string;
@@ -43,9 +44,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [addons, setAddons] = useState<Addon[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<string>('CASH');
   const [showPicker, setShowPicker] = useState(false);
-
   const {theme} = useTheme();
-  const styles = getModalStyles();
+    const styles = getStyles(
+      getTheme(
+        theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+      ),
+    );
 
   useEffect(() => {
     if (visible && paymentInfo?.session_info?.per_session_amount) {
@@ -151,8 +155,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       </View>
     );
   };
-
-  // Rest of your component remains the same until the return statement
 
   return (
     <Modal
@@ -290,18 +292,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   );
 };
 
-const COLORS = {
-  primary: '#119FB3',
-  secondary: '#6c757d',
-  text: '#2c3e50',
-  border: '#ced4da',
-  background: '#f8f9fa',
-  white: 'white',
-  error: '#e74c3c',
-  overlay: 'rgba(0, 0, 0, 0.5)',
-};
-
-const getModalStyles = () =>
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     item1: {
       color: 'gray',
@@ -315,7 +306,7 @@ const getModalStyles = () =>
     },
     modalOverlay: {
       flex: 1,
-      backgroundColor: COLORS.overlay,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
       justifyContent: 'center',
       width: '100%',
       alignItems: 'center',
@@ -353,14 +344,14 @@ const getModalStyles = () =>
     },
     pickerButton: {
       padding: 12,
-      backgroundColor: COLORS.background,
+      backgroundColor: theme.colors.background,
       borderWidth: 1,
-      borderColor: COLORS.border,
+      borderColor: theme.colors.border,
       borderRadius: 10,
     },
     pickerButtonText: {
       fontSize: 16,
-      color: COLORS.text,
+      color: theme.colors.text,
     },
     pickerModalOverlay: {
       flex: 1,
@@ -373,13 +364,13 @@ const getModalStyles = () =>
     },
     pickerHeader: {
       borderBottomWidth: 1,
-      borderColor: COLORS.border,
+      borderColor: theme.colors.primary,
       padding: 15,
-      backgroundColor: COLORS.background,
+      backgroundColor: theme.colors.background,
       alignItems: 'flex-end',
     },
     pickerDoneButtonText: {
-      color: COLORS.primary,
+      color: theme.colors.secondary,
       fontSize: 16,
       fontWeight: '600',
     },

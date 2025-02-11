@@ -251,7 +251,8 @@ const DoctorProfileEdit: React.FC = () => {
       <BackTabTop screenName="Doctor Profile" />
       <ScrollView
         style={styles.scrollView}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps={'handled'}>
         <View style={styles.headerContainer}>
           <View style={styles.coverPhoto}>
             <View style={styles.headerInfo}>

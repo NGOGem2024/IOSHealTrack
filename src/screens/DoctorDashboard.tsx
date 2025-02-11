@@ -33,6 +33,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import ActiveTherapyPlans from './Activeplans';
 import LoadingScreen from '../components/loadingScreen';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import EnhancedProfilePhoto from './EnhancedProfilePhoto';
 
 interface DoctorInfo {
   _id: string;
@@ -89,7 +90,7 @@ const DoctorDashboard: React.FC = () => {
   const navigation = useNavigation<DashboardScreenNavigationProp>();
   const {session} = useSession();
   const {width} = useWindowDimensions();
-  
+
   const [refreshing, setRefreshing] = useState(false);
   const [doctorLoading, setDoctorLoading] = useState(true);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
@@ -121,7 +122,7 @@ const DoctorDashboard: React.FC = () => {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       // Scroll to top when screen comes into focus
-      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      scrollViewRef.current?.scrollTo({y: 0, animated: true});
     });
 
     return unsubscribe;
@@ -299,20 +300,19 @@ const DoctorDashboard: React.FC = () => {
   };
 
   const renderCard = (item: Item, index: number) => {
-    const IconComponent = item.label === "All Doctors" ? FontAwesome : Icon;
-    const iconName = item.label === "All Doctors" ? "user-md" : item.icon;
+    const IconComponent = item.label === 'All Doctors' ? FontAwesome : Icon;
+    const iconName = item.label === 'All Doctors' ? 'user-md' : item.icon;
 
     return (
       <TouchableOpacity
         key={index}
         style={[
           styles.card,
-          !item.screen && { opacity: 0.5 },
-          { width: (width - 64) / 3 },
+          !item.screen && {opacity: 0.5},
+          {width: (width - 64) / 3},
         ]}
         onPress={() => item.screen && handleNavigation(item.screen)}
-        disabled={!item.screen}
-      >
+        disabled={!item.screen}>
         <IconComponent
           name={iconName}
           size={32}
@@ -324,12 +324,12 @@ const DoctorDashboard: React.FC = () => {
   };
 
   const items: Item[] = [
-    { icon: "user-md", label: "All Doctors", screen: "AllDoctors" },
-    { icon: "list-outline", label: "View Patients", screen: "AllPatients" },
+    {icon: 'user-md', label: 'All Doctors', screen: 'AllDoctors'},
+    {icon: 'list-outline', label: 'View Patients', screen: 'AllPatients'},
     {
-      icon: "add-circle-outline",
-      label: "Add Doctor",
-      screen: doctorInfo?.is_admin ? "DoctorRegister" : undefined,
+      icon: 'add-circle-outline',
+      label: 'Add Doctor',
+      screen: doctorInfo?.is_admin ? 'DoctorRegister' : undefined,
     },
   ];
 
@@ -362,61 +362,61 @@ const DoctorDashboard: React.FC = () => {
           <Ionicons name="menu" size={26} color="#FFFFFF" />
         </TouchableOpacity>
         <Modal
-        isVisible={isDropdownVisible}
-        onBackdropPress={toggleDropdown}
-        animationIn="slideInRight"
-        animationOut="slideOutRight"
-        animationInTiming={300}
-        animationOutTiming={300}
-        backdropTransitionInTiming={300}
-        backdropTransitionOutTiming={300}
-        style={styles.modal}
-        propagateSwipe={true}
-        backdropOpacity={0.5}>
-        <View style={[styles.dropdown, { width: width * 0.50 }]}>
-          <View style={styles.drawerHeader}>
-            <Text style={styles.drawerTitle}>Menu</Text>
-            <TouchableOpacity onPress={toggleDropdown}>
-              <Ionicons name="close" size={24} color="#007B8E" />
+          isVisible={isDropdownVisible}
+          onBackdropPress={toggleDropdown}
+          animationIn="slideInRight"
+          animationOut="slideOutRight"
+          animationInTiming={300}
+          animationOutTiming={300}
+          backdropTransitionInTiming={300}
+          backdropTransitionOutTiming={300}
+          style={styles.modal}
+          propagateSwipe={true}
+          backdropOpacity={0.5}>
+          <View style={[styles.dropdown, {width: width * 0.5}]}>
+            <View style={styles.drawerHeader}>
+              <Text style={styles.drawerTitle}>Menu</Text>
+              <TouchableOpacity onPress={toggleDropdown}>
+                <Ionicons name="close" size={24} color="#007B8E" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.drawerDivider} />
+
+            <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => navigateToScreen('AllPatients')}>
+              <Ionicons name="people-outline" size={24} color="#007B8E" />
+              <Text style={styles.drawerItemText}>All Patients</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => navigateToScreen('DoctorDashboard')}>
+              <Ionicons name="grid-outline" size={24} color="#007B8E" />
+              <Text style={styles.drawerItemText}>Dashboard</Text>
+            </TouchableOpacity>
+
+            {session.is_admin && (
+              <TouchableOpacity
+                style={styles.drawerItem}
+                onPress={() => navigateToScreen('Settings')}>
+                <Ionicons name="settings-outline" size={24} color="#007B8E" />
+                <Text style={styles.drawerItemText}>Settings</Text>
+              </TouchableOpacity>
+            )}
+
+            <View style={styles.drawerDivider} />
+
+            <TouchableOpacity
+              style={[styles.drawerItem, styles.logoutItem]}
+              onPress={() => navigateToScreen('Logout')}>
+              <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
+              <Text style={[styles.drawerItemText, styles.logoutText]}>
+                Logout
+              </Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.drawerDivider} />
-          
-          <TouchableOpacity 
-            style={styles.drawerItem} 
-            onPress={() => navigateToScreen('AllPatients')}>
-            <Ionicons name="people-outline" size={24} color="#007B8E" />
-            <Text style={styles.drawerItemText}>All Patients</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.drawerItem} 
-            onPress={() => navigateToScreen('DoctorDashboard')}>
-            <Ionicons name="grid-outline" size={24} color="#007B8E" />
-            <Text style={styles.drawerItemText}>Dashboard</Text>
-          </TouchableOpacity>
-          
-          {session.is_admin && (
-            <TouchableOpacity 
-              style={styles.drawerItem} 
-              onPress={() => navigateToScreen('Settings')}>
-              <Ionicons name="settings-outline" size={24} color="#007B8E" />
-              <Text style={styles.drawerItemText}>Settings</Text>
-            </TouchableOpacity>
-          )}
-          
-          <View style={styles.drawerDivider} />
-          
-          <TouchableOpacity 
-            style={[styles.drawerItem, styles.logoutItem]} 
-            onPress={() => navigateToScreen('Logout')}>
-            <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
-            <Text style={[styles.drawerItemText, styles.logoutText]}>
-              Logout
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+        </Modal>
       </View>
     );
   };
@@ -456,13 +456,10 @@ const DoctorDashboard: React.FC = () => {
         }>
         {doctorInfo && (
           <View style={styles.profileSection}>
-            <Image
-              source={
-                doctorInfo.doctors_photo
-                  ? {uri: doctorInfo.doctors_photo}
-                  : require('../assets/profile.png')
-              }
-              style={styles.profilePhoto}
+            <EnhancedProfilePhoto
+              photoUri={doctorInfo.doctors_photo}
+              size={90}
+              defaultImage={require('../assets/profile.png')}
             />
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>

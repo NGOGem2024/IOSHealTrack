@@ -20,6 +20,7 @@ import BackTabTop from './BackTopTab';
 import {getTheme} from './Theme';
 import {useTheme} from './ThemeContext';
 import LoadingScreen from '../components/loadingScreen';
+import EnhancedProfilePhoto from './EnhancedProfilePhoto';
 
 type DoctorScreenProps = StackScreenProps<RootStackParamList, 'Doctor'>;
 
@@ -66,17 +67,16 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   const formatPhoneNumber = (phone: string): string => {
     // Remove all non-digit characters
     const cleaned = phone.replace(/\D/g, '');
-    
+
     // Check if it starts with + and has country code
     if (phone.startsWith('+')) {
       // Format as +XX XXXXXXXXX
       return `+${cleaned.slice(0, 2)} ${cleaned.slice(2)}`;
     }
-    
+
     // If no + prefix, assume it needs to be added with default country code
     return `+91 ${cleaned}`;
   };
-  
 
   useEffect(() => {
     const fetchDoctorData = async () => {
@@ -108,7 +108,6 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     );
   }
 
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackTabTop screenName="Doctor Profile" />
@@ -124,13 +123,10 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           {/* Profile Header with new layout */}
           <View style={styles.profileHeader}>
             <View style={styles.headerRow}>
-              <Image
-                source={
-                  doctorData?.doctors_photo
-                    ? {uri: doctorData.doctors_photo}
-                    : require('../assets/profile.png')
-                }
-                style={styles.profileImage}
+              <EnhancedProfilePhoto
+                photoUri={doctorData?.doctors_photo}
+                size={80}
+                defaultImage={require('../assets/profile.png')}
               />
               <View style={styles.headerInfo}>
                 <View style={styles.nameContainer}>
@@ -157,7 +153,9 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
             <View style={styles.infoRow}>
               <MaterialIcons name="call" size={20} color="#007B8E" />
               <Text style={styles.infoText}>
-                {doctorData?.doctor_phone ? formatPhoneNumber(doctorData.doctor_phone) : ''}
+                {doctorData?.doctor_phone
+                  ? formatPhoneNumber(doctorData.doctor_phone)
+                  : ''}
               </Text>
             </View>
 
@@ -304,7 +302,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 18,
       fontWeight: 'bold',
       color: theme.colors.text,
-      
     },
     emailContainer: {
       flexDirection: 'row',

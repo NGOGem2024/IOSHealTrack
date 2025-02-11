@@ -168,34 +168,73 @@ const DoctorProfileEdit: React.FC = () => {
   };
 
   const handleImagePick = async () => {
+    Alert.alert('Profile Photo', 'Choose a photo from:', [
+      {
+        text: 'Camera',
+        onPress: async () => {
+          try {
+            const image = await ImagePicker.openCamera({
+              width: 800,
+              height: 800,
+              cropping: true,
+              cropperCircleOverlay: true,
+              mediaType: 'photo',
+              compressImageQuality: 0.7,
+            });
+
+            handleImageUpload(image);
+          } catch (error: any) {
+            if (error?.code !== 'E_PICKER_CANCELLED') {
+              handleError(error);
+            }
+          }
+        },
+      },
+      {
+        text: 'Gallery',
+        onPress: async () => {
+          try {
+            const image = await ImagePicker.openPicker({
+              width: 800,
+              height: 800,
+              cropping: true,
+              cropperCircleOverlay: true,
+              mediaType: 'photo',
+              compressImageQuality: 0.7,
+            });
+
+            handleImageUpload(image);
+          } catch (error: any) {
+            if (error?.code !== 'E_PICKER_CANCELLED') {
+              handleError(error);
+            }
+          }
+        },
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
+
+  // Separate the upload logic to avoid code duplication
+  const handleImageUpload = async (image: any) => {
+    if (!image) return;
+
+    const fileName = image.path.split('/').pop() || 'profile.jpg';
+
+    const formData = new FormData();
+    formData.append('profile_photo', {
+      uri:
+        Platform.OS === 'ios' ? image.path.replace('file://', '') : image.path,
+      type: image.mime || 'image/jpeg',
+      name: fileName,
+    } as any);
+
+    setIsLoading(true);
+
     try {
-      const image = await ImagePicker.openPicker({
-        width: 800,
-        height: 800,
-        cropping: true,
-        cropperCircleOverlay: true,
-        mediaType: 'photo',
-        compressImageQuality: 0.7,
-      });
-
-      if (!image) {
-        return;
-      }
-
-      const fileName = image.path.split('/').pop() || 'profile.jpg';
-
-      const formData = new FormData();
-      formData.append('profile_photo', {
-        uri:
-          Platform.OS === 'ios'
-            ? image.path.replace('file://', '')
-            : image.path,
-        type: image.mime || 'image/jpeg',
-        name: fileName,
-      } as any);
-
-      setIsLoading(true);
-
       const response = await instance.put(
         `/doctor/update-photo/${profileInfo._id}`,
         formData,
@@ -208,7 +247,6 @@ const DoctorProfileEdit: React.FC = () => {
       );
 
       if (response.data.imageUrl) {
-        // Update the state
         setProfileInfo(prev => ({
           ...prev,
           doctors_photo: response.data.imageUrl,
@@ -216,15 +254,12 @@ const DoctorProfileEdit: React.FC = () => {
         showSuccessToast('Profile photo updated successfully');
         fetchDoctorInfo();
       }
-    } catch (error: any) {
-      if (error?.code !== 'E_PICKER_CANCELLED') {
-        handleError(error);
-      }
+    } catch (error) {
+      handleError(error);
     } finally {
       setIsLoading(false);
     }
   };
-
   const handleDeletePhoto = async () => {
     Alert.alert(
       'Delete Profile Photo',

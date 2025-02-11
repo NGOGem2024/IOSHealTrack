@@ -9,6 +9,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
+  Keyboard,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -303,7 +304,7 @@ const COLORS = {
 const getModalStyles = () =>
   StyleSheet.create({
     item1: {
-      color: 'gray', 
+      color: 'gray',
     },
 
     item: {

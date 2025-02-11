@@ -11,6 +11,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Alert,
+  Modal,
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import {Platform} from 'react-native';
@@ -63,6 +64,7 @@ const DoctorProfileEdit: React.FC = () => {
     useState<ProfileInfo>(initialProfileState);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [showPhotoOptions, setShowPhotoOptions] = useState(false);
 
   useEffect(() => {
     if (session.idToken) {
@@ -296,28 +298,56 @@ const DoctorProfileEdit: React.FC = () => {
       ],
     );
   };
-
-  const renderProfilePhotoControls = () => {
+  const renderPhotoOptionsModal = () => {
     return (
-      <View style={styles.photoControlsContainer}>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showPhotoOptions}
+        onRequestClose={() => setShowPhotoOptions(false)}>
         <TouchableOpacity
-          style={styles.cameraButton}
-          onPress={handleImagePick}
-          disabled={isSaving}>
-          <Icon name="camera" size={18} color="#FFFFFF" />
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowPhotoOptions(false)}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => {
+                setShowPhotoOptions(false);
+                handleImagePick();
+              }}>
+              <Icon name="camera-outline" size={24} color="#007B8E" />
+              <Text style={styles.modalOptionText}>Change Photo</Text>
+            </TouchableOpacity>
+            {profileInfo.doctors_photo && (
+              <TouchableOpacity
+                style={[styles.modalOption, styles.deleteOption]}
+                onPress={() => {
+                  setShowPhotoOptions(false);
+                  handleDeletePhoto();
+                }}>
+                <Icon name="trash-outline" size={24} color="#DC2626" />
+                <Text style={[styles.modalOptionText, styles.deleteText]}>
+                  Delete Photo
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </TouchableOpacity>
-        {profileInfo.doctors_photo && (
-          <TouchableOpacity
-            style={styles.deletePhotoButton}
-            onPress={handleDeletePhoto}
-            disabled={isSaving}>
-            <Icon name="trash" size={18} color="#FFFFFF" />
-          </TouchableOpacity>
-        )}
-      </View>
+      </Modal>
     );
   };
 
+  const renderProfilePhotoControls = () => {
+    return (
+      <TouchableOpacity
+        style={styles.plusButton}
+        onPress={() => setShowPhotoOptions(true)}
+        disabled={isSaving}>
+        <Icon name="add-circle" size={28} color="#007B8E" />
+      </TouchableOpacity>
+    );
+  };
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -463,13 +493,62 @@ const DoctorProfileEdit: React.FC = () => {
             )}
           </TouchableOpacity>
         </View>
+       
       </ScrollView>
+      {renderPhotoOptionsModal()}
     </SafeAreaView>
   );
 };
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
+    plusButton: {
+      position: 'absolute',
+      bottom: 5,
+      right: 5,
+      backgroundColor: '#FFFFFF',
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContent: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 15,
+      padding: 20,
+      width: width * 0.8,
+      maxWidth: 300,
+    },
+    modalOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: '#E2E8F0',
+    },
+    deleteOption: {
+      borderBottomWidth: 0,
+    },
+    modalOptionText: {
+      fontSize: 16,
+      marginLeft: 15,
+      color: '#2C3E50',
+    },
+    deleteText: {
+      color: '#DC2626',
+    },
     photoControlsContainer: {
       position: 'absolute',
       bottom: 5,

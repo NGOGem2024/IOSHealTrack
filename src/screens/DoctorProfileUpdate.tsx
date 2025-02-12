@@ -87,26 +87,6 @@ const DoctorProfileEdit: React.FC = () => {
           Authorization: `Bearer ${session.idToken}`,
         },
       });
-      if (response.data.doctors_photo) {
-        await AsyncStorage.removeItem('doctor_photo');
-        const imageResponse = await fetch(response.data.doctors_photo);
-        const imageBlob = await imageResponse.blob();
-        const base64Image = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            if (typeof reader.result === 'string') {
-              resolve(reader.result);
-            } else {
-              reject(new Error('Failed to convert image to base64'));
-            }
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(imageBlob);
-        });
-
-        // Store in AsyncStorage
-        await AsyncStorage.setItem('doctor_photo', base64Image);
-      }
       setProfileInfo(response.data);
       setOriginalProfileInfo(response.data);
     } catch (error) {
@@ -247,6 +227,26 @@ const DoctorProfileEdit: React.FC = () => {
           },
         },
       );
+      if (response.data.imageUrl) {
+        await AsyncStorage.removeItem('doctor_photo');
+        const imageResponse = await fetch(response.data.imageUrl);
+        const imageBlob = await imageResponse.blob();
+        const base64Image = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (typeof reader.result === 'string') {
+              resolve(reader.result);
+            } else {
+              reject(new Error('Failed to convert image to base64'));
+            }
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(imageBlob);
+        });
+
+        // Store in AsyncStorage
+        await AsyncStorage.setItem('doctor_photo', base64Image);
+      }
 
       if (response.data.imageUrl) {
         setProfileInfo(prev => ({
@@ -493,7 +493,6 @@ const DoctorProfileEdit: React.FC = () => {
             )}
           </TouchableOpacity>
         </View>
-       
       </ScrollView>
       {renderPhotoOptionsModal()}
     </SafeAreaView>

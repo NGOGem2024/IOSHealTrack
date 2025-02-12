@@ -20,6 +20,7 @@ import LoadingScreen from '../components/loadingScreen';
 import {RootStackParamList, RootTabParamList} from '../types/types';
 import {StackNavigationProp} from '@react-navigation/stack';
 import BackTabTop from './BackTopTab';
+import EnhancedProfilePhoto from './EnhancedProfilePhoto';
 
 interface DoctorInfo {
   _id: string;
@@ -130,13 +131,10 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.profileImageContainer}>
-            <Image
-              source={
-                doctorInfo?.doctors_photo
-                  ? {uri: doctorInfo.doctors_photo}
-                  : require('../assets/profile.png')
-              }
-              style={styles.profileImage}
+            <EnhancedProfilePhoto
+              photoUri={doctorInfo?.doctors_photo}
+              size={90}
+              defaultImage={require('../assets/profile.png')}
             />
           </View>
 
@@ -153,13 +151,12 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
               </Text>
             )}
             <View style={styles.profileInfoContainer1}>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => navigation.navigate('DoctorProfileEdit')}>
-              <Text style={styles.editButtonText}>Edit Profile</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => navigation.navigate('DoctorProfileEdit')}>
+                <Text style={styles.editButtonText}>Edit Profile</Text>
+              </TouchableOpacity>
             </View>
-            
           </View>
         </View>
 
@@ -227,11 +224,10 @@ const styles = StyleSheet.create({
   },
   profileImageContainer: {
     alignItems: 'center',
-   
   },
   profileInfoContainer: {
     flex: 1,
-    marginLeft:10,
+    marginLeft: 10,
   },
   profileInfoContainer1: {
     width: 80,

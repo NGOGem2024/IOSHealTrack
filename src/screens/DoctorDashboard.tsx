@@ -456,13 +456,13 @@ const DoctorDashboard: React.FC = () => {
         }>
         {doctorInfo && (
           <View style={styles.profileSection}>
-           <View style={styles.profilePhoto}>
-           <EnhancedProfilePhoto
-              photoUri={doctorInfo.doctors_photo}
-              size={90}
-              defaultImage={require('../assets/profile.png')}
-            />
-          </View>
+            <View style={styles.profilePhoto}>
+              <EnhancedProfilePhoto
+                photoUri={doctorInfo.doctors_photo}
+                size={90}
+                defaultImage={require('../assets/profile.png')}
+              />
+            </View>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>
                 Dr. {doctorInfo.doctor_first_name} {doctorInfo.doctor_last_name}
@@ -582,7 +582,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     dropdown: {
       backgroundColor: '#FFFFFF',
-      height: '35%',
+      height: '34%',
       padding: 0,
       shadowColor: '#000',
       shadowOffset: {

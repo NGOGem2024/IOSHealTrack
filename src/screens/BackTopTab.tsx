@@ -160,7 +160,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     dropdown: {
       backgroundColor: '#FFFFFF',
-      height: '35%',
+      height: '34%',
       padding: 0,
       shadowColor: '#000',
       shadowOffset: {
@@ -202,7 +202,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     logoutItem: {
       marginTop: 5,
-      marginBottom: 5,
+      marginBottom: 2,
     },
     logoutText: {
       color: '#FF3B30',

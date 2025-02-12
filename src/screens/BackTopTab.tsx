@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Image,
   StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -32,6 +33,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [storedPhoto, setStoredPhoto] = useState<string | null>(null);
 
+  const {width} = useWindowDimensions();
   const toggleDropdown = () => setDropdownVisible(!isDropdownVisible);
 
   const navigateToScreen = (screenName: string) => {
@@ -85,27 +87,56 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
       <Modal
         isVisible={isDropdownVisible}
         onBackdropPress={toggleDropdown}
-        animationIn="slideInDown"
-        animationOut="slideOutUp"
+        animationIn="slideInRight"
+        animationOut="slideOutRight"
         animationInTiming={300}
         animationOutTiming={300}
         backdropTransitionInTiming={300}
         backdropTransitionOutTiming={300}
-        style={styles.modal}>
-        <View style={styles.dropdown}>
-          <TouchableOpacity onPress={() => navigateToScreen('AllPatients')}>
-            <Text style={styles.dropdownItem}>All Patients</Text>
+        style={styles.modal}
+        propagateSwipe={true}
+        backdropOpacity={0.5}>
+        <View style={[styles.dropdown, {width: width * 0.5}]}>
+          <View style={styles.drawerHeader}>
+            <Text style={styles.drawerTitle}>Menu</Text>
+            <TouchableOpacity onPress={toggleDropdown}>
+              <Ionicons name="close" size={24} color="#007B8E" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.drawerDivider} />
+
+          <TouchableOpacity
+            style={styles.drawerItem}
+            onPress={() => navigateToScreen('AllPatients')}>
+            <Ionicons name="people-outline" size={24} color="#007B8E" />
+            <Text style={styles.drawerItemText}>All Patients</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigateToScreen('DoctorDashboard')}>
-            <Text style={styles.dropdownItem}>Dashboard</Text>
+
+          <TouchableOpacity
+            style={styles.drawerItem}
+            onPress={() => navigateToScreen('DoctorDashboard')}>
+            <Ionicons name="grid-outline" size={24} color="#007B8E" />
+            <Text style={styles.drawerItemText}>Dashboard</Text>
           </TouchableOpacity>
+
           {session.is_admin && (
-            <TouchableOpacity onPress={() => navigateToScreen('Settings')}>
-              <Text style={styles.dropdownItem}>Settings</Text>
+            <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => navigateToScreen('Settings')}>
+              <Ionicons name="settings-outline" size={24} color="#007B8E" />
+              <Text style={styles.drawerItemText}>Settings</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity onPress={() => navigateToScreen('Logout')}>
-            <Text style={[styles.dropdownItem, styles.logoutText]}>Logout</Text>
+
+          <View style={styles.drawerDivider} />
+
+          <TouchableOpacity
+            style={[styles.drawerItem, styles.logoutItem]}
+            onPress={() => navigateToScreen('Logout')}>
+            <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
+            <Text style={[styles.drawerItemText, styles.logoutText]}>
+              Logout
+            </Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -127,10 +158,59 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       borderTopColor: 'white',
       borderTopWidth: 1,
     },
+    dropdown: {
+      backgroundColor: '#FFFFFF',
+      height: '35%',
+      padding: 0,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: -2,
+        height: 0,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    drawerHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 10,
+      backgroundColor: '#F8F8F8',
+    },
+    drawerTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#007B8E',
+    },
+    drawerDivider: {
+      height: 1,
+      backgroundColor: '#E0E0E0',
+      marginVertical: 2,
+    },
+    drawerItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+    },
+    drawerItemText: {
+      fontSize: 16,
+      color: '#333333',
+      marginLeft: 16,
+    },
+    logoutItem: {
+      marginTop: 5,
+      marginBottom: 5,
+    },
+    logoutText: {
+      color: '#FF3B30',
+    },
     backButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginLeft:-5,
+      marginLeft: -5,
     },
     logoImage: {
       width: 110,
@@ -173,31 +253,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       margin: 0,
       justifyContent: 'flex-start',
       alignItems: 'flex-end',
-    },
-    dropdown: {
-      backgroundColor: theme.colors.card,
-      borderRadius: 10,
-      padding: 10,
-      marginTop: 60,
-      marginRight: 15,
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
-      minWidth: 180,
-      transform: [{translateY: -10}],
-    },
-    dropdownItem: {
-      padding: 10,
-      color: theme.colors.text,
-      fontSize: 16,
-    },
-    logoutText: {
-      color: 'red',
     },
   });
 

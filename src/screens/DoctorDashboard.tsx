@@ -456,11 +456,13 @@ const DoctorDashboard: React.FC = () => {
         }>
         {doctorInfo && (
           <View style={styles.profileSection}>
-            <EnhancedProfilePhoto
+           <View style={styles.profilePhoto}>
+           <EnhancedProfilePhoto
               photoUri={doctorInfo.doctors_photo}
               size={90}
               defaultImage={require('../assets/profile.png')}
             />
+          </View>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>
                 Dr. {doctorInfo.doctor_first_name} {doctorInfo.doctor_last_name}
@@ -772,15 +774,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       shadowOpacity: 0.1,
       shadowRadius: 4,
     },
-    profilePhoto: {
-      width: 90,
-      height: 90,
-      borderRadius: 50,
-      marginRight: 5,
-      marginLeft: 5,
-      borderWidth: 1,
-      borderColor: '#c6eff5',
-    },
     profileInfo: {
       flex: 1,
       justifyContent: 'center',
@@ -795,7 +788,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     profileOrg: {
       fontSize: 15,
-      // color: theme.colors.primary,
       color: '#007B8E',
     },
     profileDetail: {
@@ -809,6 +801,11 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       // color: theme.colors.primary,
       color: '#007B8E',
       marginRight: 12,
+    },
+    profilePhoto: {
+      flexDirection: 'row',
+      backgroundColor: theme.colors.card,
+      margin: 5,
     },
     profileDetailText: {
       fontSize: 15,

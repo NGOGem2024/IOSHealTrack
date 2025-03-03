@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  FlatList,
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import {Platform} from 'react-native';
@@ -27,6 +28,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const {width} = Dimensions.get('window');
 
+interface YouTubeVideo {
+  id: string;
+  title: string;
+  url: string;
+  description: string;
+}
+
 interface ProfileInfo {
   _id: string;
   doctor_first_name: string;
@@ -36,6 +44,8 @@ interface ProfileInfo {
   doctor_email: string;
   doctor_phone: string;
   doctors_photo: string;
+  specialization: string; // New field for specialization
+  youtube_videos: YouTubeVideo[]; // New field for YouTube videos
 }
 
 const initialProfileState: ProfileInfo = {
@@ -47,6 +57,8 @@ const initialProfileState: ProfileInfo = {
   doctor_email: '',
   doctor_phone: '',
   doctors_photo: '',
+  specialization: '', // Default empty value
+  youtube_videos: [], // Default empty array
 };
 
 const DoctorProfileEdit: React.FC = () => {
@@ -65,6 +77,13 @@ const DoctorProfileEdit: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
+
+  // New state for handling YouTube video input
+  const [newVideoTitle, setNewVideoTitle] = useState('');
+  const [newVideoDescription, setNewVideoDescription] = useState('');
+  const [newVideoUrl, setNewVideoUrl] = useState('');
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
 
   useEffect(() => {
     if (session.idToken) {
@@ -87,8 +106,16 @@ const DoctorProfileEdit: React.FC = () => {
           Authorization: `Bearer ${session.idToken}`,
         },
       });
-      setProfileInfo(response.data);
-      setOriginalProfileInfo(response.data);
+
+      // If the API doesn't already return these fields, initialize them
+      const responseData = {
+        ...response.data,
+        specialization: response.data.specialization || '',
+        youtube_videos: response.data.youtube_videos || [],
+      };
+
+      setProfileInfo(responseData);
+      setOriginalProfileInfo(responseData);
     } catch (error) {
       handleError(error);
     } finally {
@@ -101,12 +128,16 @@ const DoctorProfileEdit: React.FC = () => {
   };
 
   const hasChanges = () => {
+    // Check if any field has changed, including the new fields
     return (
       profileInfo.doctor_first_name !== originalProfileInfo.doctor_first_name ||
       profileInfo.doctor_last_name !== originalProfileInfo.doctor_last_name ||
       profileInfo.qualification !== originalProfileInfo.qualification ||
       profileInfo.doctor_email !== originalProfileInfo.doctor_email ||
-      profileInfo.doctor_phone !== originalProfileInfo.doctor_phone
+      profileInfo.doctor_phone !== originalProfileInfo.doctor_phone ||
+      profileInfo.specialization !== originalProfileInfo.specialization ||
+      JSON.stringify(profileInfo.youtube_videos) !==
+        JSON.stringify(originalProfileInfo.youtube_videos)
     );
   };
 
@@ -132,6 +163,8 @@ const DoctorProfileEdit: React.FC = () => {
           qualification: profileInfo.qualification,
           doctor_email: profileInfo.doctor_email,
           doctor_phone: profileInfo.doctor_phone,
+          specialization: profileInfo.specialization,
+          youtube_videos: profileInfo.youtube_videos,
         },
         {
           headers: {
@@ -147,6 +180,97 @@ const DoctorProfileEdit: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // YouTube Video Management Functions
+  const handleAddVideo = () => {
+    // Simple validation
+    if (!newVideoTitle.trim() || !newVideoUrl.trim()) {
+      Alert.alert(
+        'Invalid Input',
+        'Please enter both title and URL for the video',
+      );
+      return;
+    }
+
+    // Basic URL validation
+    if (
+      !newVideoUrl.includes('youtube.com/') &&
+      !newVideoUrl.includes('youtu.be/')
+    ) {
+      Alert.alert('Invalid URL', 'Please enter a valid YouTube video URL');
+      return;
+    }
+
+    if (editingVideoId) {
+      // Update existing video
+      const updatedVideos = profileInfo.youtube_videos.map(video =>
+        video.id === editingVideoId
+          ? {
+              ...video,
+              title: newVideoTitle,
+              url: newVideoUrl,
+              description: newVideoDescription,
+            }
+          : video,
+      );
+
+      setProfileInfo(prev => ({
+        ...prev,
+        youtube_videos: updatedVideos,
+      }));
+    } else {
+      // Add new video
+      const newVideo: YouTubeVideo = {
+        id: Date.now().toString(),
+        title: newVideoTitle,
+        url: newVideoUrl,
+        description: newVideoDescription,
+      };
+
+      setProfileInfo(prev => ({
+        ...prev,
+        youtube_videos: [...prev.youtube_videos, newVideo],
+      }));
+    }
+
+    // Clear the inputs and close modal
+    setNewVideoTitle('');
+    setNewVideoUrl('');
+    setNewVideoDescription('');
+    setEditingVideoId(null);
+    setShowVideoModal(false);
+  };
+
+  const handleEditVideo = (video: YouTubeVideo) => {
+    setNewVideoTitle(video.title);
+    setNewVideoUrl(video.url);
+    setNewVideoDescription(video.description || '');
+    setEditingVideoId(video.id);
+    setShowVideoModal(true);
+  };
+
+  const handleDeleteVideo = (videoId: string) => {
+    Alert.alert('Delete Video', 'Are you sure you want to remove this video?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          const updatedVideos = profileInfo.youtube_videos.filter(
+            video => video.id !== videoId,
+          );
+
+          setProfileInfo(prev => ({
+            ...prev,
+            youtube_videos: updatedVideos,
+          }));
+        },
+      },
+    ]);
   };
 
   const handleImagePick = async () => {
@@ -262,6 +386,7 @@ const DoctorProfileEdit: React.FC = () => {
       setIsLoading(false);
     }
   };
+
   const handleDeletePhoto = async () => {
     Alert.alert(
       'Delete Profile Photo',
@@ -298,6 +423,7 @@ const DoctorProfileEdit: React.FC = () => {
       ],
     );
   };
+
   const renderPhotoOptionsModal = () => {
     return (
       <Modal
@@ -338,6 +464,93 @@ const DoctorProfileEdit: React.FC = () => {
     );
   };
 
+  const renderVideoModal = () => {
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showVideoModal}
+        onRequestClose={() => {
+          setShowVideoModal(false);
+          setNewVideoTitle('');
+          setNewVideoUrl('');
+          setEditingVideoId(null);
+        }}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => {
+            setShowVideoModal(false);
+            setNewVideoTitle('');
+            setNewVideoUrl('');
+            setEditingVideoId(null);
+          }}>
+          <View style={styles.videoModalContent}>
+            <Text style={styles.videoModalTitle}>
+              {editingVideoId ? 'Edit Video' : 'Add YouTube Video'}
+            </Text>
+
+            <View style={styles.videoInputGroup}>
+              <Text style={styles.videoInputLabel}>Video Title</Text>
+              <TextInput
+                style={styles.videoInput}
+                value={newVideoTitle}
+                onChangeText={setNewVideoTitle}
+                placeholder="Enter video title"
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            <View style={styles.videoInputGroup}>
+              <Text style={styles.videoInputLabel}>YouTube URL</Text>
+              <TextInput
+                style={styles.videoInput}
+                value={newVideoUrl}
+                onChangeText={setNewVideoUrl}
+                placeholder="Enter YouTube video URL"
+                placeholderTextColor="#999"
+                autoCapitalize="none"
+                keyboardType="url"
+              />
+            </View>
+            <View style={styles.videoInputGroup}>
+              <Text style={styles.videoInputLabel}>Description</Text>
+              <TextInput
+                style={[styles.videoInput, styles.videoDescriptionInput]}
+                value={newVideoDescription}
+                onChangeText={setNewVideoDescription}
+                placeholder="Enter video description"
+                placeholderTextColor="#999"
+                multiline={true}
+                numberOfLines={3}
+              />
+            </View>
+            <View style={styles.videoModalButtonsRow}>
+              <TouchableOpacity
+                style={styles.videoModalCancelButton}
+                onPress={() => {
+                  setShowVideoModal(false);
+                  setNewVideoTitle('');
+                  setNewVideoUrl('');
+                  setEditingVideoId(null);
+                }}>
+                <Text style={styles.videoModalCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.videoModalSaveButton}
+                onPress={handleAddVideo}>
+                <Text style={styles.videoModalSaveButtonText}>
+                  {editingVideoId ? 'Update' : 'Add'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
+
   const renderProfilePhotoControls = () => {
     return (
       <TouchableOpacity
@@ -348,6 +561,7 @@ const DoctorProfileEdit: React.FC = () => {
       </TouchableOpacity>
     );
   };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -430,6 +644,12 @@ const DoctorProfileEdit: React.FC = () => {
                 field: 'qualification',
               },
               {
+                label: 'Specialization',
+                icon: 'medical-outline',
+                value: profileInfo.specialization,
+                field: 'specialization',
+              },
+              {
                 label: 'Organization',
                 icon: 'business-outline',
                 value: profileInfo.organization_name,
@@ -477,6 +697,87 @@ const DoctorProfileEdit: React.FC = () => {
             ))}
           </View>
 
+          {/* YouTube Videos Section */}
+          <View style={styles.sectionHeader}>
+            <Icon name="videocam" size={22} color="#007B8E" />
+            <Text style={styles.sectionTitle}>YouTube Videos</Text>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.videosDescription}>
+              Add YouTube videos to display on your profile. Patients will be
+              able to view these videos to learn more about your expertise.
+            </Text>
+
+            {profileInfo.youtube_videos.length === 0 ? (
+              <View style={styles.noVideosContainer}>
+                <Icon name="videocam-outline" size={40} color="#CBD5E0" />
+                <Text style={styles.noVideosText}>No videos added yet</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={profileInfo.youtube_videos}
+                keyExtractor={item => item.id}
+                scrollEnabled={false}
+                renderItem={({item}) => (
+                  <View style={styles.videoItem}>
+                    <View style={styles.videoInfo}>
+                      <Icon
+                        name="logo-youtube"
+                        size={24}
+                        color="#FF0000"
+                        style={styles.youtubeIcon}
+                      />
+                      <View style={styles.videoTextContainer}>
+                        <Text style={styles.videoTitle} numberOfLines={1}>
+                          {item.title}
+                        </Text>
+                        <Text style={styles.videoUrl} numberOfLines={1}>
+                          {item.url}
+                        </Text>
+                        {item.description ? (
+                          <Text
+                            style={styles.videoDescription}
+                            numberOfLines={2}>
+                            {item.description}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </View>
+                    <View style={styles.videoActions}>
+                      <TouchableOpacity
+                        style={styles.videoEditButton}
+                        onPress={() => handleEditVideo(item)}>
+                        <Icon name="create-outline" size={20} color="#007B8E" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.videoDeleteButton}
+                        onPress={() => handleDeleteVideo(item.id)}>
+                        <Icon name="trash-outline" size={20} color="#DC2626" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+                ItemSeparatorComponent={() => (
+                  <View style={styles.videoSeparator} />
+                )}
+              />
+            )}
+
+            <TouchableOpacity
+              style={styles.addVideoButton}
+              onPress={() => {
+                setNewVideoTitle('');
+                setNewVideoUrl('');
+                setEditingVideoId(null);
+                setShowVideoModal(true);
+              }}
+              disabled={isSaving}>
+              <Icon name="add-circle-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.addVideoButtonText}>Add YouTube Video</Text>
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
             style={[
               styles.saveButton,
@@ -495,6 +796,7 @@ const DoctorProfileEdit: React.FC = () => {
         </View>
       </ScrollView>
       {renderPhotoOptionsModal()}
+      {renderVideoModal()}
     </SafeAreaView>
   );
 };
@@ -547,6 +849,80 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     deleteText: {
       color: '#DC2626',
+    },
+    videoModalContent: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 15,
+      padding: 20,
+      width: width * 0.9,
+      maxWidth: 400,
+    },
+    videoModalTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: '#007B8E',
+      marginBottom: 20,
+      textAlign: 'center',
+    },
+    videoInputGroup: {
+      marginBottom: 16,
+    },
+    videoInputLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#2C3E50',
+      marginBottom: 8,
+    },
+    videoInput: {
+      backgroundColor: '#F8FAFC',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+      height: 50,
+      paddingHorizontal: 16,
+      fontSize: 16,
+      color: '#2C3E50',
+    },
+    videoModalButtonsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 10,
+    },
+    videoDescriptionInput: {
+      height: 80,
+      textAlignVertical: 'top',
+      paddingTop: 12,
+    },
+    videoDescription: {
+      fontSize: 12,
+      color: '#718096',
+      marginTop: 2,
+    },
+    videoModalCancelButton: {
+      flex: 1,
+      backgroundColor: '#F1F5F9',
+      borderRadius: 12,
+      paddingVertical: 14,
+      marginRight: 8,
+      alignItems: 'center',
+    },
+    videoModalCancelButtonText: {
+      color: '#64748B',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    videoModalSaveButton: {
+      flex: 1,
+      backgroundColor: '#007B8E',
+      borderRadius: 12,
+      paddingVertical: 14,
+      marginLeft: 8,
+      alignItems: 'center',
+    },
+    videoModalSaveButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
     },
     photoControlsContainer: {
       position: 'absolute',
@@ -651,6 +1027,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 10,
+      marginTop: 20,
     },
     sectionTitle: {
       fontSize: 18,
@@ -660,27 +1037,28 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     card: {
       backgroundColor: '#FFFFFF',
-      borderRadius: 15,
-      padding: 15,
+      borderRadius: 12,
       shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      shadowOffset: {width: 0, height: 1},
+      shadowOpacity: 0.2,
+      shadowRadius: 3,
+      elevation: 2,
+      padding: 16,
+      marginBottom: 16,
     },
     inputGroup: {
-      marginBottom: 20,
+      marginBottom: 16,
     },
     inputBorder: {
       borderTopWidth: 1,
-      borderTopColor: '#F0F0F0',
-      paddingTop: 20,
+      borderTopColor: '#E2E8F0',
+      paddingTop: 16,
     },
     label: {
       fontSize: 14,
-      fontWeight: '600',
-      color: '#2C3E50',
+      color: '#64748B',
       marginBottom: 8,
+      fontWeight: '500',
     },
     inputWrapper: {
       flexDirection: 'row',
@@ -690,48 +1068,41 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderWidth: 1,
       borderColor: '#E2E8F0',
       height: 50,
+      paddingHorizontal: 12,
     },
     disabledWrapper: {
       backgroundColor: '#F1F5F9',
       borderColor: '#E2E8F0',
     },
     inputIcon: {
-      marginLeft: 12,
+      marginRight: 8,
     },
     input: {
       flex: 1,
       fontSize: 16,
       color: '#2C3E50',
       height: '100%',
-      marginLeft: 2,
     },
     disabledInput: {
       color: '#94A3B8',
     },
     saveButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
       backgroundColor: '#007B8E',
       borderRadius: 12,
-      padding: 16,
-      marginTop: 20,
-      shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 3,
+      paddingVertical: 15,
+      alignItems: 'center',
+      marginTop: 10,
+      flexDirection: 'row',
+      justifyContent: 'center',
     },
     savingButton: {
-      backgroundColor: '#94A3B8',
-    },
-    saveIcon: {
-      marginRight: 8,
+      backgroundColor: '#64748B',
     },
     saveButtonText: {
       color: '#FFFFFF',
       fontSize: 16,
       fontWeight: '600',
+      marginLeft: 5,
     },
     loadingContainer: {
       flex: 1,
@@ -740,9 +1111,86 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: '#F5F7FA',
     },
     loadingText: {
-      marginTop: 10,
       fontSize: 16,
+      color: '#64748B',
+      marginTop: 10,
+    },
+    videosDescription: {
+      fontSize: 14,
+      color: '#64748B',
+      marginBottom: 20,
+      lineHeight: 20,
+    },
+    noVideosContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 30,
+    },
+    noVideosText: {
+      color: '#94A3B8',
+      fontSize: 16,
+      marginTop: 10,
+    },
+    videoItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 12,
+      backgroundColor: '#F8FAFC',
+      borderRadius: 10,
+    },
+    videoInfo: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    youtubeIcon: {
+      marginRight: 10,
+    },
+    videoTextContainer: {
+      flex: 1,
+    },
+    videoTitle: {
+      fontSize: 15,
+      fontWeight: '600',
       color: '#2C3E50',
+    },
+    videoUrl: {
+      fontSize: 13,
+      color: '#64748B',
+      marginTop: 2,
+    },
+    videoActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    videoEditButton: {
+      padding: 8,
+      marginRight: 5,
+    },
+    videoDeleteButton: {
+      padding: 8,
+    },
+    videoSeparator: {
+      height: 1,
+      backgroundColor: '#E2E8F0',
+      marginVertical: 10,
+    },
+    addVideoButton: {
+      backgroundColor: '#007B8E',
+      borderRadius: 10,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 20,
+    },
+    addVideoButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
+      marginLeft: 10,
     },
   });
 

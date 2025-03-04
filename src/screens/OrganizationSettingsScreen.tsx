@@ -26,24 +26,24 @@ import {useSession} from '../context/SessionContext';
 const defaultOrgLogo = require('../assets/profile.png');
 
 interface OrganizationInfo {
-  name: string;
-  photo: string;
-  employees: number;
-  email: string;
-  phone: string;
-  address_street: string;
-  address_city: string;
-  address_state: string;
-  address_zip: string;
-  address_country: string;
-  website: string;
-  description: string;
-  tax_id: string;
-  founded_year: number;
-  industry: string;
-  timezone: string;
-  operating_hours: string;
-  social_media: {
+  organization_name: string;
+  organization_photo: string;
+  organization_employees: string;
+  organization_email: string;
+  organization_phone: string;
+  organization_address_street: string;
+  organization_address_city: string;
+  organization_address_state: string;
+  organization_address_zip: string;
+  organization_address_country: string;
+  organization_website: string;
+  organization_description: string;
+  organization_tax_id: string;
+  organization_founded_year: string;
+  organization_industry: string;
+  organization_timezone: string;
+  organization_operating_hours: string;
+  organization_social_media: {
     [key: string]: string;
   };
 }
@@ -70,24 +70,24 @@ const OrganizationSettingsScreen: React.FC = () => {
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
 
   const [organizationInfo, setOrganizationInfo] = useState<OrganizationInfo>({
-    name: '',
-    photo: '',
-    employees: 0,
-    email: '',
-    phone: '',
-    address_street: '',
-    address_city: '',
-    address_state: '',
-    address_zip: '',
-    address_country: '',
-    website: '',
-    description: '',
-    tax_id: '',
-    founded_year: 0,
-    industry: '',
-    timezone: '',
-    operating_hours: '',
-    social_media: {},
+    organization_name: '',
+    organization_photo: '',
+    organization_employees: '',
+    organization_email: '',
+    organization_phone: '',
+    organization_address_street: '',
+    organization_address_city: '',
+    organization_address_state: '',
+    organization_address_zip: '',
+    organization_address_country: '',
+    organization_website: '',
+    organization_description: '',
+    organization_tax_id: '',
+    organization_founded_year: '',
+    organization_industry: '',
+    organization_timezone: '',
+    organization_operating_hours: '',
+    organization_social_media: {},
   });
 
   const [showSocialMediaDropdown, setShowSocialMediaDropdown] = useState(false);
@@ -100,8 +100,31 @@ const OrganizationSettingsScreen: React.FC = () => {
   const fetchOrganizationInfo = async () => {
     setIsLoading(true);
     try {
-      const response = await axiosInstance.get('/organization/info');
-      setOrganizationInfo(response.data);
+      const response = await axiosInstance.get('getOrg');
+      const orgData = response.data.organization; // Extract the organization data from the response
+      // Map the API response to the organizationInfo state
+      setOrganizationInfo({
+        organization_name: orgData.organization_name || '',
+        organization_photo: orgData.organization_logo || '',
+        organization_employees: orgData.organization_employees || '',
+        organization_email: orgData.organization_email || '',
+        organization_phone: orgData.organization_phone || '',
+        organization_address_street: orgData.organization_address_street || '',
+        organization_address_city: orgData.organization_address_city || '',
+        organization_address_state: orgData.organization_address_state || '',
+        organization_address_zip: orgData.organization_address_zip || '',
+        organization_address_country:
+          orgData.organization_address_country || '',
+        organization_website: orgData.organization_website || '',
+        organization_description: orgData.organization_description || '',
+        organization_tax_id: orgData.organization_tax_id || '',
+        organization_founded_year: orgData.organization_founded_year || '',
+        organization_industry: orgData.organization_industry || '',
+        organization_timezone: orgData.organization_timezone || '',
+        organization_operating_hours:
+          orgData.organization_operating_hours || '',
+        organization_social_media: orgData.organization_social_media || {},
+      });
     } catch (error) {
       handleError(error);
       Alert.alert('Error', 'Failed to load organization information');
@@ -160,9 +183,10 @@ const OrganizationSettingsScreen: React.FC = () => {
   const handleImageUpload = async (image: any) => {
     if (!image) return;
 
-    const fileName = image.path.split('/').pop() || 'organization.jpg';
+    const fileName = image.path.split('/').pop() || 'profile.jpg';
+
     const formData = new FormData();
-    formData.append('logo', {
+    formData.append('profile_photo', {
       uri:
         Platform.OS === 'ios' ? image.path.replace('file://', '') : image.path,
       type: image.mime || 'image/jpeg',
@@ -170,22 +194,19 @@ const OrganizationSettingsScreen: React.FC = () => {
     } as any);
 
     setIsLoading(true);
+
     try {
-      const response = await axiosInstance.post(
-        '/organization/upload-logo',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${session.idToken}`,
-          },
+      const response = await axiosInstance.put(`/org/updatePhoto`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${session.idToken}`,
         },
-      );
+      });
 
       if (response.data.imageUrl) {
         setOrganizationInfo(prev => ({
           ...prev,
-          photo: response.data.imageUrl,
+          organization_photo: response.data.imageUrl,
         }));
         Alert.alert('Success', 'Organization logo updated successfully');
       }
@@ -212,8 +233,8 @@ const OrganizationSettingsScreen: React.FC = () => {
           onPress: async () => {
             try {
               setIsLoading(true);
-              await axiosInstance.delete('/organization/logo');
-              setOrganizationInfo(prev => ({...prev, photo: ''}));
+              await axiosInstance.delete('/org/photo');
+              setOrganizationInfo(prev => ({...prev, organization_photo: ''}));
               Alert.alert('Success', 'Logo deleted successfully');
             } catch (error) {
               handleError(error);
@@ -247,7 +268,7 @@ const OrganizationSettingsScreen: React.FC = () => {
               <Icon name="camera" size={24} color="#007B8E" />
               <Text style={styles.modalOptionText}>Change Logo</Text>
             </TouchableOpacity>
-            {organizationInfo.photo && (
+            {organizationInfo.organization_photo && (
               <TouchableOpacity
                 style={[styles.modalOption, styles.deleteOption]}
                 onPress={() => {
@@ -285,12 +306,12 @@ const OrganizationSettingsScreen: React.FC = () => {
               placeholder={`${
                 platform.charAt(0).toUpperCase() + platform.slice(1)
               } URL`}
-              value={organizationInfo.social_media[platform] || ''}
+              value={organizationInfo.organization_social_media[platform] || ''}
               onChangeText={text =>
                 setOrganizationInfo(prev => ({
                   ...prev,
-                  social_media: {
-                    ...prev.social_media,
+                  organization_social_media: {
+                    ...prev.organization_social_media,
                     [platform]: text,
                   },
                 }))
@@ -351,14 +372,17 @@ const OrganizationSettingsScreen: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!organizationInfo.name || !organizationInfo.email) {
+    if (
+      !organizationInfo.organization_name ||
+      !organizationInfo.organization_email
+    ) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
 
     setSaving(true);
     try {
-      await axiosInstance.post('/organization/update', organizationInfo);
+      await axiosInstance.post('/update/org', organizationInfo);
       Alert.alert('Success', 'Organization information updated successfully');
       navigation.goBack();
     } catch (error) {
@@ -385,15 +409,15 @@ const OrganizationSettingsScreen: React.FC = () => {
           <View style={styles.imageContainer}>
             <Image
               source={
-                organizationInfo.photo
-                  ? {uri: organizationInfo.photo}
+                organizationInfo.organization_photo
+                  ? {uri: organizationInfo.organization_photo}
                   : defaultOrgLogo
               }
               style={styles.orgImage}
               onError={() =>
                 setOrganizationInfo({
                   ...organizationInfo,
-                  photo: '',
+                  organization_photo: '',
                 })
               }
             />
@@ -412,52 +436,60 @@ const OrganizationSettingsScreen: React.FC = () => {
             <Text style={styles.label}>Organization Name *</Text>
             <TextInput
               style={styles.input}
-              value={organizationInfo.name}
+              value={organizationInfo.organization_name}
               onChangeText={text =>
-                setOrganizationInfo({...organizationInfo, name: text})
+                setOrganizationInfo({
+                  ...organizationInfo,
+                  organization_name: text,
+                })
               }
               placeholder="Enter organization name"
               placeholderTextColor="#999"
             />
-
           </View>
           <View style={styles.inputSection}>
             <Text style={styles.label}>Email *</Text>
             <TextInput
               style={styles.input}
-              value={organizationInfo.email}
+              value={organizationInfo.organization_email}
               onChangeText={text =>
-                setOrganizationInfo({...organizationInfo, email: text})
+                setOrganizationInfo({
+                  ...organizationInfo,
+                  organization_email: text,
+                })
               }
               placeholder="Enter organization email"
               placeholderTextColor="#999"
               keyboardType="email-address"
             />
-  </View>
-  <View style={styles.inputSection}>
+          </View>
+          <View style={styles.inputSection}>
             <Text style={styles.label}>Phone</Text>
             <TextInput
               style={styles.input}
-              value={organizationInfo.phone}
+              value={organizationInfo.organization_phone}
               onChangeText={text =>
-                setOrganizationInfo({...organizationInfo, phone: text})
+                setOrganizationInfo({
+                  ...organizationInfo,
+                  organization_phone: text,
+                })
               }
               placeholder="Enter phone number"
               placeholderTextColor="#999"
               keyboardType="phone-pad"
             />
-            </View>
+          </View>
 
           <View style={styles.row}>
             <View style={styles.halfInput}>
               <Text style={styles.label}>Employees</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.employees.toString()}
+                value={organizationInfo.organization_employees}
                 onChangeText={text =>
                   setOrganizationInfo({
                     ...organizationInfo,
-                    employees: parseInt(text) || 0,
+                    organization_employees: text,
                   })
                 }
                 placeholder="Number of employees"
@@ -469,11 +501,11 @@ const OrganizationSettingsScreen: React.FC = () => {
               <Text style={styles.label}>Founded Year</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.founded_year.toString()}
+                value={organizationInfo.organization_founded_year}
                 onChangeText={text =>
                   setOrganizationInfo({
                     ...organizationInfo,
-                    founded_year: parseInt(text) || 0,
+                    organization_founded_year: text,
                   })
                 }
                 placeholder="Founded year"
@@ -492,9 +524,12 @@ const OrganizationSettingsScreen: React.FC = () => {
             <Text style={styles.label}>Street Address</Text>
             <TextInput
               style={styles.input}
-              value={organizationInfo.address_street}
+              value={organizationInfo.organization_address_street}
               onChangeText={text =>
-                setOrganizationInfo({...organizationInfo, address_street: text})
+                setOrganizationInfo({
+                  ...organizationInfo,
+                  organization_address_street: text,
+                })
               }
               placeholder="Enter street address"
               placeholderTextColor="#999"
@@ -506,9 +541,12 @@ const OrganizationSettingsScreen: React.FC = () => {
               <Text style={styles.label}>City</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.address_city}
+                value={organizationInfo.organization_address_city}
                 onChangeText={text =>
-                  setOrganizationInfo({...organizationInfo, address_city: text})
+                  setOrganizationInfo({
+                    ...organizationInfo,
+                    organization_address_city: text,
+                  })
                 }
                 placeholder="Enter city"
                 placeholderTextColor="#999"
@@ -518,11 +556,11 @@ const OrganizationSettingsScreen: React.FC = () => {
               <Text style={styles.label}>State</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.address_state}
+                value={organizationInfo.organization_address_state}
                 onChangeText={text =>
                   setOrganizationInfo({
                     ...organizationInfo,
-                    address_state: text,
+                    organization_address_state: text,
                   })
                 }
                 placeholder="Enter state"
@@ -536,9 +574,12 @@ const OrganizationSettingsScreen: React.FC = () => {
               <Text style={styles.label}>ZIP Code</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.address_zip}
+                value={organizationInfo.organization_address_zip}
                 onChangeText={text =>
-                  setOrganizationInfo({...organizationInfo, address_zip: text})
+                  setOrganizationInfo({
+                    ...organizationInfo,
+                    organization_address_zip: text,
+                  })
                 }
                 placeholder="Enter ZIP code"
                 placeholderTextColor="#999"
@@ -549,11 +590,11 @@ const OrganizationSettingsScreen: React.FC = () => {
               <Text style={styles.label}>Country</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.address_country}
+                value={organizationInfo.organization_address_country}
                 onChangeText={text =>
                   setOrganizationInfo({
                     ...organizationInfo,
-                    address_country: text,
+                    organization_address_country: text,
                   })
                 }
                 placeholder="Enter country"
@@ -572,9 +613,12 @@ const OrganizationSettingsScreen: React.FC = () => {
               <Text style={styles.label}>Website</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.website}
+                value={organizationInfo.organization_website}
                 onChangeText={text =>
-                  setOrganizationInfo({...organizationInfo, website: text})
+                  setOrganizationInfo({
+                    ...organizationInfo,
+                    organization_website: text,
+                  })
                 }
                 placeholder="Enter website URL"
                 placeholderTextColor="#999"
@@ -585,9 +629,12 @@ const OrganizationSettingsScreen: React.FC = () => {
               <Text style={styles.label}>Industry</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.industry}
+                value={organizationInfo.organization_industry}
                 onChangeText={text =>
-                  setOrganizationInfo({...organizationInfo, industry: text})
+                  setOrganizationInfo({
+                    ...organizationInfo,
+                    organization_industry: text,
+                  })
                 }
                 placeholder="Enter industry"
                 placeholderTextColor="#999"
@@ -600,9 +647,12 @@ const OrganizationSettingsScreen: React.FC = () => {
               <Text style={styles.label}>Tax ID</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.tax_id}
+                value={organizationInfo.organization_tax_id}
                 onChangeText={text =>
-                  setOrganizationInfo({...organizationInfo, tax_id: text})
+                  setOrganizationInfo({
+                    ...organizationInfo,
+                    organization_tax_id: text,
+                  })
                 }
                 placeholder="Enter tax ID"
                 placeholderTextColor="#999"
@@ -612,9 +662,12 @@ const OrganizationSettingsScreen: React.FC = () => {
               <Text style={styles.label}>Timezone</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.timezone}
+                value={organizationInfo.organization_timezone}
                 onChangeText={text =>
-                  setOrganizationInfo({...organizationInfo, timezone: text})
+                  setOrganizationInfo({
+                    ...organizationInfo,
+                    organization_timezone: text,
+                  })
                 }
                 placeholder="Enter timezone"
                 placeholderTextColor="#999"
@@ -626,9 +679,12 @@ const OrganizationSettingsScreen: React.FC = () => {
             <Text style={styles.label}>Description</Text>
             <TextInput
               style={[styles.input, styles.multilineInput]}
-              value={organizationInfo.description}
+              value={organizationInfo.organization_description}
               onChangeText={text =>
-                setOrganizationInfo({...organizationInfo, description: text})
+                setOrganizationInfo({
+                  ...organizationInfo,
+                  organization_description: text,
+                })
               }
               placeholder="Organization description"
               placeholderTextColor="#999"
@@ -641,11 +697,11 @@ const OrganizationSettingsScreen: React.FC = () => {
             <Text style={styles.label}>Operating Hours</Text>
             <TextInput
               style={styles.input}
-              value={organizationInfo.operating_hours}
+              value={organizationInfo.organization_operating_hours}
               onChangeText={text =>
                 setOrganizationInfo({
                   ...organizationInfo,
-                  operating_hours: text,
+                  organization_operating_hours: text,
                 })
               }
               placeholder="Enter operating hours"
@@ -765,7 +821,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       width: '100%',
       alignSelf: 'center',
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
+      shadowOffset: {width: 0, height: 1},
       shadowOpacity: 0.1,
       shadowRadius: 2,
     },

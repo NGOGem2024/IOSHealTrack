@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import GoogleSignInButton from '../components/googlebutton';
 import axiosInstance from '../utils/axiosConfig';
 import axios from 'axios';
@@ -23,7 +24,9 @@ import {
   SignInResponse,
   User,
 } from '@react-native-google-signin/google-signin';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import LoadingScreen from '../components/loadingScreen';
+
 interface ExtendedUser extends User {
   data: any;
   serverAuthCode: string | null;
@@ -43,8 +46,8 @@ interface ServerResponse {
 const GOOGLE_WEB_CLIENT_ID =
   '1038698506388-eegihlhipbg4d1cubdjk4p44gv74sv5i.apps.googleusercontent.com';
 
-const SettingsScreen: React.FC = () => {
-  const [loading, setLoading] = useState(false);
+const SettingsScreen: React.FC = () => { 
+  const [isLoading, setIsLoading] = useState(true);
   const {theme} = useTheme();
   const styles = getStyles(
     getTheme(
@@ -52,11 +55,12 @@ const SettingsScreen: React.FC = () => {
     ),
   );
   const {updateAccessToken} = useSession();
+  const navigation = useNavigation();
 
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
 
   const fetchSessionStatus = async () => {
-    setLoading(true);
+    setIsLoading(true);
     try {
       const response = await axiosInstance.get(`/get/googlestatus`);
       if (response.data) {
@@ -72,7 +76,7 @@ const SettingsScreen: React.FC = () => {
         handleError(error);
       }
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -146,10 +150,15 @@ const SettingsScreen: React.FC = () => {
     return new Date(dateString).toLocaleString();
   };
 
-  if (loading) {
+  const navigateToOrganizationSettings = () => {
+    // @ts-ignore - Add proper type definitions in your navigation stack
+    navigation.navigate('OrganizationSettings');
+  };
+
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0066cc" />
+        <LoadingScreen />
       </View>
     );
   }
@@ -159,6 +168,25 @@ const SettingsScreen: React.FC = () => {
       <ScrollView style={styles.container}>
         <BackTabTop screenName="Settings" />
         <View style={styles.content}>
+          {/* Organization Settings Section */}
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.organizationCard}
+              onPress={navigateToOrganizationSettings}>
+              <View style={styles.orgCardContent}>
+                <Icon name="office-building" size={24} color={theme.colors.primary} />
+                <View style={styles.orgCardText}>
+                  <Text style={styles.orgCardTitle}>Update Organization</Text>
+                  <Text style={styles.orgCardDescription}>
+                    Edit organization details, logo, and contact information
+                  </Text>
+                </View>
+                <Icon name="chevron-right" size={20} color="#9CA3AF" />
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Google Calendar Integration Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Google Calendar Integration</Text>
 
@@ -306,6 +334,33 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: '#666',
       textAlign: 'center',
       marginBottom: 10,
+    },
+    // New styles for organization card
+    organizationCard: {
+      backgroundColor: '#F9FAFB',
+      borderRadius: 8,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: '#E5E7EB',
+    },
+    orgCardContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+    },
+    orgCardText: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    orgCardTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#374151',
+      marginBottom: 4,
+    },
+    orgCardDescription: {
+      fontSize: 14,
+      color: '#6B7280',
     },
   });
 

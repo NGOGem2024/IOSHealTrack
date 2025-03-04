@@ -35,7 +35,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import AnimatedSplashScreen from './src/components/AnimatedSplashScreen';
 import TherapySessionsList from './src/screens/sessiondetails';
 import ProfileScreen from './src/screens/ProfileScreen';
-import { TouchableOpacity } from 'react-native';
+import {TouchableOpacity} from 'react-native';
+import OrganizationSettingsScreen from './src/screens/OrganizationSettingsScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -148,6 +149,11 @@ const HomeStackNavigator = () => (
       component={EditTherapyPlan}
       options={{headerShown: false}}
     />
+    <Stack.Screen
+      name="OrganizationSettings"
+      component={OrganizationSettingsScreen}
+      options={{headerShown: false}}
+    />
   </Stack.Navigator>
 );
 
@@ -168,15 +174,15 @@ const TabNavigator = () => (
       },
       tabBarHideOnKeyboard: true,
     }}>
-     <Tab.Screen
+    <Tab.Screen
       name="HomeStackNavigator"
       component={HomeStackNavigator}
-      options={({ navigation }) => ({
+      options={({navigation}) => ({
         headerShown: false,
         tabBarIcon: ({color, size}) => (
           <Icon name="home-outline" color={color} size={size} />
         ),
-        tabBarButton: (props) => (
+        tabBarButton: props => (
           <TouchableOpacity
             {...props}
             onPress={() => {
@@ -223,7 +229,7 @@ const TabNavigator = () => (
         ),
       }}
     />
-     <Tab.Screen
+    <Tab.Screen
       name="Profile"
       component={ProfileScreen}
       options={{

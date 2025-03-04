@@ -21,6 +21,7 @@ export type RootStackParamList = {
   payment: {planId?: string; patientId?: string};
   AllPatients: undefined;
   EditTherapyPlan: {planId?: string};
+  OrganizationSettings: undefined;
   UpdateTherapy: {patientId?: string};
   CreateTherapy: {patientId?: string};
   DoctorDashboard: undefined;

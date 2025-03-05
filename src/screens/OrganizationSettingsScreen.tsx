@@ -101,30 +101,35 @@ const OrganizationSettingsScreen: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await axiosInstance.get('getOrg');
-      const orgData = response.data.organization; // Extract the organization data from the response
-      // Map the API response to the organizationInfo state
+      const orgData = response.data.organization; 
+      const socialMediaKeys = Object.keys(orgData.organization_social_media || {}).filter(
+        key => orgData.organization_social_media[key] !== ''
+      );
+  
       setOrganizationInfo({
         organization_name: orgData.organization_name || '',
         organization_photo: orgData.organization_logo || '',
         organization_employees: orgData.organization_employees || '',
         organization_email: orgData.organization_email || '',
         organization_phone: orgData.organization_phone || '',
-        organization_address_street: orgData.organization_address_street || '',
-        organization_address_city: orgData.organization_address_city || '',
-        organization_address_state: orgData.organization_address_state || '',
-        organization_address_zip: orgData.organization_address_zip || '',
-        organization_address_country:
-          orgData.organization_address_country || '',
+        organization_address_street: orgData.organization_address?.street || '',
+        organization_address_city: orgData.organization_address?.city || '',
+        organization_address_state: orgData.organization_address?.state || '',
+        organization_address_zip: orgData.organization_address?.zip || '',
+        organization_address_country: orgData.organization_address?.country || '',
         organization_website: orgData.organization_website || '',
         organization_description: orgData.organization_description || '',
         organization_tax_id: orgData.organization_tax_id || '',
         organization_founded_year: orgData.organization_founded_year || '',
         organization_industry: orgData.organization_industry || '',
         organization_timezone: orgData.organization_timezone || '',
-        organization_operating_hours:
-          orgData.organization_operating_hours || '',
+        organization_operating_hours: orgData.organization_operating_hours || '',
         organization_social_media: orgData.organization_social_media || {},
       });
+  
+      // Ensure existing social media links are included in selectedPlatforms
+      setSelectedPlatforms(socialMediaKeys);
+      
     } catch (error) {
       handleError(error);
       Alert.alert('Error', 'Failed to load organization information');
@@ -132,7 +137,7 @@ const OrganizationSettingsScreen: React.FC = () => {
       setIsLoading(false);
     }
   };
-
+  
   const handleImagePick = async () => {
     Alert.alert('Organization Logo', 'Choose a photo from:', [
       {

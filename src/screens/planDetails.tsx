@@ -8,7 +8,13 @@ import {
   StyleSheet,
   StatusBar,
   SafeAreaView,
+  Platform,
+  Alert,
+  PermissionsAndroid,
+  Linking,
 } from 'react-native';
+import RNFS from 'react-native-fs';
+import FileViewer from 'react-native-file-viewer';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
 import axiosInstance from '../utils/axiosConfig';
@@ -241,6 +247,56 @@ const TherapyPlanDetails: React.FC = () => {
     );
   };
 
+  const downloadPDF = async (planId: string) => {
+    try {
+      // (Optional) Show a loading indicator here
+
+      // For Android permissions, include your existing permission logic if needed
+
+      // Define file name and path
+      const fileName = `therapy_plan_${planId}.pdf`;
+      const filePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+
+      console.log('Fetching base64 PDF from the server...');
+      // Request the base64 encoded PDF from your server
+      const response = await axiosInstance.get(`/${planId}/pdf`);
+
+      // The response should include a JSON object with the key "pdf"
+      const base64PDF = response.data.pdf;
+      if (!base64PDF) {
+        throw new Error('No PDF data received');
+      }
+
+      console.log('Writing PDF file to:', filePath);
+      // Write the base64 string to a file
+      await RNFS.writeFile(filePath, base64PDF, 'base64');
+
+      // Optional: Check if the file exists and verify size
+      const fileExists = await RNFS.exists(filePath);
+      if (!fileExists) {
+        throw new Error('File was not written successfully.');
+      }
+
+      const fileInfo = await RNFS.stat(filePath);
+      if (fileInfo.size <= 0) {
+        throw new Error('File is empty or corrupted.');
+      }
+
+      // Open the file using FileViewer
+      console.log('Opening the PDF file...');
+      await FileViewer.open(filePath, {showOpenWithDialog: true});
+      Alert.alert('Success', 'PDF downloaded and opened successfully');
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      Alert.alert(
+        'Download Failed',
+        'Unable to download or open the PDF file.',
+      );
+    } finally {
+      // (Optional) Hide the loading indicator here
+    }
+  };
+
   const plan = planDetails.therapy_plan;
   const progress = calculateTherapyProgress(plan);
 
@@ -278,13 +334,18 @@ const TherapyPlanDetails: React.FC = () => {
                 <Icon name="calendar-clock" size={24} color="#119FB3" />
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.editButton}
+                style={styles.iconButton}
                 onPress={() =>
                   navigation.navigate('EditTherapyPlan', {
                     planId: plan._id,
                   })
                 }>
                 <Icon name="square-edit-outline" size={24} color="#119FB3" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => downloadPDF(plan._id)}>
+                <Icon name="file-pdf-box" size={24} color="#119FB3" />
               </TouchableOpacity>
             </View>
           </View>

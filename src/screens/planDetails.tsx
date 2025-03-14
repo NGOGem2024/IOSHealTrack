@@ -249,15 +249,10 @@ const TherapyPlanDetails: React.FC = () => {
 
   const downloadPDF = async (planId: string) => {
     try {
-      // (Optional) Show a loading indicator here
-
-      // For Android permissions, include your existing permission logic if needed
-
-      // Define file name and path
+      setLoading(true);
       const fileName = `therapy_plan_${planId}.pdf`;
       const filePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
 
-      console.log('Fetching base64 PDF from the server...');
       // Request the base64 encoded PDF from your server
       const response = await axiosInstance.get(`/${planId}/pdf`);
 
@@ -267,7 +262,6 @@ const TherapyPlanDetails: React.FC = () => {
         throw new Error('No PDF data received');
       }
 
-      console.log('Writing PDF file to:', filePath);
       // Write the base64 string to a file
       await RNFS.writeFile(filePath, base64PDF, 'base64');
 
@@ -283,7 +277,6 @@ const TherapyPlanDetails: React.FC = () => {
       }
 
       // Open the file using FileViewer
-      console.log('Opening the PDF file...');
       await FileViewer.open(filePath, {showOpenWithDialog: true});
       Alert.alert('Success', 'PDF downloaded and opened successfully');
     } catch (error) {
@@ -293,7 +286,7 @@ const TherapyPlanDetails: React.FC = () => {
         'Unable to download or open the PDF file.',
       );
     } finally {
-      // (Optional) Hide the loading indicator here
+      setLoading(false);
     }
   };
 

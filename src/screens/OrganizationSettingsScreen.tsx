@@ -27,6 +27,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import {Platform} from 'react-native';
 import {useSession} from '../context/SessionContext';
 const defaultOrgLogo = require('../assets/profile.png');
+const defaultOrgBanner = require('../assets/banner.jpg');
 
 interface YouTubeVideo {
   id: string;
@@ -769,7 +770,7 @@ const OrganizationSettingsScreen: React.FC = () => {
                 source={
                   organizationInfo.organization_banner
                     ? {uri: organizationInfo.organization_banner}
-                    : require('../assets/healtrack_logo.jpg')
+                    : defaultOrgBanner
                 }
                 style={styles.bannerImage}
                 onError={() =>
@@ -782,7 +783,7 @@ const OrganizationSettingsScreen: React.FC = () => {
               <TouchableOpacity
                 style={styles.editBannerButton}
                 onPress={() => setShowBannerOptions(true)}>
-                <Icon name="pencil" size={20} color="#FFFFFF" />
+                <Icon name="pencil" size={16} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
 
@@ -804,12 +805,14 @@ const OrganizationSettingsScreen: React.FC = () => {
               <TouchableOpacity
                 style={styles.editImageButton}
                 onPress={() => setShowPhotoOptions(true)}>
-                <Icon name="pencil" size={20} color="#007b8e" />
+                <Icon name="pencil" size={16} color="#007b8e" />
               </TouchableOpacity>
             </View>
           </View>
 
-          <View style={styles.profileImageLine} />
+        <View style={styles.profileImageLine} />
+        <View style={styles.content1}>
+
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Basic Information</Text>
           </View>
@@ -1214,6 +1217,7 @@ const OrganizationSettingsScreen: React.FC = () => {
               documents and communications.
             </Text>
           </View>
+          </View>
         </View>
       </ScrollView>
       {renderBannerOptionsModal()}
@@ -1234,6 +1238,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: 'black',
     },
     content: {
+      paddingHorizontal: 5,
+      paddingVertical: 15,
+    },
+    content1: {
       paddingHorizontal: 20,
       paddingVertical: 15,
     },
@@ -1318,12 +1326,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       position: 'relative',
     },
     profileSection: {
-      marginBottom: 30,
+      marginBottom: 100,
       position: 'relative',
     },
     bannerContainer: {
       width: '100%',
-      height: 180,
+      height: 160,
       position: 'relative',
       overflow: 'hidden',
       borderTopLeftRadius: 10,
@@ -1339,8 +1347,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       top: 10,
       right: 10,
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      width: 36,
-      height: 36,
+      width: 30,
+      height: 30,
       borderRadius: 18,
       justifyContent: 'center',
       alignItems: 'center',
@@ -1351,24 +1359,24 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     profileImageContainer: {
       position: 'absolute',
       top: 110, // Position the profile image to overlap the banner
-      left: 20,
+      left: 15,
       zIndex: 1,
     },
     orgImage: {
-      width: 140,
-      height: 140,
+      width: 120,
+      height: 120,
       borderRadius: 70,
-      borderWidth: 4,
-      borderColor: theme.colors.card,
+      borderWidth: 2,
+      borderColor: '#007b8e',
       backgroundColor: theme.colors.card,
     },
     editImageButton: {
       position: 'absolute',
       bottom: 0,
-      right: 0,
+      right: 10,
       backgroundColor: theme.colors.card,
-      width: 36,
-      height: 36,
+      width: 30,
+      height: 30,
       borderRadius: 18,
       justifyContent: 'center',
       alignItems: 'center',
@@ -1429,7 +1437,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     videosDescription: {
       fontSize: 14,
-      color: '#64748B',
+      color: theme.colors.text,
       marginBottom: 20,
       lineHeight: 20,
     },
@@ -1507,7 +1515,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     profileImageLine: {
       height: 1,
       backgroundColor: theme.colors.border,
-      marginVertical: 10,
+      marginVertical: 5,
       width: '100%',
       alignSelf: 'center',
       shadowColor: '#000',
@@ -1549,8 +1557,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderLeftWidth: 4,
       borderLeftColor: '#007b8e',
       paddingLeft: 12,
-      marginBottom: 20,
-      marginTop: 25,
+      marginBottom: 15,
+      marginTop: 10,
     },
     sectionTitle: {
       fontSize: 20,
@@ -1672,8 +1680,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: '#DC2626',
     },
     card: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.card,
       borderRadius: 12,
+      borderColor: '#007b8e',
+      borderWidth: 1,
       shadowColor: '#000',
       shadowOffset: {width: 0, height: 1},
       shadowOpacity: 0.2,

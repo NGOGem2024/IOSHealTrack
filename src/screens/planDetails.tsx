@@ -253,6 +253,32 @@ const TherapyPlanDetails: React.FC = () => {
       setLoading(true);
       const fileName = `therapy_plan_${planId}.pdf`;
 
+      // For Android API levels less than 30, request storage permission (API 23+)
+      if (
+        Platform.OS === 'android' &&
+        Number(Platform.Version) < 30 &&
+        Number(Platform.Version) >= 23
+      ) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          {
+            title: 'Storage Permission Required',
+            message:
+              'This app needs access to your storage to download the PDF file',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert(
+            'Permission Denied',
+            'Storage permission is required to download the file',
+          );
+          return;
+        }
+      }
+
       // Get the base64 encoded PDF from the server
       const response = await axiosInstance.get(`/${planId}/pdf`);
       const base64PDF = response.data.pdf;
@@ -267,20 +293,28 @@ const TherapyPlanDetails: React.FC = () => {
         await Linking.openURL(`file://${filePath}`);
         Alert.alert('Success', 'PDF downloaded and opened successfully');
       } else {
-        const downloadPath = `${ReactNativeBlobUtil.fs.dirs.DownloadDir}/${fileName}`;
+        let downloadPath = '';
+        if (Number(Platform.Version) >= 30) {
+          // For Android 11+ use RNFS.ExternalStorageDirectoryPath to write to the public Downloads folder
+          downloadPath = `${RNFS.ExternalStorageDirectoryPath}/Download/${fileName}`;
+        } else {
+          downloadPath = `${ReactNativeBlobUtil.fs.dirs.DownloadDir}/${fileName}`;
+        }
+
+        // Write the PDF file
+        await ReactNativeBlobUtil.fs.writeFile(
+          downloadPath,
+          base64PDF,
+          'base64',
+        );
+
+        // Trigger a media scan so that the file is indexed
+        await ReactNativeBlobUtil.fs
+          .scanFile([{path: downloadPath, mime: 'application/pdf'}])
+          .catch(err => console.error('Media scan failed:', err));
 
         if (Number(Platform.Version) >= 30) {
-          const fileExists = await ReactNativeBlobUtil.fs.exists(downloadPath);
-          if (fileExists) {
-            await ReactNativeBlobUtil.fs.unlink(downloadPath);
-          }
-
-          await ReactNativeBlobUtil.fs.writeFile(
-            downloadPath,
-            base64PDF,
-            'base64',
-          );
-
+          // For Android 11+, register the file with the DownloadManager so it appears in the Downloads UI
           await ReactNativeBlobUtil.android.addCompleteDownload({
             title: fileName,
             description: 'Therapy plan PDF',
@@ -288,64 +322,13 @@ const TherapyPlanDetails: React.FC = () => {
             path: downloadPath,
             showNotification: true,
           });
-
-          Alert.alert(
-            'Download Complete',
-            `PDF saved to Downloads folder as ${fileName}`,
-            [
-              {
-                text: 'Open',
-                onPress: async () => {
-                  try {
-                    await Linking.openURL(`file://${downloadPath}`);
-                  } catch (e) {
-                    console.error('Error opening file:', e);
-                    Alert.alert('Error', 'Could not open the PDF file');
-                  }
-                },
-              },
-              {text: 'OK'},
-            ],
-          );
-        } else {
-          const configOptions = {
-            fileCache: true,
-            addAndroidDownloads: {
-              useDownloadManager: true,
-              notification: true,
-              title: fileName,
-              description: 'Therapy plan PDF',
-              mime: 'application/pdf',
-              mediaScannable: true,
-              path: downloadPath,
-            },
-          };
-
-          await ReactNativeBlobUtil.fs.writeFile(
-            downloadPath,
-            base64PDF,
-            'base64',
-          );
-
-          Alert.alert(
-            'Download Complete',
-            `PDF saved to Downloads folder as ${fileName}`,
-            [
-              {
-                text: 'Open',
-                onPress: async () => {
-                  try {
-                    await Linking.openURL(`file://${downloadPath}`);
-                  } catch (e) {
-                    console.error('Error opening file:', e);
-                    Alert.alert('Error', 'Could not open the PDF file');
-                  }
-                },
-              },
-              {text: 'OK'},
-            ],
-          );
         }
+
+        Alert.alert(
+          'Download Complete',
+          `PDF saved to Downloads folder as ${fileName}`,
+          [{text: 'OK'}],
+        );
       }
     } catch (error) {
       console.error('Error downloading PDF:', error);
@@ -357,7 +340,6 @@ const TherapyPlanDetails: React.FC = () => {
       setLoading(false);
     }
   };
-
   const plan = planDetails.therapy_plan;
   const progress = calculateTherapyProgress(plan);
 

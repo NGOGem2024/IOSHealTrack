@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import {
   View,
   Text,
@@ -251,39 +252,106 @@ const TherapyPlanDetails: React.FC = () => {
     try {
       setLoading(true);
       const fileName = `therapy_plan_${planId}.pdf`;
-      const filePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
 
-      // Request the base64 encoded PDF from your server
+      // Get the base64 encoded PDF from the server
       const response = await axiosInstance.get(`/${planId}/pdf`);
-
-      // The response should include a JSON object with the key "pdf"
       const base64PDF = response.data.pdf;
+
       if (!base64PDF) {
         throw new Error('No PDF data received');
       }
 
-      // Write the base64 string to a file
-      await RNFS.writeFile(filePath, base64PDF, 'base64');
+      if (Platform.OS === 'ios') {
+        const filePath = `${ReactNativeBlobUtil.fs.dirs.DocumentDir}/${fileName}`;
+        await ReactNativeBlobUtil.fs.writeFile(filePath, base64PDF, 'base64');
+        await Linking.openURL(`file://${filePath}`);
+        Alert.alert('Success', 'PDF downloaded and opened successfully');
+      } else {
+        const downloadPath = `${ReactNativeBlobUtil.fs.dirs.DownloadDir}/${fileName}`;
 
-      // Optional: Check if the file exists and verify size
-      const fileExists = await RNFS.exists(filePath);
-      if (!fileExists) {
-        throw new Error('File was not written successfully.');
+        if (Number(Platform.Version) >= 30) {
+          const fileExists = await ReactNativeBlobUtil.fs.exists(downloadPath);
+          if (fileExists) {
+            await ReactNativeBlobUtil.fs.unlink(downloadPath);
+          }
+
+          await ReactNativeBlobUtil.fs.writeFile(
+            downloadPath,
+            base64PDF,
+            'base64',
+          );
+
+          await ReactNativeBlobUtil.android.addCompleteDownload({
+            title: fileName,
+            description: 'Therapy plan PDF',
+            mime: 'application/pdf',
+            path: downloadPath,
+            showNotification: true,
+          });
+
+          Alert.alert(
+            'Download Complete',
+            `PDF saved to Downloads folder as ${fileName}`,
+            [
+              {
+                text: 'Open',
+                onPress: async () => {
+                  try {
+                    await Linking.openURL(`file://${downloadPath}`);
+                  } catch (e) {
+                    console.error('Error opening file:', e);
+                    Alert.alert('Error', 'Could not open the PDF file');
+                  }
+                },
+              },
+              {text: 'OK'},
+            ],
+          );
+        } else {
+          const configOptions = {
+            fileCache: true,
+            addAndroidDownloads: {
+              useDownloadManager: true,
+              notification: true,
+              title: fileName,
+              description: 'Therapy plan PDF',
+              mime: 'application/pdf',
+              mediaScannable: true,
+              path: downloadPath,
+            },
+          };
+
+          await ReactNativeBlobUtil.fs.writeFile(
+            downloadPath,
+            base64PDF,
+            'base64',
+          );
+
+          Alert.alert(
+            'Download Complete',
+            `PDF saved to Downloads folder as ${fileName}`,
+            [
+              {
+                text: 'Open',
+                onPress: async () => {
+                  try {
+                    await Linking.openURL(`file://${downloadPath}`);
+                  } catch (e) {
+                    console.error('Error opening file:', e);
+                    Alert.alert('Error', 'Could not open the PDF file');
+                  }
+                },
+              },
+              {text: 'OK'},
+            ],
+          );
+        }
       }
-
-      const fileInfo = await RNFS.stat(filePath);
-      if (fileInfo.size <= 0) {
-        throw new Error('File is empty or corrupted.');
-      }
-
-      // Open the file using FileViewer
-      await FileViewer.open(filePath, {showOpenWithDialog: true});
-      Alert.alert('Success', 'PDF downloaded and opened successfully');
     } catch (error) {
       console.error('Error downloading PDF:', error);
       Alert.alert(
         'Download Failed',
-        'Unable to download or open the PDF file.',
+        'Unable to download the PDF file. Please try again.',
       );
     } finally {
       setLoading(false);

@@ -23,6 +23,7 @@ import {Picker} from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LiveSwitchLoginButton from '../components/liveswitchb';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useTheme } from './ThemeContext';
 
 interface Therapy {
   _id: string;
@@ -69,6 +70,8 @@ const EditTherapy: React.FC<EditTherapyProps> = ({
   const [selectedDate, setSelectedDate] = useState(
     new Date(therapy.therepy_date),
   );
+    const {theme, isDarkMode} = useTheme();
+    const styles = createStyles(theme.colors, isDarkMode);
   const [selectedDoctor, setSelectedDoctor] = useState<any | null>(null);
   const [slotDuration, setSlotDuration] = useState<number>(30);
   const [showSlotDurationPicker, setShowSlotDurationPicker] = useState(false);
@@ -580,14 +583,15 @@ const EditTherapy: React.FC<EditTherapyProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDarkMode: boolean) =>
+  StyleSheet.create({
   centeredView: {
     flex: 1,
     justifyContent: 'flex-end', // Modal slides up from bottom
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalView: {
-    backgroundColor: '#F8F9FA',
+    backgroundColor: isDarkMode ? '#121212' : '#f8f9fa',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '90%',
@@ -614,16 +618,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 10,
-    borderBottomWidth: 3,
-    borderBottomColor: '#E9ECEF',
-    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#007b8e',
+    backgroundColor: isDarkMode ? '#1e1e1e' : '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#212529',
+    color: '#007b8e',
   },
   closeButton: {
     padding: 8,
@@ -633,7 +637,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? '#1e1e1e' : '#ffffff',
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -643,7 +647,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   slotsSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode? '#1e1e1e' : '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     minHeight: 150,
@@ -651,11 +655,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#261e1d',
+    color: '#007b8e',
     marginBottom: 12,
   },
   sectionContent: {
-    backgroundColor: '#F8F9FA',
+    borderColor: "#007b8e",
+    borderWidth: 0.5,
     borderRadius: 8,
     overflow: 'hidden',
   },
@@ -669,7 +674,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#119FB3',
     marginRight: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? '#1e1e1e' : '#FFFFFF',
   },
   pickerField: {
     backgroundColor: '#F0F8FF',
@@ -681,10 +686,10 @@ const styles = StyleSheet.create({
   },
   pickerFieldText: {
     fontSize: 16,
-    color: '#333333',
+    color: isDarkMode ? '#000000' : '#333333',
   },
   pickerPlaceholder: {
-    color: '#999999',
+    color: isDarkMode ? '#000000' : '#757575', 
   },
   doneButton: {
     padding: 8,
@@ -700,9 +705,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   iosPicker: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? '#333333' : '#FFFFFF',
     height: 215,
+    color: isDarkMode ? '#FFFFFF' : '#333333',  // This controls text color
   },
+  
   selectedTypeButton: {
     backgroundColor: '#119FB3',
     borderColor: '#119FB3',
@@ -726,17 +733,19 @@ const styles = StyleSheet.create({
   datePicker: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: isDarkMode? '#1e1e1e' : '#F8F9FA',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
+    borderColor: '#007b8e',
+    borderWidth: 0.5,
     flex: 1,
     marginHorizontal: 12,
   },
   dateText: {
     marginLeft: 8,
     fontSize: 16,
-    color: '#495057',
+    color: isDarkMode ? '#f8f9fa' : '#495057',
     fontWeight: '500',
   },
   slotsGrid: {
@@ -748,36 +757,35 @@ const styles = StyleSheet.create({
     width: '48%',
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: isDarkMode ? '#1e1e1e' : '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#DEE2E6',
+    borderColor: '#007b8e',
   },
   slotButtonSelected: {
-    backgroundColor: '#119FB3',
-    borderColor: '#119FB3',
+    backgroundColor: '#007b8e',
   },
   slotButtonDisabled: {
-    backgroundColor: '#E9ECEF',
-    borderColor: '#DEE2E6',
+    backgroundColor: isDarkMode ? '#1e1e1e' : '#F5F5F5',
+      borderColor: isDarkMode ? '#2c2c2c': '#E0E0E0',
   },
   slotButtonText: {
     textAlign: 'center',
     fontSize: 14,
-    color: '#495057',
+    color: isDarkMode ? '#ffffff' : '#2b2a2a',
     fontWeight: '500',
   },
   slotButtonTextSelected: {
-    color: '#FFFFFF',
+    color:'#FFFFFF',
   },
   slotButtonTextDisabled: {
-    color: '#ADB5BD',
+     color: isDarkMode ? '#7d7878' : '#999999'
   },
   footer: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E9ECEF',
+    backgroundColor:isDarkMode? '#1e1e1e' : '#FFFFFF',
+    borderTopWidth: 0.5,
+    borderTopColor:'#007b8e',
   },
   footerButton: {
     flex: 1,
@@ -849,7 +857,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   picker: {
-    backgroundColor: '#F8F9FA',
+    backgroundColor: isDarkMode ? '#1e1e1e' : '#F8F9FA',
+    color: isDarkMode ? '#F8F9FA' : '#333333',
   },
 });
 

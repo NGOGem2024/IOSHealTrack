@@ -110,7 +110,7 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
           <TextInput
             ref={searchInputRef}
             style={styles.searchBar}
-            placeholder="Search by name"
+            placeholder="Search by name, phone number"
             placeholderTextColor="rgba(255, 255, 255, 0.8)"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -166,11 +166,12 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#ffffff',
+    paddingLeft: 20,
   },
   searchIcon: {
     marginLeft: 8,
     marginRight: 8,
-    color: '#333333',
+    color: '#ffffff',
   },
   searchButton: {
     padding: 10,

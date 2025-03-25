@@ -20,7 +20,7 @@ import axios from 'axios';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {useSession} from '../context/SessionContext';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RefreshControl} from 'react-native';
@@ -104,6 +104,17 @@ const DoctorDashboard: React.FC = () => {
     useState(false);
   const [noAppointmentsPopupVisible, setNoAppointmentsPopupVisible] =
     useState(false);
+
+    // Add this function to format the phone number
+const formatPhoneNumber = (phoneNumber: string) => {
+  if (!phoneNumber) return '';
+  
+  // Check if the phone number starts with a '+' and has country code
+  if (phoneNumber.startsWith('+')) {
+    return phoneNumber.replace(/^(\+\d{1,3})(\d{10})$/, '$1 $2');
+  }
+  return phoneNumber;
+};
   const fetchDoctorInfo = async () => {
     if (!session.idToken) return;
     setDoctorLoading(true);
@@ -118,6 +129,25 @@ const DoctorDashboard: React.FC = () => {
       setDoctorLoading(false);
     }
   };
+
+  // Add this to your DoctorDashboard component
+const route = useRoute();
+
+useEffect(() => {
+  // Handle scroll to top when navigation params change
+  if ((route.params as any)?.scrollToTop) {
+    scrollViewRef.current?.scrollTo({y: 0, animated: true});
+  }
+}, [route.params]);
+// Keep your existing focus listener too
+useEffect(() => {
+  const unsubscribe = navigation.addListener('focus', () => {
+    // Scroll to top when screen comes into focus
+    scrollViewRef.current?.scrollTo({y: 0, animated: true});
+  });
+
+  return unsubscribe;
+}, [navigation]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -161,6 +191,7 @@ const DoctorDashboard: React.FC = () => {
         },
       );
       setAllAppointments(allAppointmentsResponse.data);
+      
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         setAllAppointments([]);
@@ -486,15 +517,15 @@ const DoctorDashboard: React.FC = () => {
                 </Text>
               </View>
               <View style={styles.profileDetail}>
-                <Icon
-                  name="call-outline"
-                  size={16}
-                  color={styles.profileDetailIcon.color}
-                />
-                <Text style={styles.profileDetailText}>
-                  {doctorInfo.doctor_phone}
-                </Text>
-              </View>
+  <Icon
+    name="call-outline"
+    size={16}
+    color={styles.profileDetailIcon.color}
+  />
+  <Text style={styles.profileDetailText}>
+    {formatPhoneNumber(doctorInfo.doctor_phone)}
+  </Text>
+</View>
             </View>
           </View>
         )}
@@ -505,13 +536,15 @@ const DoctorDashboard: React.FC = () => {
               <Text style={styles.statNumber}>
                 {doctorInfo?.patients?.length || 0}
               </Text>
-              <Text style={styles.statLabel}>My Patients</Text>
+              <Text style={styles.statLabel}>{(doctorInfo?.patients?.length === 1) ? 'My Patient' : 'My Patients'}</Text>
+              
             </View>
           </TouchableOpacity>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{todayAppointments.length}</Text>
-            <Text style={styles.statLabel}>Appointments</Text>
+            <Text style={styles.statLabel}>{todayAppointments.length === 1 ? 'Appointment' : 'Appointments'}</Text>
+            
           </View>
         </View>
 
@@ -525,13 +558,17 @@ const DoctorDashboard: React.FC = () => {
         <View style={styles.section}>
           <View style={styles.appointmentHeader}>
             <Text style={styles.sectionTitle}>
-              {showAllAppointments ? 'All Appointments' : 'My Appointments'}
+            {showAllAppointments 
+      ? (allAppointments.length === 1 ? 'All Appointment' : 'All Appointments')
+      : (todayAppointments.length === 1 ? 'My Appointment' : 'My Appointments')}
             </Text>
             <TouchableOpacity
               style={styles.toggleButton}
               onPress={toggleAllAppointments}>
               <Text style={styles.toggleButtonText}>
-                {showAllAppointments ? 'My Appointments' : 'All Appointments'}
+              {showAllAppointments 
+        ? (todayAppointments.length === 1 ? 'My Appointment' : 'My Appointments')
+        : (allAppointments.length === 1 ? 'All Appointment' : 'All Appointments')}
               </Text>
             </TouchableOpacity>
           </View>

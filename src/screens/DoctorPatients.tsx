@@ -353,6 +353,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderRadius: 20,
       overflow: 'hidden',
       backgroundColor: theme.colors.card,
+      paddingLeft: 15, 
     },
     patientCard: {
       flex: 1,

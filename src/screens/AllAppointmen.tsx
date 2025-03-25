@@ -54,6 +54,92 @@ const HEADER_MAX_HEIGHT = 200;
 const HEADER_MIN_HEIGHT = 80;
 const DAYS_TO_LOAD = 7; // Number of days to load at once
 
+interface SkeletonProps {
+  isDarkMode: boolean;
+}
+
+// Skeleton component for appointments
+const AppointmentSkeleton = ({isDarkMode}:SkeletonProps) => {
+  const styles = getSkeletonStyles(isDarkMode);
+  const fadeAnim = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0.7,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, [fadeAnim]);
+
+  return (
+    <Animated.View style={[styles.appointmentItem, {opacity: fadeAnim}]}>
+     
+        <View style={styles.appointmentContent}>
+          <View style={styles.timeContainer}>
+            <View style={styles.timeText} />
+            <View style={styles.iconPlaceholder} />
+          </View>
+          
+          <View style={styles.appointmentInfo}>
+            <View style={styles.typePlaceholder} />
+            <View style={styles.namePlaceholder} />
+            <View style={styles.doctorPlaceholder} />
+            <View style={styles.statusPlaceholder} />
+          </View>
+          
+          <View style={styles.buttonPlaceholder} />
+        </View>
+    
+    </Animated.View>
+  );
+};
+
+interface DaySectionSkeletonProps {
+  isDarkMode: boolean;
+  appointmentCount?: number;
+}
+
+// Skeleton for a day section with multiple appointments
+const DaySectionSkeleton = ({ isDarkMode, appointmentCount = 2 }: DaySectionSkeletonProps) => {
+  const styles = getSkeletonStyles(isDarkMode);
+  const fadeAnim = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0.7,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, [fadeAnim]);
+
+  return (
+    <View style={styles.daySection}>
+      <Animated.View style={[styles.daySectionHeader, {opacity: fadeAnim}]} />
+      {[...Array(appointmentCount)].map((_, index) => (
+        <AppointmentSkeleton key={index} isDarkMode={isDarkMode} />
+      ))}
+    </View>
+  );
+};
+
 const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
   const {theme} = useTheme();
   const insets = useSafeAreaInsets();
@@ -454,12 +540,37 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
     );
   };
 
-  if (loading) {
+  // Render skeleton loaders while initial data is loading
+  const renderSkeletonLoader = () => {
     return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar
+          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+          backgroundColor={isDarkMode ? '#121212' : 'white'}
+        />
+        <BackTabTop screenName="Appointments" />
+        <View style={styles.view}>
+          <FlatList
+            data={[1, 2, 3, 4]}
+            renderItem={() => <DaySectionSkeleton isDarkMode={isDarkMode} />}
+            keyExtractor={item => item.toString()}
+            contentContainerStyle={styles.listContainer}
+            ListHeaderComponent={
+              <View style={styles.loadPreviousButton}>
+                <View style={styles.loadPreviousContent}>
+                  <Icon name="chevron-up" size={20} color="#b7c7c9" />
+                  <Text style={styles.loadPreviousText}>Load Previous Days</Text>
+                </View>
+              </View>
+            }
+          />
+        </View>
+      </SafeAreaView>
     );
+  };
+
+  if (loading) {
+    return renderSkeletonLoader();
   }
 
   return (
@@ -516,6 +627,105 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
     </SafeAreaView>
   );
 };
+
+// Styles for skeleton loading components
+const getSkeletonStyles = (isDarkMode: boolean) =>
+  StyleSheet.create({
+    container: {
+      marginBottom: 12,
+    },
+    appointmentItem: {
+      marginHorizontal: 16,
+      marginBottom: 12,
+      borderRadius: 16,
+      backgroundColor: isDarkMode ? '#233436' : '#FFFFFF',
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: isDarkMode ? 0.4 : 0.1,
+      shadowRadius: 4,
+      borderColor: isDarkMode ? '#119FB3' : 'white',
+      borderWidth: 1,
+      height: 110,
+    },
+    appointmentContent: {
+      flex: 1,
+      padding: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    timeContainer: {
+      alignItems: 'center',
+      marginRight: 16,
+      paddingRight: 16,
+      borderRightWidth: 1,
+      borderRightColor: isDarkMode ? '#669191' : '#E0E0E0',
+      height: 70,
+      justifyContent: 'space-between',
+    },
+    timeText: {
+      width: 40,
+      height: 16,
+      backgroundColor: isDarkMode ? '#2C2C2C' : '#E0E0E0',
+      borderRadius: 4,
+    },
+    iconPlaceholder: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: isDarkMode ? '#2C2C2C' : '#E8F6F8',
+    },
+    appointmentInfo: {
+      flex: 1,
+      height: 70,
+      justifyContent: 'space-between',
+    },
+    typePlaceholder: {
+      width: '80%',
+      height: 16,
+      backgroundColor: isDarkMode ? '#2C2C2C' : '#E0E0E0',
+      borderRadius: 4,
+      marginBottom: 8,
+    },
+    namePlaceholder: {
+      width: '60%',
+      height: 12,
+      backgroundColor: isDarkMode ? '#2C2C2C' : '#E0E0E0',
+      borderRadius: 4,
+      marginBottom: 4,
+    },
+    doctorPlaceholder: {
+      width: '40%',
+      height: 12,
+      backgroundColor: isDarkMode ? '#2C2C2C' : '#E0E0E0',
+      borderRadius: 4,
+      marginBottom: 8,
+    },
+    statusPlaceholder: {
+      width: 80,
+      height: 20,
+      backgroundColor: isDarkMode ? '#2C2C2C' : '#E0E0E0',
+      borderRadius: 12,
+    },
+    buttonPlaceholder: {
+      width: 70,
+      height: 35,
+      backgroundColor: isDarkMode ? '#2C2C2C' : '#E0E0E0',
+      borderRadius: 8,
+    },
+    daySection: {
+      marginBottom: 20,
+    },
+    daySectionHeader: {
+      height: 24,
+      width: 100,
+      backgroundColor: isDarkMode ? '#2C2C2C' : '#E0E0E0',
+      borderRadius: 4,
+      marginBottom: 12,
+      marginHorizontal: 16,
+    },
+  });
 
 const getStyles = (
   theme: ReturnType<typeof getTheme>,

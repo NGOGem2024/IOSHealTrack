@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {
   View,
   Text,
@@ -12,10 +12,11 @@ import {
   Dimensions,
   ScaledSize,
   SafeAreaView,
+  Animated,
 } from 'react-native';
 import axios from 'axios';
-import Ionicons from 'react-native-vector-icons/Ionicons'; // Updated import
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'; // Updated import
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useSession} from '../context/SessionContext';
 import {RootStackNavProps} from '../types/types';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
@@ -35,6 +36,75 @@ interface Doctor {
   organization_name: string;
   doctors_photo?: string;
 }
+
+// Skeleton animation component
+const SkeletonAnimation = ({children}: {children: React.ReactNode}) => {
+  const [opacity] = useState(new Animated.Value(0.3));
+  
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    
+    animation.start();
+    
+    return () => {
+      animation.stop();
+    };
+  }, [opacity]);
+  
+  return (
+    <Animated.View style={{opacity}}>
+      {children}
+    </Animated.View>
+  );
+};
+
+// Doctor card skeleton component
+const DoctorCardSkeleton = () => {
+  const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
+  
+  return (
+    <View style={styles.doctorCard}>
+      <View style={styles.doctorCardContent}>
+        <View style={[styles.doctorImage, styles.skeletonBox]} />
+        <View style={styles.doctorDetails}>
+          <View style={[styles.skeletonLine, {width: '70%', height: 16, marginBottom: 8}]} />
+          <View style={[styles.skeletonLine, {width: '50%', height: 12, marginBottom: 4}]} />
+          <View style={[styles.skeletonLine, {width: '80%', height: 12, marginBottom: 4}]} />
+          <View style={[styles.skeletonLine, {width: '60%', height: 12}]} />
+        </View>
+      </View>
+    </View>
+  );
+};
+
+// Doctor list skeleton component
+const DoctorListSkeleton = () => {
+  return (
+    <View>
+      {[...Array(8)].map((_, index) => (
+        <DoctorCardSkeleton key={`skeleton-${index}`} />
+      ))}
+    </View>
+  );
+};
 
 const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
   navigation,
@@ -136,9 +206,19 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <ImageBackground
+          source={require('../assets/bac2.jpg')}
+          style={styles.backgroundImage}>
+          <BackTopTab screenName="Doctors" />
+          <View
+            style={[styles.container, {height: screenDimensions.height * 0.9}]}>
+            <SkeletonAnimation>
+              <DoctorListSkeleton />
+            </SkeletonAnimation>
+          </View>
+        </ImageBackground>
+      </SafeAreaView>
     );
   }
 
@@ -227,6 +307,15 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     doctorDetails: {
       flex: 1,
+    },
+    skeletonBox: {
+      backgroundColor: 'rgba(180, 180, 180, 0.5)',
+      borderColor: 'transparent',
+    },
+    skeletonLine: {
+      backgroundColor: 'rgba(180, 180, 180, 0.5)',
+      borderRadius: 4,
+      marginVertical: 2,
     },
     // ... rest of the existing styles ...
     safeArea: {

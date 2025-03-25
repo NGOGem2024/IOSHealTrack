@@ -67,6 +67,28 @@ interface TherapyPlanDetails {
   patient_name: string;
 }
 
+interface SkeletonPlaceholderProps {
+  width: number | string;
+  height: number | string;
+  style?: any; // Or use a more specific type like ViewStyle from react-native
+}
+
+const SkeletonPlaceholder = ({width, height, style}:SkeletonPlaceholderProps) => {
+  return (
+    <View
+      style={[
+        {
+          width,
+          height,
+          backgroundColor: 'rgba(200, 200, 200, 0.3)',
+          borderRadius: 4,
+        },
+        style,
+      ]}
+    />
+  );
+};
+
 const TherapyPlanDetails: React.FC = () => {
   const route = useRoute<TherapyPlanDetailsRouteProp>();
   const navigation = useNavigation<TherapyNavigationProp>();
@@ -163,11 +185,123 @@ const TherapyPlanDetails: React.FC = () => {
     }
   };
 
+  const renderSkeletonLoader = () => {
+    return (
+      <ScrollView style={styles.container}>
+        {/* Main Card Skeleton */}
+        <View style={styles.mainCard}>
+          <View style={styles.cardHeader}>
+            <SkeletonPlaceholder width={150} height={20} style={{marginBottom: 4}} />
+            <View style={styles.actionButtons}>
+              <SkeletonPlaceholder width={24} height={24} style={{marginLeft: 8}} />
+              <SkeletonPlaceholder width={24} height={24} style={{marginLeft: 8}} />
+              <SkeletonPlaceholder width={24} height={24} style={{marginLeft: 8}} />
+            </View>
+          </View>
+          <SkeletonPlaceholder width={200} height={24} style={{marginBottom: 4}} />
+          <SkeletonPlaceholder width={150} height={16} style={{marginBottom: 16}} />
+
+          <View style={styles.progressContainer}>
+            <SkeletonPlaceholder width="100%" height={4} style={{marginBottom: 4}} />
+            <SkeletonPlaceholder width={120} height={14} style={{}} />
+          </View>
+
+          <View style={styles.dateInfo}>
+            <SkeletonPlaceholder width={120} height={14} style={{}} />
+            <SkeletonPlaceholder width={120} height={14} style={{}} />
+          </View>
+        </View>
+
+        {/* Medical Info Card Skeleton */}
+        <View style={styles.card}>
+          <SkeletonPlaceholder width={150} height={18} style={{marginBottom: 12}} />
+          <View style={styles.infoRow}>
+            <SkeletonPlaceholder width={80} height={14} style={{}} />
+            <SkeletonPlaceholder width={180} height={14} style={{marginLeft: 8}} />
+          </View>
+          <View style={styles.infoRow}>
+            <SkeletonPlaceholder width={80} height={14} style={{}} />
+            <SkeletonPlaceholder width={180} height={14} style={{marginLeft: 8}} />
+          </View>
+        </View>
+
+        {/* Sessions Card Skeleton */}
+        <View style={styles.card}>
+          <SkeletonPlaceholder width={150} height={18} style={{marginBottom: 12}} />
+          <View style={styles.sessionsContainer}>
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={120} height={14} style={{}} />
+              <SkeletonPlaceholder width={30} height={14} style={{marginLeft: 8}} />
+            </View>
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={120} height={14} style={{}} />
+              <SkeletonPlaceholder width={30} height={14} style={{marginLeft: 8}} />
+            </View>
+
+            <SkeletonPlaceholder width={120} height={16} style={{marginTop: 16, marginBottom: 8}} />
+
+            {[1, 2].map((_, index) => (
+              <View key={index} style={styles.sessionSingleItem}>
+                <View style={styles.sessionHeader}>
+                  <SkeletonPlaceholder width={80} height={14} style={{}} />
+                  <SkeletonPlaceholder width={70} height={20} style={{borderRadius: 12}} />
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Payment Details Card Skeleton */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <SkeletonPlaceholder width={120} height={18} style={{marginBottom: 8}} />
+            <SkeletonPlaceholder width={24} height={24} style={{marginLeft: 8}} />
+          </View>
+          <View style={styles.paymentInfo}>
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={100} height={14} style={{}} />
+              <SkeletonPlaceholder width={80} height={14} style={{marginLeft: 8}} />
+            </View>
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={80} height={14} style={{}} />
+              <SkeletonPlaceholder width={80} height={14} style={{marginLeft: 8}} />
+            </View>
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={80} height={14} style={{}} />
+              <SkeletonPlaceholder width={80} height={14} style={{marginLeft: 8}} />
+            </View>
+          </View>
+        </View>
+
+        {/* Remarks Card Skeleton */}
+        <View style={[styles.card, styles.lastCard]}>
+          <SkeletonPlaceholder width={120} height={18} style={{marginBottom: 12}} />
+          <View style={styles.remarkSection}>
+            <SkeletonPlaceholder width={140} height={16} style={{marginBottom: 12}} />
+            <View style={styles.remarkItem}>
+              <View style={styles.remarkHeader}>
+                <SkeletonPlaceholder width={100} height={14} style={{}} />
+                <SkeletonPlaceholder width={80} height={12} style={{}} />
+              </View>
+              <SkeletonPlaceholder width="100%" height={40} style={{marginTop: 8}} />
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    );
+  };
+
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <BackTabTop screenName="Plan Details" />
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor="black"
+          translucent={false}
+        />
+        {renderSkeletonLoader()}
+      </SafeAreaView>
     );
   }
 
@@ -728,7 +862,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignItems: 'center',
       backgroundColor: '#119FB3',
     },
-    loadingText: {
+   loadingText: {
       marginTop: 10,
       fontSize: 16,
       color: '#FFFFFF',

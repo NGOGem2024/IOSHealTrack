@@ -25,6 +25,7 @@ import instance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
 import LoadingScreen from '../components/loadingScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomCountryPicker from './CustomCountryPicker';
 
 const {width} = Dimensions.get('window');
 
@@ -33,6 +34,13 @@ interface YouTubeVideo {
   title: string;
   url: string;
   description: string;
+}
+
+interface Country {
+  name: string;
+  code: string;
+  flag: string;
+  callingCode: string;
 }
 
 interface ProfileInfo {
@@ -68,6 +76,9 @@ const DoctorProfileEdit: React.FC = () => {
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
     ),
   );
+  const themeValues = getTheme(
+    theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+  );
   const {session} = useSession();
 
   const [profileInfo, setProfileInfo] =
@@ -77,7 +88,15 @@ const DoctorProfileEdit: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
-
+  // Country picker states
+  const [selectedCountry, setSelectedCountry] = useState<Country>({
+    name: 'India',
+    code: 'IN',
+    flag: '🇮🇳',
+    callingCode: '91',
+  });
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [phoneWithoutCode, setPhoneWithoutCode] = useState('');
   // New state for handling YouTube video input
   const [newVideoTitle, setNewVideoTitle] = useState('');
   const [newVideoDescription, setNewVideoDescription] = useState('');
@@ -92,6 +111,70 @@ const DoctorProfileEdit: React.FC = () => {
       setIsLoading(false);
     }
   }, [session.idToken]);
+
+  useEffect(() => {
+    // Extract country code and phone number when profile info changes
+    if (profileInfo.doctor_phone) {
+      const phoneStr = profileInfo.doctor_phone;
+
+      // Define a list of countries with their calling codes
+      const countries = [
+        {name: 'United States', code: 'US', flag: '🇺🇸', callingCode: '1'},
+        {name: 'United Kingdom', code: 'GB', flag: '🇬🇧', callingCode: '44'},
+        {name: 'India', code: 'IN', flag: '🇮🇳', callingCode: '91'},
+        {name: 'Canada', code: 'CA', flag: '🇨🇦', callingCode: '1'},
+        {name: 'Australia', code: 'AU', flag: '🇦🇺', callingCode: '61'},
+        {name: 'Germany', code: 'DE', flag: '🇩🇪', callingCode: '49'},
+        {name: 'France', code: 'FR', flag: '🇫🇷', callingCode: '33'},
+        {name: 'Italy', code: 'IT', flag: '🇮🇹', callingCode: '39'},
+        {name: 'Spain', code: 'ES', flag: '🇪🇸', callingCode: '34'},
+        {name: 'Japan', code: 'JP', flag: '🇯🇵', callingCode: '81'},
+        {name: 'China', code: 'CN', flag: '🇨🇳', callingCode: '86'},
+        {name: 'Brazil', code: 'BR', flag: '🇧🇷', callingCode: '55'},
+        {name: 'Russia', code: 'RU', flag: '🇷🇺', callingCode: '7'},
+        {name: 'South Africa', code: 'ZA', flag: '🇿🇦', callingCode: '27'},
+        {name: 'UAE', code: 'AE', flag: '🇦🇪', callingCode: '971'},
+        {name: 'Singapore', code: 'SG', flag: '🇸🇬', callingCode: '65'},
+        {name: 'New Zealand', code: 'NZ', flag: '🇳🇿', callingCode: '64'},
+        {name: 'Ireland', code: 'IE', flag: '🇮🇪', callingCode: '353'},
+        {name: 'Netherlands', code: 'NL', flag: '🇳🇱', callingCode: '31'},
+        {name: 'Sweden', code: 'SE', flag: '🇸🇪', callingCode: '46'},
+      ];
+
+      // Try to match the country code
+      const matchedCountry = countries.find(country =>
+        phoneStr.startsWith(`+${country.callingCode}`),
+      );
+
+      if (matchedCountry) {
+        setSelectedCountry(matchedCountry);
+        // Remove the country code from the phone number
+        setPhoneWithoutCode(
+          phoneStr.substring(matchedCountry.callingCode.length + 1),
+        );
+      } else {
+        // If no match, use default (India) and use the full number
+        setSelectedCountry({
+          name: 'India',
+          code: 'IN',
+          flag: '🇮🇳',
+          callingCode: '91',
+        });
+        setPhoneWithoutCode(phoneStr);
+      }
+    }
+  }, [profileInfo.doctor_phone]);
+
+  const handlePhoneChange = (text: string) => {
+    // Remove any non-digit characters
+    const cleanedText = text.replace(/\D/g, '');
+
+    setPhoneWithoutCode(cleanedText);
+
+    // Update the profile phone with country code
+    const fullPhoneNumber = `+${selectedCountry.callingCode}${cleanedText}`;
+    handleInputChange('doctor_phone', fullPhoneNumber);
+  };
 
   const fetchDoctorInfo = async () => {
     if (!session.idToken) {
@@ -121,6 +204,14 @@ const DoctorProfileEdit: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handle country selection
+  const handleCountrySelect = (country: Country) => {
+    setSelectedCountry(country);
+    // Update the profile phone with new country code
+    const fullPhoneNumber = `+${country.callingCode}${phoneWithoutCode}`;
+    handleInputChange('doctor_phone', fullPhoneNumber);
   };
 
   const handleInputChange = (field: keyof ProfileInfo, value: string) => {
@@ -656,13 +747,6 @@ const DoctorProfileEdit: React.FC = () => {
                 field: 'organization_name',
                 disabled: true,
               },
-              {
-                label: 'Phone Number',
-                icon: 'call-outline',
-                value: profileInfo.doctor_phone,
-                field: 'doctor_phone',
-                keyboardType: 'phone-pad',
-              },
             ].map((item, index) => (
               <View
                 key={item.field}
@@ -689,12 +773,38 @@ const DoctorProfileEdit: React.FC = () => {
                       handleInputChange(item.field as keyof ProfileInfo, text)
                     }
                     editable={!item.disabled}
-                    keyboardType={item.keyboardType as any}
                     placeholderTextColor="#999"
                   />
                 </View>
               </View>
             ))}
+            <View style={[styles.inputGroup, styles.inputBorder]}>
+              <Text style={styles.label}>Phone Number</Text>
+              <View style={styles.phoneInputContainer}>
+                {/* Country Selector */}
+                <TouchableOpacity
+                  style={styles.countrySelector}
+                  onPress={() => setShowCountryPicker(true)}>
+                  <Text style={styles.countryFlag}>{selectedCountry.flag}</Text>
+                  <Text style={styles.countryCode}>
+                    +{selectedCountry.callingCode}
+                  </Text>
+                  <Icon name="chevron-down" size={16} color="#007B8E" />
+                </TouchableOpacity>
+
+                {/* Phone Input */}
+                <View style={styles.phoneInputWrapper}>
+                  <TextInput
+                    style={styles.input}
+                    value={phoneWithoutCode}
+                    onChangeText={handlePhoneChange}
+                    keyboardType="phone-pad"
+                    placeholderTextColor="#999"
+                    placeholder="Enter phone number"
+                  />
+                </View>
+              </View>
+            </View>
           </View>
 
           {/* YouTube Videos Section */}
@@ -797,6 +907,21 @@ const DoctorProfileEdit: React.FC = () => {
       </ScrollView>
       {renderPhotoOptionsModal()}
       {renderVideoModal()}
+
+      <CustomCountryPicker
+        selectedCountry={selectedCountry}
+        onSelect={handleCountrySelect}
+        visible={showCountryPicker}
+        onClose={() => setShowCountryPicker(false)}
+        theme={{
+          card: themeValues.colors.card,
+          text: themeValues.colors.text,
+          primary: themeValues.colors.primary,
+          inputBg: themeValues.colors.background,
+          inputBorder: themeValues.colors.border,
+          placeholderText: '#999',
+        }}
+      />
     </SafeAreaView>
   );
 };
@@ -818,6 +943,35 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
       elevation: 5,
+    },
+
+    phoneInputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingRight: 5,
+      backgroundColor: '#F8FAFC',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+    },
+    countryCode: {
+      backgroundColor: '#F8FAFC',
+      color: 'black',
+      marginRight: 5,
+    },
+    countrySelector: {
+      backgroundColor: '#F8FAFC',
+      flexDirection: 'row',
+    },
+
+    countryFlag: {
+      backgroundColor: '#F8FAFC',
+      marginRight: 10,
+      marginLeft: 5,
+    },
+    phoneInputWrapper: {
+      backgroundColor: '#F8FAFC',
     },
     modalOverlay: {
       flex: 1,

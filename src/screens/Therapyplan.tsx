@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   useColorScheme,
   SafeAreaView,
+  Keyboard,
 } from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -99,6 +100,29 @@ const styles = getStyles(
     'Geriatrics',
     'Post surgical rehabilitation',
   ];
+
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+// Add this useEffect
+useEffect(() => {
+  const keyboardDidShowListener = Keyboard.addListener(
+    'keyboardDidShow',
+    () => {
+      setKeyboardVisible(true);
+    }
+  );
+  const keyboardDidHideListener = Keyboard.addListener(
+    'keyboardDidHide', // Corrected event name
+    () => {
+      setKeyboardVisible(false);
+    }
+  );
+
+  return () => {
+    keyboardDidShowListener.remove();
+    keyboardDidHideListener.remove();
+  };
+}, []);
 
   useEffect(() => {
     Animated.parallel([
@@ -353,15 +377,16 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
         showsVerticalScrollIndicator={true}
         style={[styles.scrollView, isDarkMode && styles.scrollViewDark]}
         contentContainerStyle={styles.scrollContainer}>
-        <Animated.View
-          style={[
-            styles.container,
-            isDarkMode && styles.containerDark,
-            {
-              opacity: fadeAnim,
-              transform: [{translateY: slideAnim}],
-            },
-          ]}>
+    <Animated.View
+  style={[
+    styles.container,
+    isDarkMode && styles.containerDark,
+    keyboardVisible && { paddingBottom: 0 }, // Reduce padding when keyboard is visible
+    {
+      opacity: fadeAnim,
+      transform: [{translateY: slideAnim}],
+    },
+  ]}>
           <Text style={[styles.title, isDarkMode && styles.titleDark]}>
             Create Therapy Plan
           </Text>

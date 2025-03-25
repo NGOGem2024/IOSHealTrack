@@ -372,13 +372,14 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
             onPress={handleSearch}
             activeOpacity={0.7}>
             <View style={styles.searchInputWrapper}>
+              
+              <Text style={styles.searchPlaceholder}>Search by name / phone number</Text>
               <Icon
                 name="search"
                 size={18}
-                color="#333333"
+                color="#ffffff"
                 style={styles.searchIcon}
               />
-              <Text style={styles.searchPlaceholder}>Search by name / phone number</Text>
             </View>
           </TouchableOpacity>
           <View style={styles.filtersContainer1}>
@@ -454,7 +455,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginRight: 12,
     },
     searchPlaceholder: {
-      fontSize: 14,
+      fontSize: 16,
       color: 'rgba(255, 255, 255, 0.8)',
       flex: 1,
     },

@@ -86,20 +86,23 @@ const EnhancedProfilePhoto: React.FC<ProfilePhotoProps> = ({
                       transform: [{scale: scale}],
                     },
                   ]}>
-                  <TouchableWithoutFeedback
-                    onPressIn={animateIn}
-                    onPressOut={animateOut}>
-                    <Image
-                      source={imageSource}
-                      style={styles.enlargedPhoto}
-                      resizeMode="contain"
-                    />
-                  </TouchableWithoutFeedback>
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={closeModal}>
-                    <Icon name="close-circle" size={32} color="#FFFFFF" />
-                  </TouchableOpacity>
+                  <View style={styles.photoContainer}>
+                    <TouchableWithoutFeedback
+                      onPressIn={animateIn}
+                      onPressOut={animateOut}>
+                      <Image
+                        source={imageSource}
+                        style={styles.enlargedPhoto}
+                        resizeMode="contain"
+                      />
+                    </TouchableWithoutFeedback>
+                    <TouchableOpacity
+                      style={styles.closeButton}
+                      onPress={closeModal}
+                      hitSlop={{top: 10, right: 10, bottom: 10, left: 10}}>
+                      <Icon name="close-circle" size={32} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
                 </Animated.View>
               </TouchableWithoutFeedback>
             </View>
@@ -132,16 +135,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  enlargedPhoto: {
+  photoContainer: {
+    position: 'relative',
     width: width * 0.9,
     height: width * 0.9,
+  },
+  enlargedPhoto: {
+    width: '100%',
+    height: '100%',
     borderRadius: 20,
   },
   closeButton: {
     position: 'absolute',
-    top: 40,
-    right: 20,
-    padding: 10,
+    top: 9,
+    right: 9,
+    zIndex: 10,
   },
 });
 

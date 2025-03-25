@@ -72,7 +72,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
   const [showTherapyPicker, setShowTherapyPicker] = useState(false);
   const styles = createStyles(theme.colors, isDarkMode);
 
-  const appointmentTypes = ['In Clinic', 'In Home', 'IP/ICU', 'Liveswitch'];
+  const appointmentTypes = ['In Clinic', 'In Home', 'IP/ICU', 'Online'];
 
   useEffect(() => {
     setShowLiveSwitchLogin(

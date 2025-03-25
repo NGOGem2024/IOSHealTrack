@@ -67,6 +67,28 @@ interface TherapyPlanDetails {
   patient_name: string;
 }
 
+interface SkeletonPlaceholderProps {
+  width: number | string;
+  height: number | string;
+  style?: any; // Or use a more specific type like ViewStyle from react-native
+}
+
+const SkeletonPlaceholder = ({width, height, style}:SkeletonPlaceholderProps) => {
+  return (
+    <View
+      style={[
+        {
+          width,
+          height,
+          backgroundColor: 'rgba(200, 200, 200, 0.3)',
+          borderRadius: 4,
+        },
+        style,
+      ]}
+    />
+  );
+};
+
 const TherapyPlanDetails: React.FC = () => {
   const route = useRoute<TherapyPlanDetailsRouteProp>();
   const navigation = useNavigation<TherapyNavigationProp>();
@@ -164,11 +186,123 @@ const TherapyPlanDetails: React.FC = () => {
     }
   };
 
+  const renderSkeletonLoader = () => {
+    return (
+      <ScrollView style={styles.container}>
+        {/* Main Card Skeleton */}
+        <View style={styles.mainCard}>
+          <View style={styles.cardHeader}>
+            <SkeletonPlaceholder width={150} height={20} style={{marginBottom: 4}} />
+            <View style={styles.actionButtons}>
+              <SkeletonPlaceholder width={24} height={24} style={{marginLeft: 8}} />
+              <SkeletonPlaceholder width={24} height={24} style={{marginLeft: 8}} />
+              <SkeletonPlaceholder width={24} height={24} style={{marginLeft: 8}} />
+            </View>
+          </View>
+          <SkeletonPlaceholder width={200} height={24} style={{marginBottom: 4}} />
+          <SkeletonPlaceholder width={150} height={16} style={{marginBottom: 16}} />
+
+          <View style={styles.progressContainer}>
+            <SkeletonPlaceholder width="100%" height={4} style={{marginBottom: 4}} />
+            <SkeletonPlaceholder width={120} height={14} style={{}} />
+          </View>
+
+          <View style={styles.dateInfo}>
+            <SkeletonPlaceholder width={120} height={14} style={{}} />
+            <SkeletonPlaceholder width={120} height={14} style={{}} />
+          </View>
+        </View>
+
+        {/* Medical Info Card Skeleton */}
+        <View style={styles.card}>
+          <SkeletonPlaceholder width={150} height={18} style={{marginBottom: 12}} />
+          <View style={styles.infoRow}>
+            <SkeletonPlaceholder width={80} height={14} style={{}} />
+            <SkeletonPlaceholder width={180} height={14} style={{marginLeft: 8}} />
+          </View>
+          <View style={styles.infoRow}>
+            <SkeletonPlaceholder width={80} height={14} style={{}} />
+            <SkeletonPlaceholder width={180} height={14} style={{marginLeft: 8}} />
+          </View>
+        </View>
+
+        {/* Sessions Card Skeleton */}
+        <View style={styles.card}>
+          <SkeletonPlaceholder width={150} height={18} style={{marginBottom: 12}} />
+          <View style={styles.sessionsContainer}>
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={120} height={14} style={{}} />
+              <SkeletonPlaceholder width={30} height={14} style={{marginLeft: 8}} />
+            </View>
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={120} height={14} style={{}} />
+              <SkeletonPlaceholder width={30} height={14} style={{marginLeft: 8}} />
+            </View>
+
+            <SkeletonPlaceholder width={120} height={16} style={{marginTop: 16, marginBottom: 8}} />
+
+            {[1, 2].map((_, index) => (
+              <View key={index} style={styles.sessionSingleItem}>
+                <View style={styles.sessionHeader}>
+                  <SkeletonPlaceholder width={80} height={14} style={{}} />
+                  <SkeletonPlaceholder width={70} height={20} style={{borderRadius: 12}} />
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Payment Details Card Skeleton */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <SkeletonPlaceholder width={120} height={18} style={{marginBottom: 8}} />
+            <SkeletonPlaceholder width={24} height={24} style={{marginLeft: 8}} />
+          </View>
+          <View style={styles.paymentInfo}>
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={100} height={14} style={{}} />
+              <SkeletonPlaceholder width={80} height={14} style={{marginLeft: 8}} />
+            </View>
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={80} height={14} style={{}} />
+              <SkeletonPlaceholder width={80} height={14} style={{marginLeft: 8}} />
+            </View>
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={80} height={14} style={{}} />
+              <SkeletonPlaceholder width={80} height={14} style={{marginLeft: 8}} />
+            </View>
+          </View>
+        </View>
+
+        {/* Remarks Card Skeleton */}
+        <View style={[styles.card, styles.lastCard]}>
+          <SkeletonPlaceholder width={120} height={18} style={{marginBottom: 12}} />
+          <View style={styles.remarkSection}>
+            <SkeletonPlaceholder width={140} height={16} style={{marginBottom: 12}} />
+            <View style={styles.remarkItem}>
+              <View style={styles.remarkHeader}>
+                <SkeletonPlaceholder width={100} height={14} style={{}} />
+                <SkeletonPlaceholder width={80} height={12} style={{}} />
+              </View>
+              <SkeletonPlaceholder width="100%" height={40} style={{marginTop: 8}} />
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    );
+  };
+
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <BackTabTop screenName="Plan Details" />
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor="black"
+          translucent={false}
+        />
+        {renderSkeletonLoader()}
+      </SafeAreaView>
     );
   }
 
@@ -434,468 +568,468 @@ const TherapyPlanDetails: React.FC = () => {
           <View style={styles.infoRow}>
             <Text style={styles.label}>Symptoms:</Text>
             <Text style={styles.value}>
-                {Array.isArray(plan.patient_symptoms)
-                  ? plan.patient_symptoms.join(', ')
-                  : plan.patient_symptoms}
+              {Array.isArray(plan.patient_symptoms)
+                ? plan.patient_symptoms.join(', ')
+                : plan.patient_symptoms}
+            </Text>
+          </View>
+        </View>
+        {renderSessionsCard()}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.sectionTitle}>Payment Details</Text>
+            <TouchableOpacity
+              style={styles.paymentInfoButton}
+              onPress={() =>
+                navigation.navigate('payment', {
+                  planId: planId,
+                  patientId: patientId || '',
+                })
+              }>
+              <MaterialCommunityIcons
+                name="information-outline"
+                size={24}
+                color="#119FB3"
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.paymentInfo}>
+            <View style={styles.infoRow}>
+              <Text style={styles.paymentLabel}>Total Amount:</Text>
+              <Text style={styles.paymentValue}>₹{plan.total_amount}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.paymentLabel}>Received:</Text>
+              <Text style={styles.paymentValue}>₹{plan.received_amount}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.paymentLabel}>Balance:</Text>
+              <Text style={[styles.paymentValue, styles.balance]}>
+                ₹{plan.balance}
               </Text>
             </View>
-          </View>
-          {renderSessionsCard()}
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.sectionTitle}>Payment Details</Text>
-              <TouchableOpacity
-                style={styles.paymentInfoButton}
-                onPress={() =>
-                  navigation.navigate('payment', {
-                    planId: planId,
-                    patientId: patientId || '',
-                  })
-                }>
-                <MaterialCommunityIcons
-                  name="information-outline"
-                  size={24}
-                  color="#119FB3"
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.paymentInfo}>
-              <View style={styles.infoRow}>
-                <Text style={styles.paymentLabel}>Total Amount:</Text>
-                <Text style={styles.paymentValue}>₹{plan.total_amount}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.paymentLabel}>Received:</Text>
-                <Text style={styles.paymentValue}>₹{plan.received_amount}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.paymentLabel}>Balance:</Text>
-                <Text style={[styles.paymentValue, styles.balance]}>
-                  ₹{plan.balance}
-                </Text>
-              </View>
-              {plan.extra_addons && plan.extra_addons.length > 0 && (
-                <View style={styles.extraAddonsSection}>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.label}>Extra Addons:</Text>
-                  </View>
-                  {plan.extra_addons.map((addon, index) => {
-                    // Check if addon is an object with name and amount properties
-                    if (
-                      typeof addon === 'object' &&
-                      'name' in addon &&
-                      'amount' in addon
-                    ) {
-                      return (
-                        <View key={index} style={styles.addonRow}>
-                          <Text style={styles.addonName}>{addon.name}</Text>
-                          <Text style={styles.addonAmount}>₹{addon.amount}</Text>
-                        </View>
-                      );
-                    }
-                    // If addon is a string, render it differently
+            {plan.extra_addons && plan.extra_addons.length > 0 && (
+              <View style={styles.extraAddonsSection}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Extra Addons:</Text>
+                </View>
+                {plan.extra_addons.map((addon, index) => {
+                  // Check if addon is an object with name and amount properties
+                  if (
+                    typeof addon === 'object' &&
+                    'name' in addon &&
+                    'amount' in addon
+                  ) {
                     return (
                       <View key={index} style={styles.addonRow}>
-                        <Text style={styles.addonName}>{addon}</Text>
+                        <Text style={styles.addonName}>{addon.name}</Text>
+                        <Text style={styles.addonAmount}>₹{addon.amount}</Text>
                       </View>
                     );
-                  })}
-                  {plan.addons_amount && (
-                    <View style={styles.infoRow}>
-                      <Text style={styles.label}>Total Addons Amount:</Text>
-                      <Text style={styles.value}>₹{plan.addons_amount}</Text>
+                  }
+                  // If addon is a string, render it differently
+                  return (
+                    <View key={index} style={styles.addonRow}>
+                      <Text style={styles.addonName}>{addon}</Text>
                     </View>
-                  )}
-                </View>
-              )}
-            </View>
+                  );
+                })}
+                {plan.addons_amount && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.label}>Total Addons Amount:</Text>
+                    <Text style={styles.value}>₹{plan.addons_amount}</Text>
+                  </View>
+                )}
+              </View>
+            )}
           </View>
-  
-          {(plan.presession_remarks?.some(r => r.presession_remark) ||
-            plan.postsession_remarks?.some(r => r.postsession_remarks)) && (
-            <View style={[styles.card, styles.lastCard]}>
-              <Text style={styles.sectionTitle}>Session Remarks</Text>
-  
-              {/* Pre-session Remarks Section */}
-              {plan.presession_remarks?.some(r => r.presession_remark) && (
-                <View style={styles.remarkSection}>
-                  <Text style={styles.remarkSectionTitle}>
-                    Pre-session Remarks
-                  </Text>
-                  {plan.presession_remarks
-                    .filter(remark => remark.presession_remark)
-                    .map((remark, index) => (
-                      <View key={`pre-${index}`} style={styles.remarkItem}>
-                        <View style={styles.remarkHeader}>
-                          <Text style={styles.doctorName}>
-                            {remark.doctor_name}
-                          </Text>
-                          <Text style={styles.timestamp}>
-                            {new Date(remark.timestamp).toLocaleDateString()}
-                          </Text>
-                        </View>
-                        <Text style={styles.remarkText}>
-                          {remark.presession_remark}
+        </View>
+
+        {(plan.presession_remarks?.some(r => r.presession_remark) ||
+          plan.postsession_remarks?.some(r => r.postsession_remarks)) && (
+          <View style={[styles.card, styles.lastCard]}>
+            <Text style={styles.sectionTitle}>Session Remarks</Text>
+
+            {/* Pre-session Remarks Section */}
+            {plan.presession_remarks?.some(r => r.presession_remark) && (
+              <View style={styles.remarkSection}>
+                <Text style={styles.remarkSectionTitle}>
+                  Pre-session Remarks
+                </Text>
+                {plan.presession_remarks
+                  .filter(remark => remark.presession_remark)
+                  .map((remark, index) => (
+                    <View key={`pre-${index}`} style={styles.remarkItem}>
+                      <View style={styles.remarkHeader}>
+                        <Text style={styles.doctorName}>
+                          {remark.doctor_name}
+                        </Text>
+                        <Text style={styles.timestamp}>
+                          {new Date(remark.timestamp).toLocaleDateString()}
                         </Text>
                       </View>
-                    ))}
-                </View>
-              )}
-  
-              {/* Post-session Remarks Section */}
-              {plan.postsession_remarks?.some(r => r.postsession_remarks) && (
-                <View style={styles.remarkSection}>
-                  <Text style={styles.remarkSectionTitle}>
-                    Post-session Remarks
-                  </Text>
-                  {plan.postsession_remarks
-                    .filter(remark => remark.postsession_remarks)
-                    .map((remark, index) => (
-                      <View key={`post-${index}`} style={styles.remarkItem}>
-                        <View style={styles.remarkHeader}>
-                          <Text style={styles.doctorName}>
-                            {remark.doctor_name}
-                          </Text>
-                          <Text style={styles.timestamp}>
-                            {new Date(remark.timestamp).toLocaleDateString()}
-                          </Text>
-                        </View>
-                        <Text style={styles.remarkText}>
-                          {remark.postsession_remarks}
+                      <Text style={styles.remarkText}>
+                        {remark.presession_remark}
+                      </Text>
+                    </View>
+                  ))}
+              </View>
+            )}
+
+            {/* Post-session Remarks Section */}
+            {plan.postsession_remarks?.some(r => r.postsession_remarks) && (
+              <View style={styles.remarkSection}>
+                <Text style={styles.remarkSectionTitle}>
+                  Post-session Remarks
+                </Text>
+                {plan.postsession_remarks
+                  .filter(remark => remark.postsession_remarks)
+                  .map((remark, index) => (
+                    <View key={`post-${index}`} style={styles.remarkItem}>
+                      <View style={styles.remarkHeader}>
+                        <Text style={styles.doctorName}>
+                          {remark.doctor_name}
+                        </Text>
+                        <Text style={styles.timestamp}>
+                          {new Date(remark.timestamp).toLocaleDateString()}
                         </Text>
                       </View>
-                    ))}
-                </View>
-              )}
-            </View>
-          )}
-        </ScrollView>
-      </SafeAreaView>
-    );
-  };
-  
-  const getStyles = (theme: ReturnType<typeof getTheme>) =>
-    StyleSheet.create({
-      paymentInfo: {
-        backgroundColor:
-          theme.colors.card === '#FFFFFF'
-            ? 'rgb(240, 246, 255)'
-            : 'rgba(17, 159, 179, 0.1)', // Darker background for dark mode
-        padding: 12,
-        borderRadius: 8,
-      },
-      sessionsContainer: {
-        backgroundColor:
-          theme.colors.card === '#FFFFFF'
-            ? 'rgb(240, 246, 255)'
-            : 'rgba(17, 159, 179, 0.1)',
-        padding: 16,
-        borderRadius: 8,
-      },
-      sessionListTitle: {
-        fontSize: 16,
-        marginTop: 16,
-        marginBottom: 8,
-      },
-      sessionItem: {
-        paddingLeft: 12,
-        marginBottom: 12,
-      },
-      sessionSingleItem: {
-        borderLeftWidth: 2,
-        paddingLeft: 12,
-        marginBottom: 12,
-        borderLeftColor: '#119FB3',
-      },
-      sessionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      },
-      sessionNumber: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: theme.colors.text,
-      },
-      statusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-      },
-      statusText: {
-        color: '#FFFFFF',
-        fontSize: 12,
-        fontWeight: '500',
-      },
-      paymentLabel: {
-        fontSize: 14,
-        color: theme.colors.text,
-        opacity: 0.7,
-      },
-      paymentValue: {
-        fontSize: 14,
-        color: theme.colors.text,
-        fontWeight: '500',
-        flex: 1,
-        textAlign: 'right',
-        marginLeft: 8,
-      },
-      balance: {
-        color: '#119FB3',
-        fontWeight: 'bold',
-      },
-      remarkSection: {
-        marginBottom: 16,
-      },
-      actionButtons: {
-        flexDirection: 'row',
-        alignItems: 'center',
-      },
-      iconButton: {
-        padding: 8,
-        marginLeft: 8,
-      },
-      cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
-      },
-      extraAddonsSection: {
-        marginTop: 8,
-        backgroundColor: 'rgba(17, 159, 179, 0.05)',
-        borderRadius: 8,
-        padding: 8,
-      },
-      addonRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 4,
-      },
-      addonName: {
-        fontSize: 14,
-        color: theme.colors.text,
-        opacity: 0.7,
-      },
-      addonAmount: {
-        fontSize: 14,
-        color: theme.colors.text,
-        fontWeight: '500',
-      },
-      remarkSectionTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#119FB3',
-        marginBottom: 12,
-        marginTop: 8,
-      },
-  
-      paymentInfoButton: {
-        padding: 8,
-        marginLeft: 8,
-      },
-      editButton: {
-        padding: 8,
-        marginLeft: 8,
-      },
-      remarkItem: {
-        marginBottom: 16,
-        borderLeftWidth: 2,
-        borderLeftColor: '#119FB3',
-        paddingLeft: 12,
-      },
-      remarkHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
-      },
-      doctorName: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: theme.colors.text,
-      },
-      timestamp: {
-        fontSize: 12,
-        color: theme.colors.text,
-        opacity: 0.7,
-      },
-      remarkText: {
-        fontSize: 14,
-        color: theme.colors.text,
-        lineHeight: 20,
-      },
-      safeArea: {
-        flex: 1,
-        backgroundColor: 'black',
-      },
-      container: {
-        flex: 1,
-        backgroundColor: '#007B8E',
-      },
-      loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#119FB3',
-      },
-      // New styles for the transparent loading indicator
-      transparentLoadingContainer: {
-        position: 'absolute',
-        zIndex: 1000,
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
-      loadingIndicatorBox: {
-        backgroundColor: 'white',
-        padding: 20,
-        borderRadius: 10,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-      },
-      loadingIndicatorText: {
-        marginTop: 10,
-        color: '#119FB3',
-        fontWeight: '500',
-      },
-      loadingText: {
-        marginTop: 10,
-        fontSize: 16,
-        color: '#FFFFFF',
-      },
-      errorContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#119FB3',
-      },
-      errorText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-      },
-      header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 16,
-        backgroundColor: '#119FB3',
-      },
-      backButton: {
-        marginRight: 16,
-      },
-      headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
-      },
-      mainCard: {
-        backgroundColor: theme.colors.card,
-        borderRadius: 12,
-        padding: 16,
-        margin: 16,
-        marginBottom: 8,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 1},
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-      },
-      card: {
-        backgroundColor: theme.colors.card,
-        borderRadius: 12,
-        padding: 16,
-        margin: 16,
-        marginBottom: 8,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 1},
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-      },
-      lastCard: {
-        marginBottom: 16,
-      },
-      therapyName: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: theme.colors.text,
-        marginBottom: 4,
-      },
-      patientName: {
-        fontSize: 18,
-        color: '#119FB3',
-        marginBottom: 4,
-      },
-      category: {
-        fontSize: 16,
-        color: '#119FB3',
-        marginBottom: 16,
-      },
-      progressContainer: {
-        marginBottom: 16,
-      },
-      progressBar: {
-        height: 4,
-        backgroundColor: '#E0E0E0',
-        borderRadius: 2,
-        marginBottom: 4,
-      },
-      progressFill: {
-        height: '100%',
-        backgroundColor: '#119FB3',
-        borderRadius: 2,
-      },
-      duration: {
-        fontSize: 14,
-        color: theme.colors.text,
-        opacity: 0.7,
-      },
-      dateInfo: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-      },
-      dateText: {
-        fontSize: 14,
-        color: theme.colors.text,
-        opacity: 0.7,
-      },
-      sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: theme.colors.text,
-        marginBottom: 12,
-      },
-      infoRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 8,
-      },
-      label: {
-        fontSize: 14,
-        color: theme.colors.text,
-        opacity: 0.7,
-      },
-      value: {
-        fontSize: 14,
-        color: theme.colors.text,
-        fontWeight: '500',
-        flex: 1,
-        textAlign: 'right',
-        marginLeft: 8,
-      },
-      remarkLabel: {
-        fontSize: 14,
-        color: '#119FB3',
-        marginBottom: 4,
-      },
-    });
-  
-  export default TherapyPlanDetails;
+                      <Text style={styles.remarkText}>
+                        {remark.postsession_remarks}
+                      </Text>
+                    </View>
+                  ))}
+              </View>
+            )}
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
+  StyleSheet.create({
+    paymentInfo: {
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgb(240, 246, 255)'
+          : 'rgba(17, 159, 179, 0.1)', // Darker background for dark mode
+      padding: 12,
+      borderRadius: 8,
+    },
+    sessionsContainer: {
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgb(240, 246, 255)'
+          : 'rgba(17, 159, 179, 0.1)',
+      padding: 16,
+      borderRadius: 8,
+    },
+    sessionListTitle: {
+      fontSize: 16,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    sessionItem: {
+      paddingLeft: 12,
+      marginBottom: 12,
+    },
+    sessionSingleItem: {
+      borderLeftWidth: 2,
+      paddingLeft: 12,
+      marginBottom: 12,
+      borderLeftColor: '#119FB3',
+    },
+    sessionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },transparentLoadingContainer: {
+      position: 'absolute',
+      zIndex: 1000,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingIndicatorBox: {
+      backgroundColor: 'white',
+      padding: 20,
+      borderRadius: 10,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    loadingIndicatorText: {
+      marginTop: 10,
+      color: '#119FB3',
+      fontWeight: '500',
+    },
+    sessionNumber: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.colors.text,
+    },
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    statusText: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: '500',
+    },
+    paymentLabel: {
+      fontSize: 14,
+      color: theme.colors.text,
+      opacity: 0.7,
+    },
+    paymentValue: {
+      fontSize: 14,
+      color: theme.colors.text,
+      fontWeight: '500',
+      flex: 1,
+      textAlign: 'right',
+      marginLeft: 8,
+    },
+    balance: {
+      color: '#119FB3',
+      fontWeight: 'bold',
+    },
+    remarkSection: {
+      marginBottom: 16,
+    },
+    actionButtons: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    iconButton: {
+      padding: 8,
+      marginLeft: 8,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    extraAddonsSection: {
+      marginTop: 8,
+      backgroundColor: 'rgba(17, 159, 179, 0.05)',
+      borderRadius: 8,
+      padding: 8,
+    },
+    addonRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 4,
+    },
+    addonName: {
+      fontSize: 14,
+      color: theme.colors.text,
+      opacity: 0.7,
+    },
+    addonAmount: {
+      fontSize: 14,
+      color: theme.colors.text,
+      fontWeight: '500',
+    },
+    remarkSectionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#119FB3',
+      marginBottom: 12,
+      marginTop: 8,
+    },
+
+    paymentInfoButton: {
+      padding: 8,
+      marginLeft: 8,
+    },
+    editButton: {
+      padding: 8,
+      marginLeft: 8,
+    },
+    remarkItem: {
+      marginBottom: 16,
+      borderLeftWidth: 2,
+      borderLeftColor: '#119FB3',
+      paddingLeft: 12,
+    },
+    remarkHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    doctorName: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.colors.text,
+    },
+    timestamp: {
+      fontSize: 12,
+      color: theme.colors.text,
+      opacity: 0.7,
+    },
+    remarkText: {
+      fontSize: 14,
+      color: theme.colors.text,
+      lineHeight: 20,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: 'black',
+    },
+    container: {
+      flex: 1,
+      backgroundColor: '#007B8E',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#119FB3',
+    },
+   loadingText: {
+      marginTop: 10,
+      fontSize: 16,
+      color: '#FFFFFF',
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#119FB3',
+    },
+    errorText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      backgroundColor: '#119FB3',
+    },
+    backButton: {
+      marginRight: 16,
+    },
+    headerTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+    },
+    mainCard: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 12,
+      padding: 16,
+      margin: 16,
+      marginBottom: 8,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 1},
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+    },
+    card: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 12,
+      padding: 16,
+      margin: 16,
+      marginBottom: 8,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 1},
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+    },
+    lastCard: {
+      marginBottom: 16,
+    },
+    therapyName: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      marginBottom: 4,
+    },
+    patientName: {
+      fontSize: 18,
+      color: '#119FB3',
+      marginBottom: 4,
+    },
+    category: {
+      fontSize: 16,
+      color: '#119FB3',
+      marginBottom: 16,
+    },
+    progressContainer: {
+      marginBottom: 16,
+    },
+    progressBar: {
+      height: 4,
+      backgroundColor: '#E0E0E0',
+      borderRadius: 2,
+      marginBottom: 4,
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: '#119FB3',
+      borderRadius: 2,
+    },
+    duration: {
+      fontSize: 14,
+      color: theme.colors.text,
+      opacity: 0.7,
+    },
+    dateInfo: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    dateText: {
+      fontSize: 14,
+      color: theme.colors.text,
+      opacity: 0.7,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      marginBottom: 12,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    label: {
+      fontSize: 14,
+      color: theme.colors.text,
+      opacity: 0.7,
+    },
+    value: {
+      fontSize: 14,
+      color: theme.colors.text,
+      fontWeight: '500',
+      flex: 1,
+      textAlign: 'right',
+      marginLeft: 8,
+    },
+    remarkLabel: {
+      fontSize: 14,
+      color: '#119FB3',
+      marginBottom: 4,
+    },
+  });
+
+export default TherapyPlanDetails;
+
+                

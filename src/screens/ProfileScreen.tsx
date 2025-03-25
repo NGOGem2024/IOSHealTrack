@@ -10,6 +10,7 @@ import {
   StatusBar,
   Dimensions,
   RefreshControl,
+  Animated,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
@@ -21,6 +22,74 @@ import {RootStackParamList, RootTabParamList} from '../types/types';
 import {StackNavigationProp} from '@react-navigation/stack';
 import BackTabTop from './BackTopTab';
 import EnhancedProfilePhoto from './EnhancedProfilePhoto';
+
+
+// Skeleton Loader Component
+const SkeletonLoader: React.FC = () => {
+  const fadeAnim = new Animated.Value(0.3);
+
+  React.useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0.6,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0.3,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, []);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor="black" barStyle="light-content" />
+      <BackTabTop screenName="Profile" />
+      <ScrollView>
+        {/* Profile Card Skeleton */}
+        <Animated.View 
+          style={[
+            styles.profileCard, 
+            {opacity: fadeAnim}
+          ]}
+        >
+          <View style={styles.profileImageContainer}>
+            <View style={styles.skeletonProfileImage} />
+          </View>
+
+          <View style={styles.profileInfoContainer}>
+            <View style={styles.skeletonLine1} />
+            <View style={styles.skeletonLine2} />
+            <View style={styles.skeletonLine3} />
+            <View style={styles.skeletonEditButton} />
+          </View>
+        </Animated.View>
+
+        {/* Tab Navigation Skeleton */}
+        <View style={styles.tabContainer}>
+          <View style={styles.skeletonTab} />
+          <View style={styles.skeletonTab} />
+        </View>
+
+        {/* Content Skeleton */}
+        <View style={styles.tabContent}>
+          <Animated.View 
+            style={[
+              styles.skeletonInfoCard, 
+              {opacity: fadeAnim}
+            ]}
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
 
 interface DoctorInfo {
   _id: string;
@@ -80,7 +149,7 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
   };
 
   if (loading) {
-    return <LoadingScreen />;
+    return <SkeletonLoader />;
   }
 
   const renderTabContent = () => {
@@ -344,6 +413,50 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#666',
     marginTop: 4,
+  },
+
+ // New Skeleton Loader Styles
+  skeletonProfileImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#E1E9EE',
+  },
+  skeletonLine1: {
+    height: 20,
+    width: '70%',
+    backgroundColor: '#E1E9EE',
+    marginBottom: 8,
+  },
+  skeletonLine2: {
+    height: 15,
+    width: '50%',
+    backgroundColor: '#E1E9EE',
+    marginBottom: 4,
+  },
+  skeletonLine3: {
+    height: 15,
+    width: '60%',
+    backgroundColor: '#E1E9EE',
+    marginBottom: 16,
+  },
+  skeletonEditButton: {
+    width: 80,
+    height: 30,
+    backgroundColor: '#E1E9EE',
+    borderRadius: 10,
+  },
+  skeletonTab: {
+    flex: 1,
+    height: 40,
+    backgroundColor: '#E1E9EE',
+    marginHorizontal: 5,
+    borderRadius: 8,
+  },
+  skeletonInfoCard: {
+    height: 150,
+    backgroundColor: '#E1E9EE',
+    borderRadius: 12,
   },
 });
 

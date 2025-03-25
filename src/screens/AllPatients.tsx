@@ -13,6 +13,7 @@ import {
   TextInput,
   SafeAreaView,
   StatusBar,
+  Animated,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {NavigationProp, ParamListBase} from '@react-navigation/native';
@@ -38,6 +39,78 @@ interface Patient {
   patient_email: string;
   patient_registration_date: string;
 }
+
+// Skeleton animation component
+const SkeletonAnimation = ({children}: {children: React.ReactNode}) => {
+  const [opacity] = useState(new Animated.Value(0.3));
+  
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    
+    animation.start();
+    
+    return () => {
+      animation.stop();
+    };
+  }, [opacity]);
+  
+  return (
+    <Animated.View style={{opacity}}>
+      {children}
+    </Animated.View>
+  );
+};
+
+// Patient card skeleton component
+const PatientCardSkeleton = ({ index }: { index: number }) => {
+  const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
+  
+  return (
+    <View 
+      style={[
+        styles.patientCard, 
+        styles.skeletonCard,
+        index % 2 === 0 ? styles.leftCard : styles.rightCard,
+      ]} 
+    />
+  );
+};
+
+// Patient grid skeleton component - simplified version
+const PatientGridSkeleton = () => {
+  const rows = 10; // 10 rows of 2 cards each = 20 skeleton items
+  
+  return (
+    <View>
+      
+      {/* Existing skeleton rows */}
+      {[...Array(rows)].map((_, rowIndex) => (
+        <View key={`row-${rowIndex}`} style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10}}>
+          <View style={{flex: 1, marginRight: 5, height: 40, backgroundColor: 'rgba(180, 180, 180, 0.5)', borderRadius: 8}} />
+          <View style={{flex: 1, marginLeft: 5, height: 40, backgroundColor: 'rgba(180, 180, 180, 0.5)', borderRadius: 8}} />
+        </View>
+      ))}
+    </View>
+  );
+};
 
 const AllPatients: React.FC<Props> = ({navigation}) => {
   const {theme} = useTheme();
@@ -222,9 +295,49 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
 
   if (isLoading && page === 1) {
     return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor="black"
+          translucent={false}
+        />
+        <ImageBackground
+          source={require('../assets/bac2.jpg')}
+          style={styles.backgroundImage}>
+          <BackTabTop screenName="Patients" />
+          <View
+            style={[styles.container, {height: screenDimensions.height * 0.9}]}>
+            <TouchableOpacity
+              style={styles.searchContainer}
+              onPress={handleSearch}
+              activeOpacity={0.7}>
+              <View style={styles.searchInputWrapper}>
+                <Icon
+                  name="search"
+                  size={18}
+                  color="#333333"
+                  style={styles.searchIcon}
+                />
+                <Text style={styles.searchPlaceholder}>Search by name / phone number</Text>
+              </View>
+            </TouchableOpacity>
+            <View style={styles.filtersContainer1}>
+              <View style={styles.filterContainer}>
+                <View style={styles.skeletonPicker} />
+              </View>
+              <View style={styles.filterContainer}>
+                <View style={styles.skeletonPicker} />
+              </View>
+            </View>
+            <SkeletonAnimation>
+              <PatientGridSkeleton />
+            </SkeletonAnimation>
+            <TouchableOpacity onPress={handleAddPatient} style={styles.addButton}>
+              <Icon name="plus" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </ImageBackground>
+      </SafeAreaView>
     );
   }
 
@@ -395,8 +508,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginRight: 8,
       borderRadius: 20,
       overflow: 'hidden',
-      backgroundColor: theme.colors.card, 
-      paddingLeft: 15,
+      backgroundColor: theme.colors.card,
     },
     filterLabel: {
       fontSize: 16,
@@ -478,6 +590,16 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     searchButton: {
       padding: 10,
+    },
+    skeletonCard: {
+      backgroundColor: 'rgba(180, 180, 180, 0.5)',
+      height: 40,
+      padding: 0,
+    },
+    skeletonPicker: {
+      height: 40,
+      backgroundColor: 'rgba(180, 180, 180, 0.5)',
+      borderRadius: 20,
     },
   });
 

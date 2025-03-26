@@ -9,11 +9,13 @@ import {
   StyleSheet,
   Modal,
   SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import {useTheme} from '../ThemeContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ConfirmationPopup from './confirmationpopup';
+
 import moment from 'moment-timezone';
 import {useSession} from '../../context/SessionContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -26,7 +28,8 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../types/types';
 import BackTabTop from '../BackTopTab';
 import NoPlanPopup from './noplan';
-import LoadingScreen from '../../components/loadingScreen';
+//import LoadingScreen from '../../components/loadingScreen';
+import BookAppSkeletonLoader from '../../components/BookAppSkeletonLoader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateTherapy'>;
 interface PickerItem {
@@ -205,11 +208,17 @@ const CreateTherapy = ({route, navigation}: Props) => {
   };
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar 
+          backgroundColor={theme.colors.background} 
+          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        />
+        <BackTabTop screenName="Therapy" />
+        <BookAppSkeletonLoader theme={theme} isDarkMode={isDarkMode} />
+      </SafeAreaView>
     );
   }
+
 
   const formatDate = (date: Date) => {
     const options: Intl.DateTimeFormatOptions = {

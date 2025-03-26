@@ -13,6 +13,8 @@ import {
   Alert,
   PermissionsAndroid,
   Linking,
+  Modal,
+  TextInput,
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import FileViewer from 'react-native-file-viewer';
@@ -63,6 +65,11 @@ interface TherapyPlanDetails {
     estimated_sessions?: number;
     presession_remarks?: SessionRemark[];
     postsession_remarks?: SessionRemark[];
+    notes?: Array<{
+      note: string;
+      doctor_name: string;
+      date: string;
+    }>;
   };
   patient_name: string;
 }
@@ -73,7 +80,11 @@ interface SkeletonPlaceholderProps {
   style?: any; // Or use a more specific type like ViewStyle from react-native
 }
 
-const SkeletonPlaceholder = ({width, height, style}:SkeletonPlaceholderProps) => {
+const SkeletonPlaceholder = ({
+  width,
+  height,
+  style,
+}: SkeletonPlaceholderProps) => {
   return (
     <View
       style={[
@@ -98,6 +109,9 @@ const TherapyPlanDetails: React.FC = () => {
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
     ),
   );
+  const [isNoteModalVisible, setIsNoteModalVisible] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const [isNoteSubmitting, setIsNoteSubmitting] = useState(false);
   const {session} = useSession();
   const [patientId, setPatientId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -186,24 +200,125 @@ const TherapyPlanDetails: React.FC = () => {
     }
   };
 
+  const addNoteToTherapyPlan = async () => {
+    if (!noteText.trim()) {
+      Alert.alert('Error', 'Please enter a note');
+      return;
+    }
+
+    try {
+      setIsNoteSubmitting(true);
+      const response = await axiosInstance.put(
+        `/addNote/plan/${planId}`,
+        {
+          note: noteText,
+        },
+        {
+          headers: {Authorization: `Bearer ${session.idToken}`},
+        },
+      );
+
+      // Refresh the plan details to show the new note
+      await fetchPlanDetails();
+
+      // Reset and close modal
+      setNoteText('');
+      setIsNoteModalVisible(false);
+
+      Alert.alert('Success', 'Note added successfully');
+    } catch (error) {
+      handleError(error);
+      Alert.alert('Error', 'Failed to add note. Please try again.');
+    } finally {
+      setIsNoteSubmitting(false);
+    }
+  };
+
+  const renderNoteModal = () => (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={isNoteModalVisible}
+      onRequestClose={() => setIsNoteModalVisible(false)}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Add Note to Therapy Plan</Text>
+          <TextInput
+            style={styles.noteInput}
+            multiline
+            placeholder="Enter your note here..."
+            value={noteText}
+            onChangeText={setNoteText}
+            maxLength={500}
+          />
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => setIsNoteModalVisible(false)}>
+              <Text style={styles.modalCancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalSubmitButton}
+              onPress={addNoteToTherapyPlan}
+              disabled={isNoteSubmitting}>
+              {isNoteSubmitting ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text style={styles.modalSubmitButtonText}>Save Note</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
   const renderSkeletonLoader = () => {
     return (
       <ScrollView style={styles.container}>
         {/* Main Card Skeleton */}
         <View style={styles.mainCard}>
           <View style={styles.cardHeader}>
-            <SkeletonPlaceholder width={150} height={20} style={{marginBottom: 4}} />
+            <SkeletonPlaceholder
+              width={150}
+              height={20}
+              style={{marginBottom: 4}}
+            />
             <View style={styles.actionButtons}>
-              <SkeletonPlaceholder width={24} height={24} style={{marginLeft: 8}} />
-              <SkeletonPlaceholder width={24} height={24} style={{marginLeft: 8}} />
-              <SkeletonPlaceholder width={24} height={24} style={{marginLeft: 8}} />
+              <SkeletonPlaceholder
+                width={24}
+                height={24}
+                style={{marginLeft: 8}}
+              />
+              <SkeletonPlaceholder
+                width={24}
+                height={24}
+                style={{marginLeft: 8}}
+              />
+              <SkeletonPlaceholder
+                width={24}
+                height={24}
+                style={{marginLeft: 8}}
+              />
             </View>
           </View>
-          <SkeletonPlaceholder width={200} height={24} style={{marginBottom: 4}} />
-          <SkeletonPlaceholder width={150} height={16} style={{marginBottom: 16}} />
+          <SkeletonPlaceholder
+            width={200}
+            height={24}
+            style={{marginBottom: 4}}
+          />
+          <SkeletonPlaceholder
+            width={150}
+            height={16}
+            style={{marginBottom: 16}}
+          />
 
           <View style={styles.progressContainer}>
-            <SkeletonPlaceholder width="100%" height={4} style={{marginBottom: 4}} />
+            <SkeletonPlaceholder
+              width="100%"
+              height={4}
+              style={{marginBottom: 4}}
+            />
             <SkeletonPlaceholder width={120} height={14} style={{}} />
           </View>
 
@@ -215,37 +330,69 @@ const TherapyPlanDetails: React.FC = () => {
 
         {/* Medical Info Card Skeleton */}
         <View style={styles.card}>
-          <SkeletonPlaceholder width={150} height={18} style={{marginBottom: 12}} />
+          <SkeletonPlaceholder
+            width={150}
+            height={18}
+            style={{marginBottom: 12}}
+          />
           <View style={styles.infoRow}>
             <SkeletonPlaceholder width={80} height={14} style={{}} />
-            <SkeletonPlaceholder width={180} height={14} style={{marginLeft: 8}} />
+            <SkeletonPlaceholder
+              width={180}
+              height={14}
+              style={{marginLeft: 8}}
+            />
           </View>
           <View style={styles.infoRow}>
             <SkeletonPlaceholder width={80} height={14} style={{}} />
-            <SkeletonPlaceholder width={180} height={14} style={{marginLeft: 8}} />
+            <SkeletonPlaceholder
+              width={180}
+              height={14}
+              style={{marginLeft: 8}}
+            />
           </View>
         </View>
 
         {/* Sessions Card Skeleton */}
         <View style={styles.card}>
-          <SkeletonPlaceholder width={150} height={18} style={{marginBottom: 12}} />
+          <SkeletonPlaceholder
+            width={150}
+            height={18}
+            style={{marginBottom: 12}}
+          />
           <View style={styles.sessionsContainer}>
             <View style={styles.infoRow}>
               <SkeletonPlaceholder width={120} height={14} style={{}} />
-              <SkeletonPlaceholder width={30} height={14} style={{marginLeft: 8}} />
+              <SkeletonPlaceholder
+                width={30}
+                height={14}
+                style={{marginLeft: 8}}
+              />
             </View>
             <View style={styles.infoRow}>
               <SkeletonPlaceholder width={120} height={14} style={{}} />
-              <SkeletonPlaceholder width={30} height={14} style={{marginLeft: 8}} />
+              <SkeletonPlaceholder
+                width={30}
+                height={14}
+                style={{marginLeft: 8}}
+              />
             </View>
 
-            <SkeletonPlaceholder width={120} height={16} style={{marginTop: 16, marginBottom: 8}} />
+            <SkeletonPlaceholder
+              width={120}
+              height={16}
+              style={{marginTop: 16, marginBottom: 8}}
+            />
 
             {[1, 2].map((_, index) => (
               <View key={index} style={styles.sessionSingleItem}>
                 <View style={styles.sessionHeader}>
                   <SkeletonPlaceholder width={80} height={14} style={{}} />
-                  <SkeletonPlaceholder width={70} height={20} style={{borderRadius: 12}} />
+                  <SkeletonPlaceholder
+                    width={70}
+                    height={20}
+                    style={{borderRadius: 12}}
+                  />
                 </View>
               </View>
             ))}
@@ -255,36 +402,68 @@ const TherapyPlanDetails: React.FC = () => {
         {/* Payment Details Card Skeleton */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <SkeletonPlaceholder width={120} height={18} style={{marginBottom: 8}} />
-            <SkeletonPlaceholder width={24} height={24} style={{marginLeft: 8}} />
+            <SkeletonPlaceholder
+              width={120}
+              height={18}
+              style={{marginBottom: 8}}
+            />
+            <SkeletonPlaceholder
+              width={24}
+              height={24}
+              style={{marginLeft: 8}}
+            />
           </View>
           <View style={styles.paymentInfo}>
             <View style={styles.infoRow}>
               <SkeletonPlaceholder width={100} height={14} style={{}} />
-              <SkeletonPlaceholder width={80} height={14} style={{marginLeft: 8}} />
+              <SkeletonPlaceholder
+                width={80}
+                height={14}
+                style={{marginLeft: 8}}
+              />
             </View>
             <View style={styles.infoRow}>
               <SkeletonPlaceholder width={80} height={14} style={{}} />
-              <SkeletonPlaceholder width={80} height={14} style={{marginLeft: 8}} />
+              <SkeletonPlaceholder
+                width={80}
+                height={14}
+                style={{marginLeft: 8}}
+              />
             </View>
             <View style={styles.infoRow}>
               <SkeletonPlaceholder width={80} height={14} style={{}} />
-              <SkeletonPlaceholder width={80} height={14} style={{marginLeft: 8}} />
+              <SkeletonPlaceholder
+                width={80}
+                height={14}
+                style={{marginLeft: 8}}
+              />
             </View>
           </View>
         </View>
 
         {/* Remarks Card Skeleton */}
         <View style={[styles.card, styles.lastCard]}>
-          <SkeletonPlaceholder width={120} height={18} style={{marginBottom: 12}} />
+          <SkeletonPlaceholder
+            width={120}
+            height={18}
+            style={{marginBottom: 12}}
+          />
           <View style={styles.remarkSection}>
-            <SkeletonPlaceholder width={140} height={16} style={{marginBottom: 12}} />
+            <SkeletonPlaceholder
+              width={140}
+              height={16}
+              style={{marginBottom: 12}}
+            />
             <View style={styles.remarkItem}>
               <View style={styles.remarkHeader}>
                 <SkeletonPlaceholder width={100} height={14} style={{}} />
                 <SkeletonPlaceholder width={80} height={12} style={{}} />
               </View>
-              <SkeletonPlaceholder width="100%" height={40} style={{marginTop: 8}} />
+              <SkeletonPlaceholder
+                width="100%"
+                height={40}
+                style={{marginTop: 8}}
+              />
             </View>
           </View>
         </View>
@@ -320,7 +499,6 @@ const TherapyPlanDetails: React.FC = () => {
     return (
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Sessions Information</Text>
-
         <View style={styles.sessionsContainer}>
           {plan.estimated_sessions !== undefined && (
             <View style={styles.infoRow}>
@@ -574,6 +752,32 @@ const TherapyPlanDetails: React.FC = () => {
             </Text>
           </View>
         </View>
+
+        {plan.notes && plan.notes.length > 0 && (
+          <View style={styles.card}>
+            <View>
+              <TouchableOpacity
+                style={styles.iconButton1}
+                onPress={() => setIsNoteModalVisible(true)}>
+                <Text style={styles.sectionTitle}>Notes</Text>
+                <Icon name="plus" size={20} color="#119FB3" />
+              </TouchableOpacity>
+            </View>
+
+            {plan.notes.map((note, index) => (
+              <View key={index} style={styles.noteItem}>
+                <View style={styles.noteHeader}>
+                  <Text style={styles.noteDoctor}>Dr. {note.doctor_name}</Text>
+                  <Text style={styles.noteDate}>
+                    {new Date(note.date).toLocaleDateString()}
+                  </Text>
+                </View>
+                <Text style={styles.noteText}>{note.note}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         {renderSessionsCard()}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
@@ -704,12 +908,106 @@ const TherapyPlanDetails: React.FC = () => {
           </View>
         )}
       </ScrollView>
+      {renderNoteModal()}
     </SafeAreaView>
   );
 };
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
+    noteItem: {
+      marginBottom: 16,
+      padding: 12,
+      backgroundColor: 'rgba(17, 159, 179, 0.1)',
+      borderRadius: 8,
+    },
+    noteHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    noteDoctor: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.colors.text,
+    },
+    noteDate: {
+      fontSize: 12,
+      color: theme.colors.text,
+      opacity: 0.7,
+    },
+    noteText: {
+      fontSize: 14,
+      color: theme.colors.text,
+      lineHeight: 20,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContainer: {
+      width: '90%',
+      backgroundColor: theme.colors.card,
+      borderRadius: 12,
+      padding: 20,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      marginBottom: 15,
+    },
+    noteInput: {
+      width: '100%',
+      height: 150,
+      borderWidth: 1,
+      borderColor: '#119FB3',
+      borderRadius: 8,
+      padding: 10,
+      marginBottom: 15,
+      textAlignVertical: 'top',
+      color: theme.colors.text,
+      backgroundColor: theme.colors.card,
+    },
+    modalButtonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
+    },
+    modalCancelButton: {
+      flex: 1,
+      marginRight: 10,
+      padding: 12,
+      backgroundColor: '#E0E0E0',
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    modalCancelButtonText: {
+      color: '#000',
+      fontWeight: '500',
+    },
+    modalSubmitButton: {
+      flex: 1,
+      padding: 12,
+      backgroundColor: '#119FB3',
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    modalSubmitButtonText: {
+      color: 'white',
+      fontWeight: '500',
+    },
     paymentInfo: {
       backgroundColor:
         theme.colors.card === '#FFFFFF'
@@ -745,7 +1043,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-    },transparentLoadingContainer: {
+    },
+    transparentLoadingContainer: {
       position: 'absolute',
       zIndex: 1000,
       top: 0,
@@ -762,7 +1061,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderRadius: 10,
       alignItems: 'center',
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
       elevation: 5,
@@ -812,8 +1111,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignItems: 'center',
     },
     iconButton: {
-      padding: 8,
-      marginLeft: 8,
+      marginLeft: 5,
+    },
+
+    iconButton1: {
+      flexDirection: 'row',
+      marginLeft: 3,
     },
     cardHeader: {
       flexDirection: 'row',
@@ -899,7 +1202,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignItems: 'center',
       backgroundColor: '#119FB3',
     },
-   loadingText: {
+    loadingText: {
       marginTop: 10,
       fontSize: 16,
       color: '#FFFFFF',
@@ -947,6 +1250,19 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       margin: 16,
       marginBottom: 8,
       elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 1},
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+    },
+    card1: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 12,
+      padding: 16,
+      margin: 16,
+      marginBottom: 8,
+      elevation: 2,
+      flexDirection: 'row',
       shadowColor: '#000',
       shadowOffset: {width: 0, height: 1},
       shadowOpacity: 0.05,
@@ -1031,5 +1347,3 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   });
 
 export default TherapyPlanDetails;
-
-                

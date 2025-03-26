@@ -9,6 +9,7 @@ import {
   StatusBar,
   SafeAreaView,
   RefreshControl,
+  Animated,
 } from 'react-native';
 import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../../types/types';
@@ -34,7 +35,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getTheme} from '../Theme';
 import {useTheme} from '../ThemeContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import LoadingScreen from '../../components/loadingScreen';
+//import LoadingScreen from '../../components/loadingScreen';
 
 type PatientScreenProps = StackScreenProps<RootStackParamList, 'Patient'>;
 interface TherapySession {
@@ -57,6 +58,85 @@ interface TherapyPlan {
   therapy_sessions?: TherapySession[];
   estimated_sessions?: number;
 }
+
+// Skeleton Loader Component
+const PatientScreenSkeleton: React.FC<{theme: any}> = ({theme}) => {
+  const styles = getStyles(theme);
+  const fadeAnim = new Animated.Value(0.3);
+
+  React.useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0.6,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0.3,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, []);
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <BackTopTab screenName="Patient" />
+      <ScrollView style={styles.container}>
+        {/* Main Card Skeleton */}
+        <Animated.View 
+          style={[
+            styles.mainCard, 
+            {opacity: fadeAnim}
+          ]}
+        >
+          <View style={styles.cardHeader}>
+            <View style={styles.skeletonNameLine} />
+            <View style={styles.skeletonEditIcon} />
+          </View>
+
+          <View style={styles.contactInfo}>
+            <View style={styles.skeletonInfoRow} />
+            <View style={styles.skeletonInfoRow} />
+            <View style={styles.skeletonInfoRow} />
+            <View style={styles.skeletonInfoRow} />
+          </View>
+        </Animated.View>
+
+        {/* Quick Actions Skeleton */}
+        <Animated.View 
+          style={[
+            styles.card, 
+            {opacity: fadeAnim}
+          ]}
+        >
+          <View style={styles.skeletonSectionTitle} />
+          <View style={styles.quickActionsContainer}>
+            <View style={styles.skeletonQuickAction} />
+            <View style={styles.skeletonQuickAction} />
+            <View style={styles.skeletonQuickAction} />
+          </View>
+        </Animated.View>
+
+        {/* Therapy Plans Skeleton */}
+        <Animated.View 
+          style={[
+            styles.card, 
+            {opacity: fadeAnim}
+          ]}
+        >
+          <View style={styles.skeletonSectionTitle} />
+          <View style={styles.skeletonTherapyPlan} />
+        </Animated.View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
 
 const calculateTherapyProgress = (therapyPlan: TherapyPlan): number => {
   try {
@@ -169,11 +249,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
   }, [patientId, session.idToken, navigation]);
 
   if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
-    );
+    return <PatientScreenSkeleton theme={theme} />;
   }
 
   return (
@@ -515,6 +591,45 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontWeight: 'bold',
       marginBottom: 8,
       color: theme.colors.text,
+    },
+
+     // New Skeleton Loader Styles
+     skeletonNameLine: {
+      height: 30,
+      width: '60%',
+      backgroundColor: '#E1E9EE',
+      marginBottom: 10,
+    },
+    skeletonEditIcon: {
+      height: 24,
+      width: 24,
+      backgroundColor: '#E1E9EE',
+      borderRadius: 4,
+    },
+    skeletonInfoRow: {
+      height: 20,
+      width: '80%',
+      backgroundColor: '#E1E9EE',
+      marginBottom: 10,
+      borderRadius: 4,
+    },
+    skeletonSectionTitle: {
+      height: 24,
+      width: '40%',
+      backgroundColor: '#E1E9EE',
+      marginBottom: 12,
+      borderRadius: 4,
+    },
+    skeletonQuickAction: {
+      height: 60,
+      width: '30%',
+      backgroundColor: '#E1E9EE',
+      borderRadius: 8,
+    },
+    skeletonTherapyPlan: {
+      height: 150,
+      backgroundColor: '#E1E9EE',
+      borderRadius: 8,
     },
   });
 

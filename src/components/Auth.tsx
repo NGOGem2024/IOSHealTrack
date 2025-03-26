@@ -51,6 +51,11 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isPasswordLogin, setIsPasswordLogin] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
+  };
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -310,8 +315,15 @@ const AuthModal: React.FC<AuthModalProps> = ({
                         placeholderTextColor="#999"
                         value={password}
                         onChangeText={setPassword}
-                        secureTextEntry
+                        secureTextEntry={!isPasswordVisible}
                       />
+                      <TouchableOpacity onPress={togglePasswordVisibility}>
+                        <Icon
+                          name={isPasswordVisible ? "eye-off" : "eye"}
+                          size={20}
+                          style={styles.iconStyle}
+                        />
+                      </TouchableOpacity>
                     </View>
                   </View>
                   <TouchableOpacity

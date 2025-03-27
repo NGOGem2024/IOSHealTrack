@@ -11,6 +11,10 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useTheme} from './ThemeContext';
@@ -76,7 +80,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   const [isSaving, setIsSaving] = useState(false);
   const [countryCode, setCountryCode] = useState('+91'); // This will be updated on fetch
   const [phoneDigits, setPhoneDigits] = useState('');
-
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
   const validatePhone = (fullPhone: string): boolean => {
@@ -205,6 +209,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   
 
   const handleSave = async () => {
+    Keyboard.dismiss();
     const fullPhone = countryCode + phoneDigits;
 
     if (!validatePhone(fullPhone)) {
@@ -283,9 +288,14 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackTabTop screenName="Edit Doctor" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{flex: 1}}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ScrollView
         style={styles.scrollView}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled">
         <View style={styles.profileImageContainer}>
           <Image source={profilePhoto} style={styles.profilePhoto} />
         </View>
@@ -383,7 +393,9 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           </View>
 
           <TouchableOpacity
-            style={[styles.saveButton, isSaving && styles.savingButton]}
+            style={[styles.saveButton, isSaving && styles.savingButton,
+              isKeyboardVisible && styles.saveButtonKeyboardOpen
+            ]}
             onPress={handleSave}
             disabled={isSaving || !hasChanges()}>
             {isSaving ? (
@@ -394,6 +406,8 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -446,6 +460,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       },
       shadowOpacity: 0.2,
       shadowRadius: 1.41,
+    },
+    saveButtonKeyboardOpen: {
+      marginBottom: 20, // Adjust spacing
+      marginHorizontal: 20, // Add some horizontal margin
     },
     disabledInput: {
       backgroundColor: '#F0F0F0',

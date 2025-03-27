@@ -533,8 +533,14 @@ const DoctorProfileEdit: React.FC = () => {
                 setShowPhotoOptions(false);
                 handleImagePick();
               }}>
-              <Icon name="camera-outline" size={24} color="#007B8E" />
-              <Text style={styles.modalOptionText}>Change Photo</Text>
+              <Icon 
+                name={profileInfo.doctors_photo ? "create-outline" : "add-circle-outline"} 
+                size={24} 
+                color="#007B8E" 
+              />
+              <Text style={styles.modalOptionText}>
+                {profileInfo.doctors_photo ? "Change Photo" : "Add Photo"}
+              </Text>
             </TouchableOpacity>
             {profileInfo.doctors_photo && (
               <TouchableOpacity

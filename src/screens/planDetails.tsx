@@ -753,30 +753,32 @@ const TherapyPlanDetails: React.FC = () => {
           </View>
         </View>
 
-        {plan.notes && plan.notes.length > 0 && (
-          <View style={styles.card}>
-            <View>
-              <TouchableOpacity
-                style={styles.iconButton1}
-                onPress={() => setIsNoteModalVisible(true)}>
-                <Text style={styles.sectionTitle}>Notes</Text>
-                <Icon name="plus" size={20} color="#119FB3" />
-              </TouchableOpacity>
-            </View>
+        <View style={styles.card}>
+  <View style={styles.cardHeader}>
+    <TouchableOpacity
+      style={styles.iconButton1}
+      onPress={() => setIsNoteModalVisible(true)}>
+      <Text style={styles.sectionTitle}>Notes</Text>
+      <Icon name="plus" size={20} color="#119FB3" />
+    </TouchableOpacity>
+  </View>
 
-            {plan.notes.map((note, index) => (
-              <View key={index} style={styles.noteItem}>
-                <View style={styles.noteHeader}>
-                  <Text style={styles.noteDoctor}>Dr. {note.doctor_name}</Text>
-                  <Text style={styles.noteDate}>
-                    {new Date(note.date).toLocaleDateString()}
-                  </Text>
-                </View>
-                <Text style={styles.noteText}>{note.note}</Text>
-              </View>
-            ))}
+  {plan.notes && plan.notes.length > 0 && (
+    <>
+      {plan.notes.map((note, index) => (
+        <View key={index} style={styles.noteItem}>
+          <View style={styles.noteHeader}>
+            <Text style={styles.noteDoctor}>Dr. {note.doctor_name}</Text>
+            <Text style={styles.noteDate}>
+              {new Date(note.date).toLocaleDateString()}
+            </Text>
           </View>
-        )}
+          <Text style={styles.noteText}>{note.note}</Text>
+        </View>
+      ))}
+    </>
+  )}
+</View>   
 
         {renderSessionsCard()}
         <View style={styles.card}>
@@ -1336,8 +1338,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: theme.colors.text,
       fontWeight: '500',
       flex: 1,
-      textAlign: 'right',
-      marginLeft: 8,
+      textAlign: 'left',
+      marginLeft: 5,
     },
     remarkLabel: {
       fontSize: 14,

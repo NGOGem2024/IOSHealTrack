@@ -170,8 +170,8 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
       const sortedDoctors = response.data.doctors.sort(
         (a: Doctor, b: Doctor) => {
           if (a.is_admin === b.is_admin) {
-            return (a.doctor_last_name || '').localeCompare(
-              b.doctor_last_name || '',
+            return (a.doctor_first_name || '').localeCompare(
+              b.doctor_first_name || '',
             );
           }
           return a.is_admin ? -1 : 1;

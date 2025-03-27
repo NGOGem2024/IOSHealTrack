@@ -23,7 +23,7 @@ import {useSession} from '../context/SessionContext';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import instance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
-import LoadingScreen from '../components/loadingScreen';
+import DoctorProfileSkeleton from '../components/DoctorProfileSkeleton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomCountryPicker from './CustomCountryPicker';
 
@@ -661,11 +661,13 @@ const DoctorProfileEdit: React.FC = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <BackTabTop screenName="Doctor Profile" />
+        <DoctorProfileSkeleton />
+      </SafeAreaView>
     );
   }
+
 
   if (!session.idToken) {
     return (

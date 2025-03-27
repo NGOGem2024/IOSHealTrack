@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   Linking,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -36,7 +37,9 @@ import AppointmentDetails from './AppointmentDetails';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
+//import UpdateTherapySkeleton from '../../components/UpdateTherapySkeleton';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import UpdateTherapySkeleton from '../components/UpdateTherapySkeleton';
 interface Therapy {
   _id: string;
   plan_id: string;
@@ -52,6 +55,8 @@ interface Therapy {
   therepy_cost?: string;
   doctor_name?: string;
 }
+
+
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TherapyHistory'>;
 
@@ -81,6 +86,7 @@ const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
     'all',
   );
 
+
   const selectTherapyType = (type: 'all' | 'past' | 'upcoming') => {
     setSelectedView(type);
     setIsDropdownOpen(false);
@@ -99,6 +105,7 @@ const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
     }
   };
 
+  
   useEffect(() => {
     if (!patientId) {
       setError('No patient ID provided.');
@@ -539,8 +546,11 @@ const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
           </View>
         )}
 
-        {isLoading ? (
-          <Text style={styles.loadingText}>Loading therapies...</Text>
+{isLoading ? (
+          // Replace loading text with skeleton loader
+          <View style={{flex: 1}}>
+            <UpdateTherapySkeleton />
+          </View>
         ) : (
           <FlatList
             data={getDisplayedTherapies()}

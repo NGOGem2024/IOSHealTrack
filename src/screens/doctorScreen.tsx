@@ -19,7 +19,7 @@ import instance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
 import {getTheme} from './Theme';
 import {useTheme} from './ThemeContext';
-import LoadingScreen from '../components/loadingScreen';
+import DoctorScreenSkeleton from '../components/DoctorScreenSkeleton'; 
 import EnhancedProfilePhoto from './EnhancedProfilePhoto';
 
 type DoctorScreenProps = StackScreenProps<RootStackParamList, 'Doctor'>;
@@ -100,13 +100,20 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     fetchDoctorData();
   }, [doctorId, session.idToken]);
 
-  if (!doctorData || isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
-    );
-  }
+// Use the new skeleton loader when loading
+if (isLoading) {
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <BackTabTop screenName="Doctor Profile" />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="black"
+        translucent={false}
+      />
+      <DoctorScreenSkeleton theme={{name: theme?.name || 'blue'}} />
+    </SafeAreaView>
+  );
+}
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -210,45 +217,45 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
         )}
 
         {/* Today's Appointments Card */}
-        {doctorData?.todayAppointments?.length > 0 && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Today's Appointments</Text>
-            {doctorData.todayAppointments.map(appointment => (
-              <View key={appointment._id} style={styles.appointmentCard}>
-                <View style={styles.appointmentRow}>
-                  <MaterialCommunityIcons
-                    name="account"
-                    size={20}
-                    color="#007B8E"
-                  />
-                  <Text style={styles.appointmentText}>
-                    {appointment.patient_name}
-                  </Text>
-                </View>
-                <View style={styles.appointmentRow}>
-                  <MaterialCommunityIcons
-                    name="clock-outline"
-                    size={20}
-                    color="#007B8E"
-                  />
-                  <Text style={styles.appointmentText}>
-                    {appointment.therepy_start_time}
-                  </Text>
-                </View>
-                <View style={styles.appointmentRow}>
-                  <MaterialCommunityIcons
-                    name="medical-bag"
-                    size={20}
-                    color="#007B8E"
-                  />
-                  <Text style={styles.appointmentText}>
-                    {appointment.therepy_type}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
+{doctorData?.todayAppointments && doctorData.todayAppointments.length > 0 && (
+  <View style={styles.card}>
+    <Text style={styles.cardTitle}>Today's Appointments</Text>
+    {doctorData.todayAppointments.map((appointment) => (
+      <View key={appointment._id} style={styles.appointmentCard}>
+        <View style={styles.appointmentRow}>
+          <MaterialCommunityIcons
+            name="account"
+            size={20}
+            color="#007B8E"
+          />
+          <Text style={styles.appointmentText}>
+            {appointment.patient_name}
+          </Text>
+        </View>
+        <View style={styles.appointmentRow}>
+          <MaterialCommunityIcons
+            name="clock-outline"
+            size={20}
+            color="#007B8E"
+          />
+          <Text style={styles.appointmentText}>
+            {appointment.therepy_start_time}
+          </Text>
+        </View>
+        <View style={styles.appointmentRow}>
+          <MaterialCommunityIcons
+            name="medical-bag"
+            size={20}
+            color="#007B8E"
+          />
+          <Text style={styles.appointmentText}>
+            {appointment.therepy_type}
+          </Text>
+        </View>
+      </View>
+    ))}
+  </View>
+)}
       </ScrollView>
     </SafeAreaView>
   );

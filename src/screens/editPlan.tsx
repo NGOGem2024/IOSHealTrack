@@ -25,7 +25,7 @@ import TherapyCategoryDropdown from './TherapyCategoryDropdown';
 import {useSession} from '../context/SessionContext';
 import {useTheme} from './ThemeContext';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
-import LoadingScreen from '../components/loadingScreen';
+import EditPlanSkeleton from '../components/EditPlanSkeleton';
 
 type EditTherapyPlanScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -465,9 +465,16 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <BackTabTop screenName="Edit Plan" />
+        <EditPlanSkeleton
+          isDarkMode={isDarkMode} 
+          colors={{
+            background: theme.colors.background,
+            skeleton: isDarkMode ? '#333333' : '#E0E0E0',
+          }} 
+        />
+      </SafeAreaView>
     );
   }
   return (

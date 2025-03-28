@@ -5,7 +5,8 @@ import {
   StyleSheet, 
   ScrollView, 
   ActivityIndicator,
-  Dimensions 
+  Dimensions,
+  FlatList 
 } from 'react-native';
 import { PieChart, BarChart } from 'react-native-chart-kit';
 import { Picker } from '@react-native-picker/picker';
@@ -34,6 +35,19 @@ interface SocialReferenceData {
   count: number;
 }
 
+// Type for Referral Details
+interface ReferralDetailsItem {
+  _id: string;
+  count: number;
+}
+
+interface ReferralDetailsResponse {
+  success: boolean;
+  month: number;
+  year: number;
+  referralDetailsCount: ReferralDetailsItem[];
+}
+
 const ReportsScreen: React.FC = () => {
   // State Management
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -41,6 +55,7 @@ const ReportsScreen: React.FC = () => {
   const [referralData, setReferralData] = useState<ReferralData[]>([]);
   const [practoData, setPractoData] = useState<PractoData[]>([]);
   const [socialReferenceData, setSocialReferenceData] = useState<SocialReferenceData[]>([]);
+  const [referralDetails, setReferralDetails] = useState<ReferralDetailsItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,7 +83,7 @@ const ReportsScreen: React.FC = () => {
   
     setLoading(true);
     setError(null);
-  
+    
     try {
       // Fetch Referral Data
       const referralResponse = await axiosInstance.get(
@@ -106,16 +121,23 @@ const ReportsScreen: React.FC = () => {
         key !== 'year' && 
         key !== 'month' && 
         key !== 'total' && 
-        typeof value === 'number'
+        typeof value === 'number' &&
+        key !== '(blank)'
       )
       .map(([source, count]) => ({
         source: source === '(blank)' ? 'Unspecified' : source,
         count: count as number
       }));
+
+      // Fetch Referral Details
+      const referralDetailsResponse = await axiosInstance.get<ReferralDetailsResponse>(
+        `/get/referralDetails?month=${selectedMonth}&year=${selectedYear}`,
+      );
   
       setReferralData(transformedReferralData);
       setPractoData(transformedPractoData);
       setSocialReferenceData(transformedSocialReferenceData);
+      setReferralDetails(referralDetailsResponse.data.referralDetailsCount);
     } catch (err) {
       setError('Failed to fetch data');
       console.error(err);
@@ -183,16 +205,16 @@ const ReportsScreen: React.FC = () => {
     
     return (
       <View style={styles.practoSummaryContainer}>
-        <Text style={styles.practoSummaryTitle}>Practo Report</Text>
+        <Text style={styles.practoSummaryTitle}>Report</Text>
         <View style={styles.practoSummaryDetails}>
           <View style={styles.practoSummaryItem}>
-            <Text style={styles.practoSummaryLabel}>Practo Count:</Text>
+            <Text style={styles.practoSummaryLabel}>Practo Patients:</Text>
             <Text style={styles.practoSummaryValue}>
               {currentPractoData.practo}
             </Text>
           </View>
           <View style={styles.practoSummaryItem}>
-            <Text style={styles.practoSummaryLabel}>Total Patients:</Text>
+            <Text style={styles.practoSummaryLabel}>New Patients:</Text>
             <Text style={styles.practoSummaryValue}>
               {currentPractoData.total}
             </Text>
@@ -211,6 +233,55 @@ const ReportsScreen: React.FC = () => {
         data: socialReferenceData.map(item => item.count)
       }
     ]
+  };
+
+  // Referral Details Card Component
+  const ReferralDetailsCard = () => {
+    // Calculate total count
+    const totalCount = referralDetails.reduce((sum, item) => sum + item.count, 0);
+    
+    return (
+      <View style={[styles.chartCard, styles.referralDetailsCard]}>
+        <Text style={styles.chartTitle}>
+          Referral Sources
+        </Text>
+        <Text style={styles.chartSubtitle}>
+          {months[selectedMonth - 1]} {selectedYear} • Total: {totalCount}
+        </Text>
+        
+        <View style={styles.referralDetailsHeader}>
+          <Text style={[styles.referralDetailsHeaderText, { flex: 2 }]}>Source</Text>
+          <Text style={[styles.referralDetailsHeaderText, { flex: 1, textAlign: 'right' }]}>Count</Text>
+          {/* <Text style={[styles.referralDetailsHeaderText, { flex: 1, textAlign: 'right' }]}>%</Text> */}
+        </View>
+        
+        <FlatList
+          data={referralDetails}
+          keyExtractor={(item, index) => `${item._id}-${index}`}
+          renderItem={({ item }) => (
+            <View style={styles.referralDetailsRow}>
+              <Text 
+                style={[styles.referralDetailsText, { flex: 2 }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item._id}
+              </Text>
+              <Text style={[styles.referralDetailsText, { flex: 1, textAlign: 'right' }]}>
+                {item.count}
+              </Text>
+              {/* <Text style={[styles.referralDetailsText, { flex: 1, textAlign: 'right' }]}>
+                {totalCount > 0 ? Math.round((item.count / totalCount) * 100) : 0}%
+              </Text> */}
+            </View>
+          )}
+          ListEmptyComponent={
+            <Text style={styles.noDataText}>No referral details available</Text>
+          }
+          scrollEnabled={false} // Disable scrolling since it's within ScrollView
+        />
+      </View>
+    );
   };
 
   return (
@@ -279,11 +350,14 @@ const ReportsScreen: React.FC = () => {
           {/* Practo Summary */}
           <PractoSummary />
 
+          {/* Referral Details Card */}
+          {referralDetails.length > 0 && <ReferralDetailsCard />}
+
           {/* Referrals Chart */}
           {referralPieChartData.length > 0 ? (
             <View style={[styles.chartCard, styles.referralChartCard]}>
               <Text style={styles.chartTitle}>
-                Referrals by Doctor
+                New Referrals
               </Text>
               <Text style={styles.chartSubtitle}>
                 {months[selectedMonth - 1]} {selectedYear}
@@ -336,6 +410,7 @@ const ReportsScreen: React.FC = () => {
                   decimalPlaces: 0,
                   color: (opacity = 1) => `rgba(0, 123, 142, ${opacity})`, // Soft Blue
                   labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                  
                   fillShadowGradientFrom: '#3498db', // Lighter blue for bars
                   fillShadowGradientTo: '#2980b9',   // Darker blue for bars
                   fillShadowGradientFromOpacity: 0.8,
@@ -375,7 +450,6 @@ const ReportsScreen: React.FC = () => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -536,6 +610,33 @@ const styles = StyleSheet.create({
   },
   socialReferenceChartCard: {
     marginTop: 10, // Add space above social reference chart
+  },
+
+  // New styles for Referral Details Card
+  referralDetailsCard: {
+    marginBottom: 20,
+  },
+  referralDetailsHeader: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    marginBottom: 8,
+  },
+  referralDetailsHeaderText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#007b8e',
+  },
+  referralDetailsRow: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  referralDetailsText: {
+    fontSize: 13,
+    color: '#333',
   },
 });
 

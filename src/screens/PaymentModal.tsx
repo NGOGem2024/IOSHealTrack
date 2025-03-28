@@ -302,12 +302,11 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     item1: {
       color: '#007b8e',
     },
-
     item: {
-      color: theme.colors.text, // Set the color for selected items to black
+      color: theme.colors.text, 
     },
     placeholderItem: {
-      color: 'gray', // Set the placeholder color to gray
+      color: 'gray', 
     },
     modalOverlay: {
       flex: 1,

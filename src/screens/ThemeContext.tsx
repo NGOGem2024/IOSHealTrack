@@ -16,6 +16,7 @@ interface ThemeColors {
   text: string;
   border: string;
   notification: string;
+  box:string
 }
 
 interface Theme {
@@ -39,6 +40,7 @@ const lightTheme: Theme = {
     text: '#000000',
     border: '#E0E0E0',
     notification: '#FF0000',
+    box:'#F5F7FA'
   },
 };
 
@@ -51,6 +53,8 @@ const darkTheme: Theme = {
     text: '#FFFFFF',
     border: '#2C2C2C',
     notification: '#FF6B6B',
+    box:'#1d2229'
+
   },
 };
 
@@ -64,6 +68,7 @@ const purpleTheme: Theme = {
     text: '#4B0082',
     border: '#D8BFD8',
     notification: '#FF1493',
+    box:'#F5F7FA'
   },
 };
 

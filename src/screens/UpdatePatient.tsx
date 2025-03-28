@@ -1,29 +1,53 @@
-import React, {useState, useEffect, useCallback, memo} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Animated,
-  KeyboardTypeOptions,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
+  Alert,
   SafeAreaView,
   Dimensions,
-  Alert,
+  Animated,
+  KeyboardTypeOptions,
+  Platform,
+  Appearance,
+  useColorScheme,
 } from 'react-native';
 import {StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
-import {ScrollView} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {handleError, showSuccessToast} from '../utils/errorHandler';
 import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
-import {Picker} from '@react-native-picker/picker';
 import DoctorPicker from './DoctorPickerUpdate';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+
+const themeColors = {
+  light: {
+    background: '#f8f9fa',
+    card: '#ffffff',
+    primary: '#007B8E',
+    secondary: '#007B8E',
+    text: '#1f2937',
+    inputBg: '#f3f4f6',
+    inputBorder: '#03858c',
+    placeholderText: '#9ca3af',
+    error: '#ef4444',
+  },
+  dark: {
+    background: '#161c24',
+    card: '#272d36',
+    primary: '#007B8E',
+    secondary: '#007B8E',
+    text: '#f3f4f6',
+    inputBg: '#282d33',
+    inputBorder: '#03858c',
+    placeholderText: '#9ca3af',
+    error: '#f87171',
+  },
+};
 
 interface PatientData {
   doctor_id: string;
@@ -44,6 +68,7 @@ interface PatientData {
   patient_id: string;
   doctor_name: string;
 }
+
 interface Doctor {
   _id: string;
   doctor_first_name: string;
@@ -52,43 +77,6 @@ interface Doctor {
 }
 
 type UpdatePatientProps = StackScreenProps<RootStackParamList, 'UpdatePatient'>;
-
-interface InputFieldProps {
-  icon: React.ReactNode;
-  placeholder: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  keyboardType?: KeyboardTypeOptions;
-  editable?: boolean;
-  field: keyof PatientData;
-}
-
-// Memoized Input Field Component
-const InputField = memo<InputFieldProps>(
-  ({
-    icon,
-    placeholder,
-    value,
-    onChangeText,
-    keyboardType = 'default',
-    editable = true,
-  }) => (
-    <View style={styles.inputWrapper}>
-      <View style={styles.inputContainer}>
-        <View style={styles.iconContainer}>{icon}</View>
-        <TextInput
-          style={[styles.input, !editable && styles.disabledInput]}
-          placeholder={placeholder}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType}
-          placeholderTextColor="#A0A0A0"
-          editable={editable}
-        />
-      </View>
-    </View>
-  ),
-);
 
 const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
   const {patientId} = route.params;
@@ -113,15 +101,26 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
     doctor_name: '',
     doctor_id: '',
   });
-
   const [fadeAnim] = useState(new Animated.Value(0));
+
+  // Theme handling similar to PatientRegister
+  const colorScheme = useColorScheme();
+  const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
+
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({colorScheme}) => {
+      setIsDarkMode(colorScheme === 'dark');
+    });
+    return () => subscription.remove();
+  }, []);
+
+  const currentColors = themeColors[isDarkMode ? 'dark' : 'light'];
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  // Memoize text change handler
   const handleTextChange = useCallback(
     (field: keyof PatientData, value: string) => {
       setPatientData(prev => ({
@@ -129,8 +128,9 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
         [field]: field === 'patient_email' ? value.toLowerCase() : value,
       }));
     },
-    [],
+    []
   );
+
   const handleDoctorChange = useCallback(
     (doctorId: string) => {
       const selectedDoctor = doctors.find(doc => doc._id === doctorId);
@@ -142,7 +142,7 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
         }));
       }
     },
-    [doctors],
+    [doctors]
   );
 
   const fetchDoctors = useCallback(async () => {
@@ -159,12 +159,10 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
     try {
       const response = await axiosInstance.get(`/patient/${patientId}`);
       const patientInfo = response.data.patientData;
-
       const formattedPhone = patientInfo.patient_phone.replace(
         /^\+(\d{2})(\d+)/,
-        '+$1 $2',
+        '+$1 $2'
       );
-
       setPatientData(prevData => ({
         ...prevData,
         patient_first_name: patientInfo.patient_first_name || '',
@@ -197,7 +195,6 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
     const initializeData = async () => {
       setIsLoading(true);
       try {
-        // Fetch both patient and doctor data in parallel
         await Promise.all([fetchPatientData(), fetchDoctors()]);
       } catch (error) {
         handleError(error);
@@ -207,7 +204,7 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
     };
 
     initializeData();
-  }, []);
+  }, [fetchPatientData, fetchDoctors, fadeAnim]);
 
   const handlePatientUpdate = useCallback(async () => {
     if (!validateEmail(patientData.patient_email)) {
@@ -230,87 +227,149 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
     }
   }, [patientData, patientId, navigation]);
 
-  // Memoize input field creation
-  const renderInputField = useCallback(
-    (
-      field: keyof PatientData,
-      placeholder: string,
-      icon: React.ReactNode,
-      keyboardType: KeyboardTypeOptions = 'default',
-    ) => (
-      <InputField
-        key={field}
-        field={field}
-        icon={icon}
-        placeholder={placeholder}
-        value={patientData[field]}
-        onChangeText={text => handleTextChange(field, text)}
-        keyboardType={keyboardType}
-      />
-    ),
-    [patientData, handleTextChange],
-  );
-
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: currentColors.background}]}>
       <BackTabTop screenName="Patient" />
       <KeyboardAwareScrollView
-        style={styles.scrollView}
+        style={[styles.scrollView, {backgroundColor: currentColors.background}]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="always"
         contentContainerStyle={styles.scrollContent}
         extraScrollHeight={50}>
         <Animated.View style={[styles.container, {opacity: fadeAnim}]}>
-          <View style={styles.formContainer}>
+          <View style={[styles.formContainer, {backgroundColor: currentColors.card}]}>
             <View style={styles.headerContainer}>
-              <Text style={styles.title}>Update Patient Profile</Text>
+              <Text style={[styles.title, {color: currentColors.primary}]}>
+                Update Patient Profile
+              </Text>
             </View>
 
-            {renderInputField(
-              'patient_first_name',
-              'First Name',
-              <Icon name="person" size={24} color="#007B8E" />,
-            )}
-            {renderInputField(
-              'patient_last_name',
-              'Last Name',
-              <Icon name="person" size={24} color="#007B8E" />,
-            )}
-            {renderInputField(
-              'patient_email',
-              'Email Address',
-              <Icon name="email" size={24} color="#007B8E" />,
-            )}
-            {renderInputField(
-              'patient_phone',
-              'Contact Number',
-              <Icon name="phone" size={24} color="#007B8E" />,
-              'numeric',
-            )}
+            {/* First Name */}
+            <View style={styles.inputWrapper}>
+              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+                <View style={styles.iconContainer}>
+                  <Icon name="person" size={24} color={currentColors.primary} />
+                </View>
+                <TextInput
+                  style={[styles.input, {color: currentColors.text}]}
+                  placeholder="First Name"
+                  value={patientData.patient_first_name}
+                  onChangeText={text => handleTextChange('patient_first_name', text)}
+                  placeholderTextColor={currentColors.placeholderText}
+                />
+              </View>
+            </View>
+
+            {/* Last Name */}
+            <View style={styles.inputWrapper}>
+              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+                <View style={styles.iconContainer}>
+                  <Icon name="person" size={24} color={currentColors.primary} />
+                </View>
+                <TextInput
+                  style={[styles.input, {color: currentColors.text}]}
+                  placeholder="Last Name"
+                  value={patientData.patient_last_name}
+                  onChangeText={text => handleTextChange('patient_last_name', text)}
+                  placeholderTextColor={currentColors.placeholderText}
+                />
+              </View>
+            </View>
+
+            {/* Email Address */}
+            <View style={styles.inputWrapper}>
+              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+                <View style={styles.iconContainer}>
+                  <Icon name="email" size={24} color={currentColors.primary} />
+                </View>
+                <TextInput
+                  style={[styles.input, {color: currentColors.text}]}
+                  placeholder="Email Address"
+                  value={patientData.patient_email}
+                  onChangeText={text => handleTextChange('patient_email', text)}
+                  keyboardType="email-address"
+                  placeholderTextColor={currentColors.placeholderText}
+                />
+              </View>
+            </View>
+
+            {/* Contact Number */}
+            <View style={styles.inputWrapper}>
+              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+                <View style={styles.iconContainer}>
+                  <Icon name="phone" size={24} color={currentColors.primary} />
+                </View>
+                <TextInput
+                  style={[styles.input, {color: currentColors.text}]}
+                  placeholder="Contact Number"
+                  value={patientData.patient_phone}
+                  onChangeText={text => handleTextChange('patient_phone', text)}
+                  keyboardType="numeric"
+                  placeholderTextColor={currentColors.placeholderText}
+                />
+              </View>
+            </View>
+
+            {/* Doctor Picker */}
             <DoctorPicker
               doctors={doctors}
               selectedDoctorId={patientData.doctor_id}
               onDoctorSelect={handleDoctorChange}
               isLoading={isLoading}
             />
-            {renderInputField(
-              'patient_address1',
-              'Primary Address',
-              <Icon name="location-on" size={24} color="#007B8E" />,
-            )}
-            {renderInputField(
-              'patient_address2',
-              'Secondary Address',
-              <Icon name="location-on" size={24} color="#007B8E" />,
-            )}
-            {renderInputField(
-              'patient_age',
-              'Age',
-              <Icon name="tag" size={24} color="#007B8E" />,
-              'numeric',
-            )}
+
+            {/* Primary Address */}
+            <View style={styles.inputWrapper}>
+              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+                <View style={styles.iconContainer}>
+                  <Icon name="location-on" size={24} color={currentColors.primary} />
+                </View>
+                <TextInput
+                  style={[styles.input, {color: currentColors.text}]}
+                  placeholder="Primary Address"
+                  value={patientData.patient_address1}
+                  onChangeText={text => handleTextChange('patient_address1', text)}
+                  placeholderTextColor={currentColors.placeholderText}
+                />
+              </View>
+            </View>
+
+            {/* Secondary Address */}
+            <View style={styles.inputWrapper}>
+              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+                <View style={styles.iconContainer}>
+                  <Icon name="location-on" size={24} color={currentColors.primary} />
+                </View>
+                <TextInput
+                  style={[styles.input, {color: currentColors.text}]}
+                  placeholder="Secondary Address"
+                  value={patientData.patient_address2}
+                  onChangeText={text => handleTextChange('patient_address2', text)}
+                  placeholderTextColor={currentColors.placeholderText}
+                />
+              </View>
+            </View>
+
+            {/* Age */}
+            <View style={styles.inputWrapper}>
+              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+                <View style={styles.iconContainer}>
+                  <Icon name="tag" size={24} color={currentColors.primary} />
+                </View>
+                <TextInput
+                  style={[styles.input, {color: currentColors.text}]}
+                  placeholder="Age"
+                  value={patientData.patient_age}
+                  onChangeText={text => handleTextChange('patient_age', text)}
+                  keyboardType="numeric"
+                  placeholderTextColor={currentColors.placeholderText}
+                />
+              </View>
+            </View>
+
+            {/* Save Button */}
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[styles.saveButton, {backgroundColor: currentColors.primary}]}
               onPress={handlePatientUpdate}
               disabled={isLoading}>
               {isLoading ? (
@@ -327,14 +386,14 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
     </SafeAreaView>
   );
 };
+
 const {width} = Dimensions.get('window');
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F0F4F8',
   },
   scrollView: {
-    backgroundColor: '#F0F4F8',
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
@@ -348,7 +407,6 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   formContainer: {
-    backgroundColor: 'white',
     borderRadius: 15,
     padding: 10,
     marginTop: 20,
@@ -364,18 +422,16 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#007B8E',
     paddingHorizontal: 15,
+    height: 50,
   },
   iconContainer: {
     marginRight: 10,
   },
   input: {
     flex: 1,
-    color: '#333333',
     fontSize: 16,
     paddingVertical: 12,
   },
@@ -384,7 +440,6 @@ const styles = StyleSheet.create({
     color: '#888888',
   },
   saveButton: {
-    backgroundColor: '#007B8E',
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -400,23 +455,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
-    marginLeft: 10,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#007B8E',
     margin: 5,
     textAlign: 'center',
-  },
-  flex: {
-    flex: 1,
-  },
-  picker: {
-    flex: 1,
-    marginLeft: 10,
-    color: '#333333',
   },
 });
 
 export default UpdatePatient;
+  

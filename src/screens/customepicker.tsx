@@ -113,7 +113,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   },
   androidPicker: {
     height: 48,
-    marginHorizontal:10,
+    marginHorizontal:15,
     paddingLeft:5,
     backgroundColor: theme.colors.border,
     color: theme.colors.text,

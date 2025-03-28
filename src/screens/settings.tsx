@@ -25,7 +25,7 @@ import {
   User,
 } from '@react-native-google-signin/google-signin';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import LoadingScreen from '../components/loadingScreen';
+import SettingSkeleton from '../components/SettingSkeleton';
 
 interface ExtendedUser extends User {
   data: any;
@@ -157,12 +157,12 @@ const SettingsScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
-    );
+      <SafeAreaView style={styles.safeArea}>
+        <BackTabTop screenName="Settings" />
+        <SettingSkeleton />
+      </SafeAreaView>  
+     );
   }
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>

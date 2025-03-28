@@ -415,6 +415,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
                   },
                 ]}
                 textColor={colors.text}
+                placeholderColor={colors.primary}
               />
             </Animatable.View>
 
@@ -447,10 +448,13 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
                           styles.picker,
                           {
                             backgroundColor: colors.inputBg,
-                            borderColor: colors.inputBorder,
+                            borderColor: errors.referral_source
+                              ? colors.error
+                              : colors.inputBorder,
                           },
                         ]}
                         textColor={colors.text}
+                        placeholderColor={colors.primary}
                       />
                     </View>
                   ) : (

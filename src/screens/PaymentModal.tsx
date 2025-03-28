@@ -9,6 +9,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
+  useColorScheme,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -53,7 +54,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   useEffect(() => {
     if (visible && paymentInfo?.session_info?.per_session_amount) {
       setPaymentMethod('CASH');
-      setAmount(paymentInfo.session_info.per_session_amount.toString());
+      // Only set amount if balance is greater than 0
+      setAmount(
+        paymentInfo.payment_summary.balance > 0 
+          ? paymentInfo.session_info.per_session_amount.toString() 
+          : '0'
+      );
     } else {
       setAmount('');
     }
@@ -294,11 +300,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     item1: {
-      color: 'gray',
+      color: '#007b8e',
     },
 
     item: {
-      color: 'black', // Set the color for selected items to black
+      color: theme.colors.text, // Set the color for selected items to black
     },
     placeholderItem: {
       color: 'gray', // Set the placeholder color to gray
@@ -313,12 +319,14 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     modalContainer: {
       width: '90%',
       maxWidth: 600,
-      backgroundColor: 'white',
+      backgroundColor: theme.colors.secondary,
       borderRadius: 16,
+      borderColor: '#007B8E',
+      borderWidth: 1,
       padding: 30,
     },
     scrollContent: {
-      backgroundColor: '#fff',
+      backgroundColor: theme.colors.secondary,
     },
     modalHeader: {
       flexDirection: 'row',
@@ -328,7 +336,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     modalTitle: {
       fontSize: 24,
       fontWeight: 'bold',
-      color: '#2c3e50',
+      color: '#007b8e',
     },
     closeButton: {
       padding: 8,
@@ -379,7 +387,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     inputLabel: {
       fontSize: 16,
-      color: '#2c3e50',
+      color: theme.colors.text,
       marginBottom: 8,
       fontWeight: '500',
     },
@@ -389,30 +397,30 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderWidth: 1,
       borderColor: '#ced4da',
       borderRadius: 10,
-      backgroundColor: '#f8f9fa',
+      backgroundColor: theme.colors.border,
       paddingHorizontal: 12,
     },
     currencySymbol: {
       fontSize: 18,
-      color: '#6c757d',
+      color: theme.colors.text,
       marginRight: 8,
     },
     currencyInput: {
       flex: 1,
       fontSize: 18,
-      color: '#2c3e50',
+      color: theme.colors.text,
       padding: 12,
     },
     pickerWrapper: {
       borderWidth: 1,
       borderColor: '#ced4da',
       borderRadius: 10,
-      backgroundColor: '#f8f9fa',
+      backgroundColor: theme.colors.border,
       overflow: 'hidden',
     },
     picker: {
       height: 50,
-      color: 'black',
+      color: theme.colors.text,
     },
     servicesSection: {
       marginBottom: 20,
@@ -425,7 +433,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     servicesHeaderText: {
       fontSize: 16,
       fontWeight: '500',
-      color: '#2c3e50',
+      color: theme.colors.text,
       marginLeft: 8,
     },
     addonInputContainer: {
@@ -439,6 +447,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderColor: '#ced4da',
       borderRadius: 10,
       padding: 12,
+      backgroundColor: theme.colors.border,
+      color: theme.colors.text,
       marginRight: 8,
       fontSize: 16,
     },
@@ -447,6 +457,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flexDirection: 'row',
       alignItems: 'center',
       borderWidth: 1,
+      backgroundColor: theme.colors.border,
       borderColor: '#ced4da',
       borderRadius: 10,
       paddingHorizontal: 12,
@@ -493,14 +504,14 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      backgroundColor: '#f8f9fa',
+      backgroundColor: theme.colors.border,
       padding: 16,
       borderRadius: 10,
       marginBottom: 20,
     },
     totalLabel: {
       fontSize: 18,
-      color: '#2c3e50',
+      color: theme.colors.text,
       fontWeight: '500',
     },
     totalAmount: {

@@ -20,6 +20,7 @@ import {RootStackParamList} from '../types/types';
 import BackTabTop from './BackTopTab';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LoadingScreen from '../components/loadingScreen';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 interface TherapySession {
   _id: string;
@@ -117,8 +118,8 @@ const TherapySessionsList: React.FC = () => {
 
       <View style={styles.sessionInfo}>
         <View style={styles.infoRow}>
-          <MaterialCommunityIcons
-            name="doctor"
+        <FontAwesome 
+            name="user-md"
             size={20}
             color={theme.colors.text}
           />

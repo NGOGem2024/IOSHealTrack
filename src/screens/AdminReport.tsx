@@ -336,7 +336,6 @@ const ReportsScreen: React.FC = () => {
                   decimalPlaces: 0,
                   color: (opacity = 1) => `rgba(0, 123, 142, ${opacity})`, // Soft Blue
                   labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                  gridColor: (opacity = 1) => `rgba(0, 0, 0, ${0.1})`, // Light grid color
                   fillShadowGradientFrom: '#3498db', // Lighter blue for bars
                   fillShadowGradientTo: '#2980b9',   // Darker blue for bars
                   fillShadowGradientFromOpacity: 0.8,

@@ -394,8 +394,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     currencyInputContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      borderWidth: 1,
-      borderColor: '#ced4da',
       borderRadius: 10,
       backgroundColor: theme.colors.border,
       paddingHorizontal: 12,
@@ -412,8 +410,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       padding: 12,
     },
     pickerWrapper: {
-      borderWidth: 1,
-      borderColor: '#ced4da',
       borderRadius: 10,
       backgroundColor: theme.colors.border,
       overflow: 'hidden',

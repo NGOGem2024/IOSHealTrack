@@ -12,6 +12,7 @@ import {
   Platform,
   SafeAreaView,
   Dimensions,
+  Alert,
 } from 'react-native';
 import {StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
@@ -115,6 +116,11 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
 
   const [fadeAnim] = useState(new Animated.Value(0));
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   // Memoize text change handler
   const handleTextChange = useCallback(
     (field: keyof PatientData, value: string) => {
@@ -204,6 +210,14 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
   }, []);
 
   const handlePatientUpdate = useCallback(async () => {
+    if (!validateEmail(patientData.patient_email)) {
+      Alert.alert(
+        'Invalid Email',
+        'Please enter a valid email address.',
+        [{text: 'OK'}]
+      );
+      return;
+    }
     setIsLoading(true);
     try {
       await axiosInstance.post(`/patient/update/${patientId}`, patientData);

@@ -20,6 +20,7 @@ interface CustomPickerProps {
   style?: any;
   inputStyle?: any;
   textColor?: string;
+  placeholderColor?: string;
 }
 
 const CustomPicker: React.FC<CustomPickerProps> = ({
@@ -30,6 +31,7 @@ const CustomPicker: React.FC<CustomPickerProps> = ({
   style,
   inputStyle,
   textColor = '#000000',
+  placeholderColor,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [tempValue, setTempValue] = useState(selectedValue);
@@ -57,19 +59,23 @@ const CustomPicker: React.FC<CustomPickerProps> = ({
     return selectedItem ? selectedItem.label : placeholder;
   };
 
+  const displayTextColor = !selectedValue && placeholderColor 
+    ? placeholderColor 
+    : textColor;
+
   if (!isIOS) {
     return (
       <View style={[styles.pickerContainer, style]}>
         <Picker
           selectedValue={selectedValue}
           onValueChange={onValueChange}
-          style={[styles.androidPicker, {color: textColor}]}>
+          style={[styles.androidPicker, {color: displayTextColor}]}>
           {items.map(item => (
             <Picker.Item
               key={item.value}
               label={item.label}
               value={item.value}
-              color={textColor}
+              color={item.value === '' ? placeholderColor : textColor}
             />
           ))}
         </Picker>
@@ -82,7 +88,7 @@ const CustomPicker: React.FC<CustomPickerProps> = ({
       <TouchableOpacity
         style={[styles.pickerButton, inputStyle]}
         onPress={() => setModalVisible(true)}>
-        <Text style={[styles.pickerButtonText, {color: textColor}]}>
+        <Text style={[styles.pickerButtonText, {color: displayTextColor}]}>
           {getDisplayText()}
         </Text>
       </TouchableOpacity>
@@ -111,7 +117,7 @@ const CustomPicker: React.FC<CustomPickerProps> = ({
                   key={item.value}
                   label={item.label}
                   value={item.value}
-                  color={textColor}
+                  color={item.value === '' ? placeholderColor : textColor}
                 />
               ))}
             </Picker>

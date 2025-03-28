@@ -595,7 +595,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
-      backgroundColor: 'white',
+      backgroundColor: theme.colors.border,
       borderRadius: 12,
       padding: 20,
       width: '80%',
@@ -611,7 +611,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     modalTitle: {
       fontSize: 20,
       fontWeight: '600',
-      color: '#2c3e50',
+      color: '#007b8e',
       marginTop: 28,
       marginBottom: 18,
       textAlign: 'center',

@@ -9,6 +9,8 @@ import {
   SafeAreaView,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
+import {useTheme} from './ThemeContext';
+import {getTheme} from './Theme';
 
 interface CustomPickerProps {
   selectedValue: string;
@@ -24,7 +26,12 @@ const CustomPicker: React.FC<CustomPickerProps> = ({
   placeholder,
 }) => {
   const [modalVisible, setModalVisible] = React.useState(false);
-
+const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
   const getSelectedLabel = () => {
     const selected = items.find(item => item.value === selectedValue);
     return selected ? selected.label : placeholder || 'Select...';
@@ -39,13 +46,14 @@ const CustomPicker: React.FC<CustomPickerProps> = ({
             onValueChange(value);
           }}
           style={styles.androidPicker}
-          dropdownIconColor="#000000">
+          dropdownIconColor={theme.colors.text}>
           {items.map(item => (
             <Picker.Item
               key={item.value}
               label={item.label}
               value={item.value}
-              color="#000000"
+              color={theme.colors.text}
+             
             />
           ))}
         </Picker>
@@ -96,17 +104,19 @@ const CustomPicker: React.FC<CustomPickerProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
+  StyleSheet.create({
   androidPickerContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.border,
     borderRadius: 20,
     overflow: 'hidden',
   },
   androidPicker: {
     height: 48,
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    color: '#000000',
+    marginHorizontal:15,
+    paddingLeft:5,
+    backgroundColor: theme.colors.border,
+    color: theme.colors.text,
   },
   iosPickerContainer: {
     backgroundColor: '#FFFFFF',

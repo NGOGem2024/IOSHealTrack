@@ -454,89 +454,8 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     }
   };
 
-  const InputField: React.FC<InputFieldProps> = ({
-    icon,
-    placeholder,
-    value,
-    onChangeText,
-  }) => {
-    const {theme, isDarkMode} = useTheme();
-    const styles = createStyles(theme.colors, isDarkMode);
 
-    return (
-      <View style={styles.inputContainer}>
-        {icon}
-        <TextInput
-          style={styles.input}
-          placeholder={placeholder}
-          value={value}
-          onChangeText={onChangeText}
-          placeholderTextColor="#A0A0A0"
-        />
-      </View>
-    );
-  };
-  const DatePickerField: React.FC<DatePickerFieldProps> = ({
-    label,
-    date,
-    showDatePicker,
-    onPress,
-    onChange,
-    disabled = false,
-  }) => {
-    const {theme, isDarkMode} = useTheme();
-    const styles = createStyles(theme.colors, isDarkMode);
-
-    return (
-      <View style={styles.dateTimeBlock}>
-        <Text style={styles.dateTimeLabel}>{label}</Text>
-        <TouchableOpacity
-          style={[
-            styles.dateTimeContainer,
-            disabled && styles.disabledDateContainer,
-          ]}
-          onPress={disabled ? undefined : onPress}>
-          <Text
-            style={[styles.dateTimeText, disabled && styles.disabledDateText]}>
-            {date.toLocaleDateString()}
-          </Text>
-          <FontAwesome
-            name="calendar"
-            size={24}
-            color={disabled ? '#A0A0A0' : '#119FB3'}
-          />
-        </TouchableOpacity>
-        {showDatePicker && !disabled && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display="default"
-            onChange={onChange}
-          />
-        )}
-      </View>
-    );
-  };
-
-  const Dropdown: React.FC<DropdownProps> = ({value, onValueChange, items}) => {
-    const {theme, isDarkMode} = useTheme();
-    const styles = createStyles(theme.colors, isDarkMode);
-    return (
-      <View style={styles.inputContainer}>
-        <MaterialIcons name="category" size={24} color="#119FB3" />
-        <Picker
-          selectedValue={value}
-          onValueChange={onValueChange}
-          style={styles.picker}>
-          <Picker.Item label="Therapy Category" value="" />
-          {items.map((item, index) => (
-            <Picker.Item key={index} label={item} value={item} />
-          ))}
-        </Picker>
-      </View>
-    );
-  };
-
+ 
   useEffect(() => {
     const total = parseFloat(therapyPlan.total_amount) || 0;
     const received = parseFloat(therapyPlan.received_amount) || 0;
@@ -790,6 +709,91 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     </SafeAreaView>
   );
 };
+
+const InputField: React.FC<InputFieldProps> = ({
+  icon,
+  placeholder,
+  value,
+  onChangeText,
+}) => {
+  const {theme, isDarkMode} = useTheme();
+  const styles = createStyles(theme.colors, isDarkMode);
+
+  return (
+    <View style={styles.inputContainer}>
+      {icon}
+      <TextInput
+        style={styles.input}
+        placeholder={placeholder}
+        value={value}
+        onChangeText={onChangeText}
+        placeholderTextColor="#A0A0A0"
+      />
+    </View>
+  );
+};
+const DatePickerField: React.FC<DatePickerFieldProps> = ({
+  label,
+  date,
+  showDatePicker,
+  onPress,
+  onChange,
+  disabled = false,
+}) => {
+  const {theme, isDarkMode} = useTheme();
+  const styles = createStyles(theme.colors, isDarkMode);
+
+  return (
+    <View style={styles.dateTimeBlock}>
+      <Text style={styles.dateTimeLabel}>{label}</Text>
+      <TouchableOpacity
+        style={[
+          styles.dateTimeContainer,
+          disabled && styles.disabledDateContainer,
+        ]}
+        onPress={disabled ? undefined : onPress}>
+        <Text
+          style={[styles.dateTimeText, disabled && styles.disabledDateText]}>
+          {date.toLocaleDateString()}
+        </Text>
+        <FontAwesome
+          name="calendar"
+          size={24}
+          color={disabled ? '#A0A0A0' : '#119FB3'}
+        />
+      </TouchableOpacity>
+      {showDatePicker && !disabled && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="default"
+          onChange={onChange}
+        />
+      )}
+    </View>
+  );
+};
+
+
+const Dropdown: React.FC<DropdownProps> = ({value, onValueChange, items}) => {
+  const {theme, isDarkMode} = useTheme();
+  const styles = createStyles(theme.colors, isDarkMode);
+  return (
+    <View style={styles.inputContainer}>
+      <MaterialIcons name="category" size={24} color="#119FB3" />
+      <Picker
+        selectedValue={value}
+        onValueChange={onValueChange}
+        style={styles.picker}>
+        <Picker.Item label="Therapy Category" value="" />
+        {items.map((item, index) => (
+          <Picker.Item key={index} label={item} value={item} />
+        ))}
+      </Picker>
+    </View>
+  );
+};
+
 
 const createStyles = (colors: any, isDarkMode: boolean) =>
   StyleSheet.create({

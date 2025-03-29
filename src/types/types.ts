@@ -43,6 +43,7 @@ export type RootStackParamList = {
   Settings: undefined;
   Main: undefined;
   planDetails: {planId: string};
+  AdminReport: undefined;
 };
 
 export type RootTabParamList = {

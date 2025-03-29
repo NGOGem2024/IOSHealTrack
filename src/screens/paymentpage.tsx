@@ -201,7 +201,7 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
   };
 
   const formatCurrency = (amount: number) => {
-    return `₹${Number(amount).toLocaleString('en-IN')}`;
+    return `₹ ${Number(amount).toLocaleString('en-IN')}`;
   };
 
   const formatDate = (dateString: string) => {
@@ -324,39 +324,45 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
           {/* Payment History */}
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Payment History</Text>
-            {paymentInfo.payment_history.map((payment, index) => (
-              <View key={index} style={styles.paymentHistoryItem}>
-                <TouchableOpacity
-                  style={styles.paymentHistoryContent}
-                  onPress={() => {
-                    setSelectedPayment(payment);
-                    setIsEditModalVisible(true);
-                  }}>
-                  <View style={styles.paymentHistoryLeft}>
-                    <Text style={styles.paymentHistorySession}>
-                      {payment.payment_number &&
-                        `Payment #${payment.payment_number}`}
-                    </Text>
-                    <Text style={styles.paymentHistoryDate}>
-                      {formatDate(payment.date)}
-                    </Text>
-                  </View>
-                  <View style={styles.paymentHistoryRight}>
-                    <Text style={styles.paymentHistoryAmount}>
-                      {formatCurrency(payment.amount)}
-                    </Text>
-                    <Text style={styles.paymentHistoryType}>
-                      {payment.type}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDeletePayment(payment)}>
-                  <Text style={styles.deleteButtonText}>×</Text>
-                </TouchableOpacity>
+            {paymentInfo.payment_history.length > 0 ? (
+              paymentInfo.payment_history.map((payment, index) => (
+                <View key={index} style={styles.paymentHistoryItem}>
+                  <TouchableOpacity
+                    style={styles.paymentHistoryContent}
+                    onPress={() => {
+                      setSelectedPayment(payment);
+                      setIsEditModalVisible(true);
+                    }}>
+                    <View style={styles.paymentHistoryLeft}>
+                      <Text style={styles.paymentHistorySession}>
+                        {payment.payment_number &&
+                          `Payment #${payment.payment_number}`}
+                      </Text>
+                      <Text style={styles.paymentHistoryDate}>
+                        {formatDate(payment.date)}
+                      </Text>
+                    </View>
+                    <View style={styles.paymentHistoryRight}>
+                      <Text style={styles.paymentHistoryAmount}>
+                        {formatCurrency(payment.amount)}
+                      </Text>
+                      <Text style={styles.paymentHistoryType}>
+                        {payment.type}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDeletePayment(payment)}>
+                    <Text style={styles.deleteButtonText}>×</Text>
+                  </TouchableOpacity>
+                </View>
+              ))
+            ) : (
+              <View style={styles.noDataContainer}>
+                <Text style={styles.noDataText}>No Payment History Available</Text>
               </View>
-            ))}
+            )}
           </View>
           <View style={styles.footerContainer}>
             <View style={styles.buttonContainer}>
@@ -465,6 +471,16 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       maxWidth: 500,
       alignSelf: 'center',
       gap: 12,
+    },
+    noDataContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 20,
+    },
+    noDataText: {
+      fontSize: 16,
+      color: '#6c757d',
+      fontStyle: 'italic',
     },
     button: {
       flex: 1,
@@ -579,7 +595,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
-      backgroundColor: 'white',
+      backgroundColor: theme.colors.border,
       borderRadius: 12,
       padding: 20,
       width: '80%',
@@ -595,7 +611,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     modalTitle: {
       fontSize: 20,
       fontWeight: '600',
-      color: '#2c3e50',
+      color: '#007b8e',
       marginTop: 28,
       marginBottom: 18,
       textAlign: 'center',

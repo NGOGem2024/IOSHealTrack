@@ -358,7 +358,8 @@ const CreateTherapy = ({route, navigation}: Props) => {
           <Modal
             visible={showDoctorPicker}
             transparent={true}
-            animationType="slide">
+            animationType="slide"
+             style={{ justifyContent: 'flex-start', marginTop: 100 }}>
             <View style={styles.modalContainer}>
               <View style={styles.pickerContainer}>
                 <View style={styles.pickerHeader}>
@@ -399,7 +400,8 @@ const CreateTherapy = ({route, navigation}: Props) => {
     return (
       <View style={styles.pickerWrapper}>
         <Picker
-          selectedValue={selectedDoctor?._id ?? ''}
+          mode="dropdown"
+          selectedValue={selectedDoctor?._id ?? doctors[0]?._id ?? ''}
           onValueChange={(itemValue: string) => {
             if (itemValue !== '') {
               setSelectedDoctor(doctors.find(d => d._id === itemValue) || null);

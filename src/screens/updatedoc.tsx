@@ -11,6 +11,10 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useTheme} from './ThemeContext';
@@ -74,14 +78,13 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     useState<ProfileInfo>(initialProfileState);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [countryCode, setCountryCode] = useState('+91'); // This will be updated on fetch
+  const [countryCode, setCountryCode] = useState('+91'); 
   const [phoneDigits, setPhoneDigits] = useState('');
-
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null); 
 
   const validatePhone = (fullPhone: string): boolean => {
-    // This regex accepts a '+' followed by 1-4 digits (country code),
-    // then a mobile number starting with 6-9 followed by 9 more digits.
     const phoneRegex = /^\+\d{1,4}[6-9]\d{9}$/;
     const isValid = phoneRegex.test(fullPhone);
     setPhoneError(
@@ -89,7 +92,12 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     );
     return isValid;
   };
-
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValid = emailRegex.test(email);
+    setEmailError(isValid ? null : 'Please enter a valid email address');
+    return isValid;
+  };
   useEffect(() => {
     if (session.idToken) {
       fetchDoctorInfo();
@@ -191,8 +199,12 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       handlePhoneChange(value);
     } else {
       setProfileInfo(prev => ({...prev, [field]: value}));
+      if (field === 'doctor_email') {
+        validateEmail(value); // Trigger validation on email change
+      }
     }
   };
+
 
   const hasChanges = () => {
     const currentFullPhone = countryCode + phoneDigits;
@@ -202,15 +214,18 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       currentFullPhone !== originalProfileInfo.doctor_phone
     );
   };
-  
 
   const handleSave = async () => {
+    Keyboard.dismiss();
     const fullPhone = countryCode + phoneDigits;
 
-    if (!validatePhone(fullPhone)) {
+    const isPhoneValid = validatePhone(fullPhone);
+    const isEmailValid = validateEmail(profileInfo.doctor_email);
+
+    if (!isPhoneValid || !isEmailValid) {
       Alert.alert(
-        'Invalid Phone Number',
-        'Please enter a valid 10-digit mobile number starting with a valid country code',
+        'Invalid Input',
+        'Please check your phone number and email address.',
       );
       return;
     }
@@ -283,117 +298,138 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackTabTop screenName="Edit Doctor" />
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}>
-        <View style={styles.profileImageContainer}>
-          <Image source={profilePhoto} style={styles.profilePhoto} />
-        </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{flex: 1}}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled">
+            <View style={styles.profileImageContainer}>
+              <Image source={profilePhoto} style={styles.profilePhoto} />
+            </View>
 
-        <View style={styles.formContainer}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>First Name</Text>
-            <TextInput
-              style={styles.input}
-              value={profileInfo.doctor_first_name}
-              onChangeText={text =>
-                handleInputChange('doctor_first_name', text)
-              }
-            />
-          </View>
+            <View style={styles.formContainer}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>First Name</Text>
+                <TextInput
+                  style={styles.input}
+                  value={profileInfo.doctor_first_name}
+                  onChangeText={text =>
+                    handleInputChange('doctor_first_name', text)
+                  }
+                />
+              </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Last Name</Text>
-            <TextInput
-              style={styles.input}
-              value={profileInfo.doctor_last_name}
-              onChangeText={text => handleInputChange('doctor_last_name', text)}
-            />
-          </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Last Name</Text>
+                <TextInput
+                  style={styles.input}
+                  value={profileInfo.doctor_last_name}
+                  onChangeText={text =>
+                    handleInputChange('doctor_last_name', text)
+                  }
+                />
+              </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Qualification</Text>
-            <TextInput
-              style={styles.input}
-              value={profileInfo.qualification}
-              onChangeText={text => handleInputChange('qualification', text)}
-            />
-          </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Qualification</Text>
+                <TextInput
+                  style={styles.input}
+                  value={profileInfo.qualification}
+                  onChangeText={text =>
+                    handleInputChange('qualification', text)
+                  }
+                />
+              </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={profileInfo.doctor_email}
-              onChangeText={text => handleInputChange('doctor_email', text)}
-            />
-          </View>
+              <View style={styles.inputGroup}>
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={[
+            styles.input,
+            emailError && styles.inputError, // Apply error style
+          ]}
+          value={profileInfo.doctor_email}
+          onChangeText={text => handleInputChange('doctor_email', text)}
+        />
+        {emailError && <Text style={styles.errorText}>{emailError}</Text>}
+      </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Phone</Text>
-            <View style={styles.phoneContainer}>
-  <CountryPicker
-    selectedCode={countryCode}
-    onValueChange={(code) => {
-      setCountryCode(code);
-      
-      validatePhone(code + phoneDigits);
-    }}
-  />
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Phone</Text>
+                <View style={styles.phoneContainer}>
+                  <CountryPicker
+                    selectedCode={countryCode}
+                    onValueChange={code => {
+                      setCountryCode(code);
 
-  <TextInput
-    style={[
-      styles.phoneinput,
-      phoneError && styles.inputError,
-      { flex: 1 },
-    ]}
-    value={phoneDigits}
-    onChangeText={handlePhoneChange}
-    keyboardType="phone-pad"
-    placeholder="Enter mobile number"
-    maxLength={10}
-  />
-</View>
-            {phoneError && <Text style={styles.errorText}>{phoneError}</Text>}
-          </View>
+                      validatePhone(code + phoneDigits);
+                    }}
+                  />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Role</Text>
-            <CustomPicker
-              selectedValue={profileInfo.is_admin}
-              onValueChange={value => handleInputChange('is_admin', value)}
-              label="Role"
-              style={styles.input}
-              textColor={theme.colors.text}
-            />
-          </View>
+                  <TextInput
+                    style={[
+                      styles.phoneinput,
+                      phoneError && styles.inputError,
+                      {flex: 1},
+                    ]}
+                    value={phoneDigits}
+                    onChangeText={handlePhoneChange}
+                    keyboardType="phone-pad"
+                    placeholder="Enter mobile number"
+                    maxLength={10}
+                  />
+                </View>
+                {phoneError && (
+                  <Text style={styles.errorText}>{phoneError}</Text>
+                )}
+              </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Status</Text>
-            <CustomRadioGroup
-              value={profileInfo.status}
-              onValueChange={value => handleInputChange('status', value)}
-              options={[
-                {label: 'Active', value: 'active'},
-                {label: 'Inactive', value: 'inactive'},
-              ]}
-              label="Status"
-              textColor={theme.colors.text}
-            />
-          </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Role</Text>
+                <CustomPicker
+                  selectedValue={profileInfo.is_admin}
+                  onValueChange={value => handleInputChange('is_admin', value)}
+                  label="Role"
+                  style={styles.input}
+                  textColor={theme.colors.text}
+                />
+              </View>
 
-          <TouchableOpacity
-            style={[styles.saveButton, isSaving && styles.savingButton]}
-            onPress={handleSave}
-            disabled={isSaving || !hasChanges()}>
-            {isSaving ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={styles.saveButtonText}>Save Changes</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Status</Text>
+                <CustomRadioGroup
+                  value={profileInfo.status}
+                  onValueChange={value => handleInputChange('status', value)}
+                  options={[
+                    {label: 'Active', value: 'active'},
+                    {label: 'Inactive', value: 'inactive'},
+                  ]}
+                  label="Status"
+                  textColor={theme.colors.text}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.saveButton,
+                  isSaving && styles.savingButton,
+                  isKeyboardVisible && styles.saveButtonKeyboardOpen,
+                ]}
+                onPress={handleSave}
+                disabled={isSaving || !hasChanges()}>
+                {isSaving ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -414,8 +450,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: '#119FB3',
     },
     phoneContainer: {
-      flexDirection: 'row', 
-      alignItems: 'center', 
+      flexDirection: 'row',
+      alignItems: 'center',
       backgroundColor: theme.colors.card,
       borderWidth: 1,
       borderColor: '#119FB3',
@@ -446,6 +482,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       },
       shadowOpacity: 0.2,
       shadowRadius: 1.41,
+    },
+    saveButtonKeyboardOpen: {
+      marginBottom: 20, // Adjust spacing
+      marginHorizontal: 20, // Add some horizontal margin
     },
     disabledInput: {
       backgroundColor: '#F0F0F0',

@@ -11,24 +11,57 @@ import {
   Dimensions,
   RefreshControl,
   Animated,
+  Appearance,
+  useColorScheme,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
 import {useSession} from '../context/SessionContext';
 import axiosInstance from '../utils/axiosConfig';
 import {handleError} from '../utils/errorHandler';
-import LoadingScreen from '../components/loadingScreen';
+import EnhancedProfilePhoto from './EnhancedProfilePhoto';
+import BackTabTop from './BackTopTab';
 import {RootStackParamList, RootTabParamList} from '../types/types';
 import {StackNavigationProp} from '@react-navigation/stack';
-import BackTabTop from './BackTopTab';
-import EnhancedProfilePhoto from './EnhancedProfilePhoto';
 
+const {width} = Dimensions.get('window');
 
-// Skeleton Loader Component
+// Define your theme colors
+const themeColors = {
+  light: {
+    background: '#F5F7FA',
+    card: '#FFFFFF',
+    primary: '#007B8E',
+    text: '#333333',
+    secondary: '#666666',
+    skeleton: '#E1E9EE',
+  },
+  dark: {
+    background: '#161c24',
+    card: '#272d36',
+    primary: '#007B8E',
+    text: '#f3f4f6',
+    secondary: '#cccccc',
+    skeleton: '#3B3B3B',
+  },
+};
+
+// Skeleton Loader Component with theme support
 const SkeletonLoader: React.FC = () => {
   const fadeAnim = new Animated.Value(0.3);
+  const colorScheme = useColorScheme();
+  const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
 
-  React.useEffect(() => {
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({colorScheme}) => {
+      setIsDarkMode(colorScheme === 'dark');
+    });
+    return () => subscription.remove();
+  }, []);
+
+  const currentColors = themeColors[isDarkMode ? 'dark' : 'light'];
+
+  useEffect(() => {
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(fadeAnim, {
@@ -45,36 +78,34 @@ const SkeletonLoader: React.FC = () => {
     );
     animation.start();
     return () => animation.stop();
-  }, []);
+  }, [fadeAnim]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="black" barStyle="light-content" />
+    <SafeAreaView style={[styles.container, {backgroundColor: currentColors.background}]}>
+      <StatusBar backgroundColor={currentColors.background} barStyle="light-content" />
       <BackTabTop screenName="Profile" />
       <ScrollView>
         {/* Profile Card Skeleton */}
         <Animated.View 
           style={[
             styles.profileCard, 
-            {opacity: fadeAnim}
-          ]}
-        >
+            {opacity: fadeAnim, backgroundColor: currentColors.card}
+          ]}>
           <View style={styles.profileImageContainer}>
-            <View style={styles.skeletonProfileImage} />
+            <View style={[styles.skeletonProfileImage, {backgroundColor: currentColors.skeleton}]} />
           </View>
-
           <View style={styles.profileInfoContainer}>
-            <View style={styles.skeletonLine1} />
-            <View style={styles.skeletonLine2} />
-            <View style={styles.skeletonLine3} />
-            <View style={styles.skeletonEditButton} />
+            <View style={[styles.skeletonLine1, {backgroundColor: currentColors.skeleton}]} />
+            <View style={[styles.skeletonLine2, {backgroundColor: currentColors.skeleton}]} />
+            <View style={[styles.skeletonLine3, {backgroundColor: currentColors.skeleton}]} />
+            <View style={[styles.skeletonEditButton, {backgroundColor: currentColors.skeleton}]} />
           </View>
         </Animated.View>
 
         {/* Tab Navigation Skeleton */}
         <View style={styles.tabContainer}>
-          <View style={styles.skeletonTab} />
-          <View style={styles.skeletonTab} />
+          <View style={[styles.skeletonTab, {backgroundColor: currentColors.skeleton}]} />
+          <View style={[styles.skeletonTab, {backgroundColor: currentColors.skeleton}]} />
         </View>
 
         {/* Content Skeleton */}
@@ -82,9 +113,8 @@ const SkeletonLoader: React.FC = () => {
           <Animated.View 
             style={[
               styles.skeletonInfoCard, 
-              {opacity: fadeAnim}
-            ]}
-          />
+              {opacity: fadeAnim, backgroundColor: currentColors.skeleton}
+            ]} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -116,9 +146,20 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
   const [appointments, setAppointments] = useState([]);
   const [selectedTab, setSelectedTab] = useState('about');
 
+  const colorScheme = useColorScheme();
+  const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
+
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({colorScheme}) => {
+      setIsDarkMode(colorScheme === 'dark');
+    });
+    return () => subscription.remove();
+  }, []);
+
+  const currentColors = themeColors[isDarkMode ? 'dark' : 'light'];
+
   const fetchDoctorInfo = async () => {
     if (!session.idToken) return;
-
     try {
       const [doctorResponse, appointmentsResponse] = await Promise.all([
         axiosInstance.get(`/doctor`, {
@@ -128,7 +169,6 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
           headers: {Authorization: `Bearer ${session.idToken}`},
         }),
       ]);
-
       setDoctorInfo(doctorResponse.data);
       setAppointments(appointmentsResponse.data.appointments || []);
     } catch (error) {
@@ -157,13 +197,17 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
       case 'about':
         return (
           <View style={styles.tabContent}>
-            <View style={styles.infoCard}>
+            <View style={[styles.infoCard, {backgroundColor: currentColors.card}]}>
               <View style={styles.infoHeader}>
-                <Icon name="call" size={20} color="#007B8E" />
-                <Text style={styles.infoHeaderText}>Contact</Text>
+                <Icon name="call" size={20} color={currentColors.primary} />
+                <Text style={[styles.infoHeaderText, {color: currentColors.text}]}>Contact</Text>
               </View>
-              <Text style={styles.infoText}>{doctorInfo?.doctor_phone}</Text>
-              <Text style={styles.infoText}>{doctorInfo?.doctor_email}</Text>
+              <Text style={[styles.infoText, {color: currentColors.secondary}]}>
+                {doctorInfo?.doctor_phone}
+              </Text>
+              <Text style={[styles.infoText, {color: currentColors.secondary}]}>
+                {doctorInfo?.doctor_email}
+              </Text>
             </View>
           </View>
         );
@@ -171,17 +215,23 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
         return (
           <View style={styles.tabContent}>
             <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
-                <Icon name="people" size={28} color="#007B8E" />
-                <Text style={styles.statNumber}>
+              <View style={[styles.statCard, {backgroundColor: currentColors.card}]}>
+                <Icon name="people" size={28} color={currentColors.primary} />
+                <Text style={[styles.statNumber, {color: currentColors.text}]}>
                   {doctorInfo?.patients?.length || 0}
                 </Text>
-                <Text style={styles.statLabel}>Total Patients</Text>
+                <Text style={[styles.statLabel, {color: currentColors.secondary}]}>
+                  Total Patients
+                </Text>
               </View>
-              <View style={styles.statCard}>
-                <Icon name="calendar" size={28} color="#007B8E" />
-                <Text style={styles.statNumber}>{appointments.length}</Text>
-                <Text style={styles.statLabel}>Appointments</Text>
+              <View style={[styles.statCard, {backgroundColor: currentColors.card}]}>
+                <Icon name="calendar" size={28} color={currentColors.primary} />
+                <Text style={[styles.statNumber, {color: currentColors.text}]}>
+                  {appointments.length}
+                </Text>
+                <Text style={[styles.statLabel, {color: currentColors.secondary}]}>
+                  Appointments
+                </Text>
               </View>
             </View>
           </View>
@@ -190,15 +240,15 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="black" barStyle="light-content" />
+    <SafeAreaView style={[styles.container, {backgroundColor: currentColors.background}]}>
+      <StatusBar backgroundColor={currentColors.background} barStyle="light-content" />
       <BackTabTop screenName="Profile" />
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
         {/* Profile Card */}
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, {backgroundColor: currentColors.card}]}>
           <View style={styles.profileImageContainer}>
             <EnhancedProfilePhoto
               photoUri={doctorInfo?.doctors_photo}
@@ -206,16 +256,15 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
               defaultImage={require('../assets/profile.png')}
             />
           </View>
-
           <View style={styles.profileInfoContainer}>
-            <Text style={styles.name}>
+            <Text style={[styles.name, {color: currentColors.text}]}>
               Dr. {doctorInfo?.doctor_first_name} {doctorInfo?.doctor_last_name}
             </Text>
-            <Text style={styles.specialization}>
+            <Text style={[styles.specialization, {color: currentColors.secondary}]}>
               {doctorInfo?.qualification}
             </Text>
             {doctorInfo?.organization_name && (
-              <Text style={styles.organization}>
+              <Text style={[styles.organization, {color: currentColors.primary}]}>
                 {doctorInfo.organization_name}
               </Text>
             )}
@@ -230,26 +279,18 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
         </View>
 
         {/* Tab Navigation */}
-        <View style={styles.tabContainer}>
+        <View style={[styles.tabContainer, {backgroundColor: currentColors.card}]}>
           <TouchableOpacity
             style={[styles.tab, selectedTab === 'about' && styles.activeTab]}
             onPress={() => setSelectedTab('about')}>
-            <Text
-              style={[
-                styles.tabText,
-                selectedTab === 'about' && styles.activeTabText,
-              ]}>
+            <Text style={[styles.tabText, selectedTab === 'about' && styles.activeTabText]}>
               About
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, selectedTab === 'stats' && styles.activeTab]}
             onPress={() => setSelectedTab('stats')}>
-            <Text
-              style={[
-                styles.tabText,
-                selectedTab === 'stats' && styles.activeTabText,
-              ]}>
+            <Text style={[styles.tabText, selectedTab === 'stats' && styles.activeTabText]}>
               Statistics
             </Text>
           </TouchableOpacity>
@@ -264,24 +305,10 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
-  },
-  header: {
-    backgroundColor: '#007B8E',
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     padding: 20,
     borderRadius: 12,
     margin: 12,
@@ -302,27 +329,17 @@ const styles = StyleSheet.create({
     width: 80,
     height: 30,
   },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 1,
-    borderColor: '#000',
-  },
   name: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
   },
   specialization: {
     fontSize: 15,
-    color: '#666',
     marginBottom: 4,
   },
   organization: {
     fontSize: 15,
-    color: '#007B8E',
     marginBottom: 16,
   },
   editButton: {
@@ -342,7 +359,6 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     marginHorizontal: 10,
     borderRadius: 12,
     padding: 4,
@@ -359,7 +375,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    color: '#666',
+    color: '#666666',
     fontWeight: '600',
   },
   activeTabText: {
@@ -369,7 +385,6 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   infoCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -382,12 +397,10 @@ const styles = StyleSheet.create({
   infoHeaderText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginLeft: 8,
   },
   infoText: {
     fontSize: 15,
-    color: '#666',
     marginBottom: 8,
   },
   statsGrid: {
@@ -396,7 +409,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   statCard: {
-    backgroundColor: '#FFFFFF',
     width: '48%',
     borderRadius: 12,
     padding: 16,
@@ -406,56 +418,46 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#333',
     marginTop: 8,
   },
   statLabel: {
     fontSize: 15,
-    color: '#666',
     marginTop: 4,
   },
-
- // New Skeleton Loader Styles
+  // Skeleton Loader Styles
   skeletonProfileImage: {
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: '#E1E9EE',
   },
   skeletonLine1: {
     height: 20,
     width: '70%',
-    backgroundColor: '#E1E9EE',
     marginBottom: 8,
   },
   skeletonLine2: {
     height: 15,
     width: '50%',
-    backgroundColor: '#E1E9EE',
     marginBottom: 4,
   },
   skeletonLine3: {
     height: 15,
     width: '60%',
-    backgroundColor: '#E1E9EE',
     marginBottom: 16,
   },
   skeletonEditButton: {
     width: 80,
     height: 30,
-    backgroundColor: '#E1E9EE',
     borderRadius: 10,
   },
   skeletonTab: {
     flex: 1,
     height: 40,
-    backgroundColor: '#E1E9EE',
     marginHorizontal: 5,
     borderRadius: 8,
   },
   skeletonInfoCard: {
     height: 150,
-    backgroundColor: '#E1E9EE',
     borderRadius: 12,
   },
 });

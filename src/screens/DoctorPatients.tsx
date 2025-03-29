@@ -261,13 +261,14 @@ const DoctorPatients: React.FC<RootStackNavProps<'MyPatient'>> = ({
             onPress={handleSearch}
             activeOpacity={0.7}>
             <View style={styles.searchInputWrapper}>
+              
+              <Text style={styles.searchPlaceholder}>Search by Name, Phone number</Text>
               <Icon
                 name="search"
                 size={18}
-                color="#333333"
+                color="#ffffff"
                 style={styles.searchIcon}
               />
-              <Text style={styles.searchPlaceholder}>Search by name</Text>
             </View>
           </TouchableOpacity>
           <View style={styles.filtersContainer1}>
@@ -352,8 +353,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginRight: 8,
       borderRadius: 20,
       overflow: 'hidden',
-      backgroundColor: theme.colors.card,
-      paddingLeft: 15, 
     },
     patientCard: {
       flex: 1,

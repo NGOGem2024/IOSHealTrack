@@ -156,7 +156,28 @@ useEffect(() => {
   const onChangeStartDate = (event: any, selectedDate?: Date) => {
     setShowStartDatePicker(false);
     if (selectedDate) {
-      setStartDate(selectedDate);
+      // Get today's date at midnight to compare only the date, not time
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Check if selected date is today or in the future
+      if (selectedDate >= today) {
+        setStartDate(selectedDate);
+        
+        // Automatically adjust end date if it's before the new start date
+        if (endDate < selectedDate) {
+          // Set end date to 7 days after start date by default
+          const defaultEndDate = new Date(selectedDate);
+          defaultEndDate.setDate(selectedDate.getDate() + 7);
+          setEndDate(defaultEndDate);
+        }
+      } else {
+        // Show an alert if a past date is selected
+        Alert.alert(
+          'Invalid Date', 
+          'Please select today or a future date for the start of therapy.'
+        );
+      }
     }
   };
   useEffect(() => {
@@ -183,7 +204,16 @@ useEffect(() => {
   const onChangeEndDate = (event: any, selectedDate?: Date) => {
     setShowEndDatePicker(false);
     if (selectedDate) {
-      setEndDate(selectedDate);
+      // Ensure end date is not before start date
+      if (selectedDate >= startDate) {
+        setEndDate(selectedDate);
+      } else {
+        // Show an alert if a past date is selected
+        Alert.alert(
+          'Invalid Date', 
+          'End date cannot be before the start date. Please select a date on or after the start date.'
+        );
+      }
     }
   };
 
@@ -917,7 +947,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     backgroundColor: '#119FB3',
   },
   radioLabel: {
-    fontSize: 14,
+    fontSize: 10 ,
     color: '#333333',
   },
 

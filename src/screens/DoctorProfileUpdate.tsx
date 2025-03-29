@@ -533,8 +533,14 @@ const DoctorProfileEdit: React.FC = () => {
                 setShowPhotoOptions(false);
                 handleImagePick();
               }}>
-              <Icon name="camera-outline" size={24} color="#007B8E" />
-              <Text style={styles.modalOptionText}>Change Photo</Text>
+              <Icon 
+                name={profileInfo.doctors_photo ? "create-outline" : "add-circle-outline"} 
+                size={24} 
+                color="#007B8E" 
+              />
+              <Text style={styles.modalOptionText}>
+                {profileInfo.doctors_photo ? "Change Photo" : "Add Photo"}
+              </Text>
             </TouchableOpacity>
             {profileInfo.doctors_photo && (
               <TouchableOpacity
@@ -952,28 +958,28 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignItems: 'center',
       gap: 10,
       paddingRight: 5,
-      backgroundColor: '#F8FAFC',
+      backgroundColor: theme.colors.inputBox,
       borderRadius: 12,
       borderWidth: 1,
       borderColor: '#E2E8F0',
     },
     countryCode: {
-      backgroundColor: '#F8FAFC',
-      color: 'black',
+      backgroundColor: theme.colors.inputBox,
+      color: theme.colors.text,
       marginRight: 5,
     },
     countrySelector: {
-      backgroundColor: '#F8FAFC',
+      backgroundColor: theme.colors.inputBox,
       flexDirection: 'row',
     },
 
     countryFlag: {
-      backgroundColor: '#F8FAFC',
+      backgroundColor: theme.colors.inputBox,
       marginRight: 10,
       marginLeft: 5,
     },
     phoneInputWrapper: {
-      backgroundColor: '#F8FAFC',
+      backgroundColor: theme.colors.inputBox,
     },
     modalOverlay: {
       flex: 1,
@@ -1007,7 +1013,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: '#DC2626',
     },
     videoModalContent: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.inputBox,
       borderRadius: 15,
       padding: 20,
       width: width * 0.9,
@@ -1026,11 +1032,11 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     videoInputLabel: {
       fontSize: 14,
       fontWeight: '600',
-      color: '#2C3E50',
+      color: theme.colors.text,
       marginBottom: 8,
     },
     videoInput: {
-      backgroundColor: '#F8FAFC',
+      backgroundColor: theme.colors.secondary,
       borderRadius: 12,
       borderWidth: 1,
       borderColor: '#E2E8F0',
@@ -1119,13 +1125,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     safeArea: {
       flex: 1,
-      backgroundColor: '#F5F7FA',
+      backgroundColor: theme.colors.box,
     },
     scrollView: {
       flex: 1,
     },
     headerContainer: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.card,
       marginBottom: 20,
     },
     coverPhoto: {
@@ -1192,7 +1198,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginLeft: 10,
     },
     card: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.card,
       borderRadius: 12,
       shadowColor: '#000',
       shadowOffset: {width: 0, height: 1},
@@ -1212,14 +1218,14 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     label: {
       fontSize: 14,
-      color: '#64748B',
+      color: theme.colors.text,
       marginBottom: 8,
       fontWeight: '500',
     },
     inputWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: '#F8FAFC',
+      backgroundColor: theme.colors.inputBox,
       borderRadius: 12,
       borderWidth: 1,
       borderColor: '#E2E8F0',
@@ -1227,7 +1233,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       paddingHorizontal: 12,
     },
     disabledWrapper: {
-      backgroundColor: '#F1F5F9',
+      backgroundColor: theme.colors.inputBox,
       borderColor: '#E2E8F0',
     },
     inputIcon: {
@@ -1236,7 +1242,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     input: {
       flex: 1,
       fontSize: 16,
-      color: '#2C3E50',
+      color: theme.colors.text,
       height: '100%',
     },
     disabledInput: {
@@ -1292,7 +1298,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 12,
-      backgroundColor: '#F8FAFC',
+      backgroundColor: theme.colors.inputBox,
       borderRadius: 10,
     },
     videoInfo: {
@@ -1309,11 +1315,11 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     videoTitle: {
       fontSize: 15,
       fontWeight: '600',
-      color: '#2C3E50',
+      color: '#007b8e',
     },
     videoUrl: {
       fontSize: 13,
-      color: '#64748B',
+      color: theme.colors.text,
       marginTop: 2,
     },
     videoActions: {

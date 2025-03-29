@@ -11,6 +11,8 @@ export const themeColors = {
     border: '#e0e0e0',
     notification: '#f50057',
     cardBackground: '#e1bee7',
+    box:'#F5F7FA',
+    inputBox: '#F8FAFC'
   },
   blue: {
     primary: '#1976d2',
@@ -20,7 +22,9 @@ export const themeColors = {
     text: '#000000',
     border: '#e0e0e0',
     notification: '#f44336',
-    cardBackground: '#bbdefb',
+    cardBackground: '#bbdefb',box:'#F5F7FA',
+    inputBox: '#F8FAFC'
+
   },
   green: {
     primary: '#388e3c',
@@ -30,7 +34,9 @@ export const themeColors = {
     text: '#000000',
     border: '#e0e0e0',
     notification: '#ff9800',
-    cardBackground: '#c8e6c9',
+    cardBackground: '#c8e6c9',box:'#F5F7FA',
+    inputBox: '#F8FAFC'
+
   },
   orange: {
     primary: '#f57c00',
@@ -40,7 +46,9 @@ export const themeColors = {
     text: '#000000',
     border: '#ffe0b2',
     notification: '#ff5722',
-    cardBackground: '#ffe0b2',
+    cardBackground: '#ffe0b2',box:'#F5F7FA',
+    inputBox: '#F8FAFC'
+
   },
   pink: {
     primary: '#c2185b',
@@ -50,7 +58,10 @@ export const themeColors = {
     text: '#000000',
     border: '#f8bbd0',
     notification: '#ff4081',
-    cardBackground: '#f8bbd0',
+    cardBackground: '#f8bbd0',box:'#F5F7FA',
+    inputBox: '#F8FAFC'
+
+
   },
   dark: {
     primary: '#bb86fc',
@@ -61,6 +72,8 @@ export const themeColors = {
     border: '#333333',
     notification: '#cf6679',
     cardBackground: '#2c2c2c',
+    box:'#1d2229',
+    inputBox: '#1d2229'
   },
 };
 

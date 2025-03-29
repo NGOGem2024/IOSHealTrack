@@ -366,14 +366,14 @@ useEffect(() => {
 
   const DashboardHeader = () => {
     const [isDropdownVisible, setDropdownVisible] = useState(false);
-
+  
     const toggleDropdown = () => setDropdownVisible(!isDropdownVisible);
-
+  
     const navigateToScreen = (screenName: string) => {
       navigation.navigate(screenName as never);
       setDropdownVisible(false);
     };
-
+  
     return (
       <View style={styles.dashboardHeader}>
         <StatusBar
@@ -412,32 +412,41 @@ useEffect(() => {
               </TouchableOpacity>
             </View>
             <View style={styles.drawerDivider} />
-
+  
             <TouchableOpacity
               style={styles.drawerItem}
               onPress={() => navigateToScreen('AllPatients')}>
               <Ionicons name="people-outline" size={24} color="#007B8E" />
               <Text style={styles.drawerItemText}>All Patients</Text>
             </TouchableOpacity>
-
+  
             <TouchableOpacity
               style={styles.drawerItem}
               onPress={() => navigateToScreen('DoctorDashboard')}>
               <Ionicons name="grid-outline" size={24} color="#007B8E" />
               <Text style={styles.drawerItemText}>Dashboard</Text>
             </TouchableOpacity>
-
+  
             {session.is_admin && (
-              <TouchableOpacity
-                style={styles.drawerItem}
-                onPress={() => navigateToScreen('Settings')}>
-                <Ionicons name="settings-outline" size={24} color="#007B8E" />
-                <Text style={styles.drawerItemText}>Settings</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => navigateToScreen('Settings')}>
+                  <Ionicons name="settings-outline" size={24} color="#007B8E" />
+                  <Text style={styles.drawerItemText}>Settings</Text>
+                </TouchableOpacity>
+  
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => navigateToScreen('AdminReport')}>
+                  <Ionicons name="document-text-outline" size={24} color="#007B8E" />
+                  <Text style={styles.drawerItemText}>Reports</Text>
+                </TouchableOpacity>
+              </>
             )}
-
+  
             <View style={styles.drawerDivider} />
-
+  
             <TouchableOpacity
               style={[styles.drawerItem, styles.logoutItem]}
               onPress={() => navigateToScreen('Logout')}>
@@ -451,7 +460,6 @@ useEffect(() => {
       </View>
     );
   };
-
   if (doctorLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -619,7 +627,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     dropdown: {
       backgroundColor: '#FFFFFF',
-      height: '34%',
+      height: '40%', // Changed to 100% to accommodate all items
       padding: 0,
       shadowColor: '#000',
       shadowOffset: {
@@ -660,12 +668,15 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       marginLeft: 16,
     },
     logoutItem: {
-      marginTop: 5,
-      marginBottom: 5,
+      // marginTop: 10, // Added margin to separate from other items
+      // borderTopWidth: 1, // Added border to visually separate
+      borderTopColor: '#E0E0E0',
+      paddingTop: 15, // Added padding
     },
     logoutText: {
       color: '#FF3B30',
     },
+
     loadingContainer: {
       flex: 1,
       justifyContent: 'center',

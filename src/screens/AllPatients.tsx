@@ -311,15 +311,6 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
               style={styles.searchContainer}
               onPress={handleSearch}
               activeOpacity={0.7}>
-              <View style={styles.searchInputWrapper}>
-                <Icon
-                  name="search"
-                  size={18}
-                  color="#333333"
-                  style={styles.searchIcon}
-                />
-                <Text style={styles.searchPlaceholder}>Search by name / phone number</Text>
-              </View>
             </TouchableOpacity>
             <View style={styles.filtersContainer1}>
               <View style={styles.filterContainer}>
@@ -373,7 +364,7 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
             activeOpacity={0.7}>
             <View style={styles.searchInputWrapper}>
               
-              <Text style={styles.searchPlaceholder}>Search by name / phone number</Text>
+              <Text style={styles.searchPlaceholder}>Search by Name, Phone number</Text>
               <Icon
                 name="search"
                 size={18}
@@ -508,7 +499,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginRight: 8,
       borderRadius: 20,
       overflow: 'hidden',
-      backgroundColor: theme.colors.card,
     },
     filterLabel: {
       fontSize: 16,

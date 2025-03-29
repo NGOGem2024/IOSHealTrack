@@ -404,49 +404,47 @@ const ReportsScreen: React.FC = () => {
               </Text>
               
               <BarChart
-                data={socialReferenceBarChartData}
-                width={screenWidth - 40}
-                height={300} // Increased height to accommodate grid
-                yAxisLabel=""
-                chartConfig={{
-                  backgroundColor: '#ffffff',
-                  backgroundGradientFrom: theme.colors.card,
-                  backgroundGradientTo: theme.colors.card,
-                  decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(0, 123, 142, ${opacity})`, // Soft Blue
-                  labelColor: () => theme.colors.text, // Uses theme color directly
-                  
-                  fillShadowGradientFrom: '#3498db', // Lighter blue for bars
-                  fillShadowGradientTo: '#2980b9',   // Darker blue for bars
-                  fillShadowGradientFromOpacity: 0.8,
-                  fillShadowGradientToOpacity: 0.4,
-                  
-                  propsForHorizontalLabels: {
-                    fontSize: 12, // Adjust font size for visibility
-                    rotation: 0,  // Prevents slanted labels
-                    translateY: 5, // Moves text downward for better spacing
-                  },
-                  propsForVerticalLabels: {
-                    fontSize: 10,
-                    color: 'red' // Adjust vertical label size
-                  },
-                }}
-
-          
-                verticalLabelRotation={45} // Adjusted rotation
-                showValuesOnTopOfBars={true}
-                withInnerLines={true} // Enable inner grid lines
-                fromZero={true}
-                style={{
-                  marginVertical: 8,
-                  borderRadius: 16,
-                  paddingRight: 20, // Add padding to prevent x-axis labels from being cut off
-                }}
-                yAxisInterval={1} // Keeps Y-Axis values readable
-                horizontalLabelRotation={-60} // Ensure horizontal labels are straight
-                yAxisSuffix="" // Remove any y-axis suffix
-                segments={3} // Number of horizontal grid lines
-              />
+  data={socialReferenceBarChartData}
+  width={screenWidth - 40}
+  height={300}
+  yAxisLabel=""
+  chartConfig={{
+    backgroundColor: '#ffffff',
+    backgroundGradientFrom: theme.colors.card,
+    backgroundGradientTo: theme.colors.card,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(0, 123, 142, ${opacity})`,
+    labelColor: () => theme.colors.text,
+    fillShadowGradientFrom: '#3498db',
+    fillShadowGradientTo: '#2980b9',
+    fillShadowGradientFromOpacity: 0.8,
+    fillShadowGradientToOpacity: 0.4,
+    propsForHorizontalLabels: {
+      fontSize: 12,
+      rotation: 0,
+      translateY: 5,
+    },
+    propsForVerticalLabels: {
+      fontSize: 10,
+      color: 'red',
+      dx: 10, // Add horizontal spacing for vertical labels
+    },
+    paddingRight: 30, // Add right padding to create space between labels and card
+  }}
+  verticalLabelRotation={45}
+  showValuesOnTopOfBars={true}
+  withInnerLines={true}
+  fromZero={true}
+  style={{
+    marginVertical: 8,
+    borderRadius: 16,
+    paddingRight: 30, // Ensure this matches or complements chartConfig.paddingRight
+  }}
+  yAxisInterval={1}
+  horizontalLabelRotation={-60}
+  yAxisSuffix=""
+  segments={3}
+/>
             </View>
           ) : (
             <Text style={styles.noDataText}>No social reference data available</Text>

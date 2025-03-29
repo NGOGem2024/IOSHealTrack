@@ -14,6 +14,7 @@ import { useSession } from '../context/SessionContext';
 import { useTheme } from './ThemeContext';
 import BackTabTop from './BackTopTab';
 import axiosInstance from '../utils/axiosConfig';
+import {getTheme} from './Theme';
 
 // Types for Referral Data
 interface ReferralData {
@@ -58,10 +59,14 @@ const ReportsScreen: React.FC = () => {
   const [referralDetails, setReferralDetails] = useState<ReferralDetailsItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+ const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
   // Context Hooks
   const { session } = useSession();
-  const { theme } = useTheme();
 
   // Screen Dimensions
   const screenWidth = Dimensions.get("window").width;
@@ -405,11 +410,11 @@ const ReportsScreen: React.FC = () => {
                 yAxisLabel=""
                 chartConfig={{
                   backgroundColor: '#ffffff',
-                  backgroundGradientFrom: '#ffffff',
-                  backgroundGradientTo: '#ffffff',
+                  backgroundGradientFrom: theme.colors.card,
+                  backgroundGradientTo: theme.colors.card,
                   decimalPlaces: 0,
                   color: (opacity = 1) => `rgba(0, 123, 142, ${opacity})`, // Soft Blue
-                  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                  labelColor: () => theme.colors.text, // Uses theme color directly
                   
                   fillShadowGradientFrom: '#3498db', // Lighter blue for bars
                   fillShadowGradientTo: '#2980b9',   // Darker blue for bars
@@ -422,7 +427,8 @@ const ReportsScreen: React.FC = () => {
                     translateY: 5, // Moves text downward for better spacing
                   },
                   propsForVerticalLabels: {
-                    fontSize: 10, // Adjust vertical label size
+                    fontSize: 10,
+                    color: 'red' // Adjust vertical label size
                   },
                 }}
 
@@ -451,23 +457,24 @@ const ReportsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
+  StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: theme.colors.inputBox,
   },
   filterContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: 15,
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: theme.colors.card,
   },
   pickerContainer: {
     flex: 1,
     alignItems: 'center',
-  },
+    },
   pickerWrapper: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.secondary,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -476,13 +483,13 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   pickerLabel: {
-    color: '#2c3e50',
+    color: theme.colors.text,
     fontWeight: '600',
     marginBottom: 8,
   },
   picker: {
     width: 150,
-    color: '#2c3e50',
+    color:  theme.colors.text,
   },
   scrollContainer: {
     padding: 15,
@@ -491,7 +498,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chartCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.secondary,
     borderRadius: 15,
     padding: 20,
     width: '100%',
@@ -505,7 +512,7 @@ const styles = StyleSheet.create({
   chartTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#2c3e50',
+    color: '#007b8e',
     textAlign: 'center',
   },
   chartSubtitle: {
@@ -563,12 +570,12 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    color: '#2c3e50',
+    color:theme.colors.text,
   },
 
   // New styles for Practo Summary
   practoSummaryContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.secondary,
     borderRadius: 15,
     padding: 20,
     marginBottom: 15,
@@ -582,7 +589,7 @@ const styles = StyleSheet.create({
   practoSummaryTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#2c3e50',
+    color: '#007b8e',
     textAlign: 'center',
     marginBottom: 15,
   },
@@ -595,13 +602,13 @@ const styles = StyleSheet.create({
   },
   practoSummaryLabel: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: theme.colors.text,
     marginBottom: 5,
   },
   practoSummaryValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#2c3e50',
+    color: theme.colors.text,
   },
 
   // Add new styles for chart card spacing
@@ -636,7 +643,7 @@ const styles = StyleSheet.create({
   },
   referralDetailsText: {
     fontSize: 13,
-    color: '#333',
+    color:theme.colors.text,
   },
 });
 

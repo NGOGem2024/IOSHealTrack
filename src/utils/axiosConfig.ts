@@ -34,7 +34,7 @@ instance.interceptors.request.use(
     }
 
     if (idToken) {
-      //console.log(idToken)
+     // console.log(idToken)
       config.headers['Authorization'] = `Bearer ${idToken}`;
     }
 

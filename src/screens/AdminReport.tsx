@@ -15,6 +15,7 @@ import { useTheme } from './ThemeContext';
 import BackTabTop from './BackTopTab';
 import axiosInstance from '../utils/axiosConfig';
 import {getTheme} from './Theme';
+import DoctorLeaderboard from './LeaderReport';
 
 // Types for Referral Data
 interface ReferralData {
@@ -354,6 +355,8 @@ const ReportsScreen: React.FC = () => {
         >
           {/* Practo Summary */}
           <PractoSummary />
+
+          <DoctorLeaderboard month={selectedMonth} year={selectedYear}/>
 
           {/* Referral Details Card */}
           {referralDetails.length > 0 && <ReferralDetailsCard />}

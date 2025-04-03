@@ -221,7 +221,7 @@ const DoctorLeaderboard: React.FC<DoctorLeaderboardProps> = ({ month, year }) =>
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     leaderboardCard: {
-      backgroundColor: theme.colors.secondary,
+      backgroundColor: theme.colors.card,
       borderRadius: 15,
       padding: 20,
       width: '100%',

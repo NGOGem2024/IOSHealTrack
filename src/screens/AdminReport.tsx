@@ -60,6 +60,108 @@ interface ReferralDetailsResponse {
   referralDetailsCount: ReferralDetailsItem[];
 }
 
+// Skeleton UI component for loading state
+const SkeletonUI = ({ theme }: { theme: { name: 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark' } }) => {  // Get styles with the current theme
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
+  
+  const screenWidth = Dimensions.get("window").width;
+  
+  return (
+    <ScrollView 
+      contentContainerStyle={styles.scrollContainer}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Practo Summary Skeleton */}
+      <View style={[styles.chartCard, styles.practoSummaryContainer]}>
+        <View style={styles.skeletonTitle} />
+        <View style={styles.practoSummaryDetails}>
+          <View style={styles.practoSummaryItem}>
+            <View style={styles.skeletonLabel} />
+            <View style={styles.skeletonValue} />
+          </View>
+          <View style={styles.practoSummaryItem}>
+            <View style={styles.skeletonLabel} />
+            <View style={styles.skeletonValue} />
+          </View>
+        </View>
+      </View>
+      
+      {/* Doctor Leaderboard Skeleton */}
+      <View style={[styles.chartCard, { width: '100%', marginBottom: 20 }]}>
+        <View style={styles.skeletonTitle} />
+        <View style={styles.skeletonSubtitle} />
+        
+        {/* Fake leaderboard entries */}
+        {[1, 2, 3].map((item) => (
+          <View key={item} style={styles.leaderboardRow}>
+            <View style={styles.skeletonCircle} />
+            <View style={styles.skeletonText} />
+            <View style={styles.skeletonSmallText} />
+          </View>
+        ))}
+      </View>
+      
+      {/* Referral Details Skeleton */}
+      <View style={[styles.chartCard, styles.referralDetailsCard]}>
+        <View style={styles.skeletonTitle} />
+        <View style={styles.skeletonSubtitle} />
+        
+        <View style={styles.referralDetailsHeader}>
+          <View style={[styles.skeletonHeaderText, { flex: 2 }]} />
+          <View style={[styles.skeletonHeaderText, { flex: 1 }]} />
+        </View>
+        
+        {/* Fake referral details */}
+        {[1, 2, 3, 4].map((item) => (
+          <View key={item} style={styles.referralDetailsRow}>
+            <View style={[styles.skeletonText, { flex: 2 }]} />
+            <View style={[styles.skeletonSmallText, { flex: 1 }]} />
+          </View>
+        ))}
+      </View>
+      
+      {/* Referrals Chart Skeleton */}
+      <View style={[styles.chartCard, styles.referralChartCard]}>
+        <View style={styles.skeletonTitle} />
+        <View style={styles.skeletonSubtitle} />
+        
+        {/* Pie Chart Skeleton */}
+        <View style={styles.skeletonPieChart}>
+          <View style={styles.skeletonPieInner} />
+        </View>
+        
+        {/* Legend Skeleton */}
+        <View style={styles.customLegendContainer}>
+          {[1, 2, 3].map((item) => (
+            <View key={item} style={styles.legendItem}>
+              <View style={styles.skeletonLegendBox} />
+              <View style={styles.skeletonLegendText} />
+            </View>
+          ))}
+        </View>
+      </View>
+      
+      {/* Social Reference Bar Chart Skeleton */}
+      <View style={[styles.chartCard, styles.socialReferenceChartCard]}>
+        <View style={styles.skeletonTitle} />
+        <View style={styles.skeletonSubtitle} />
+        
+        {/* Bar Chart Skeleton */}
+        <View style={styles.skeletonBarChart}>
+          {[1, 2, 3, 4].map((item) => (
+            <View key={item} style={styles.skeletonBar} />
+          ))}
+        </View>
+      </View>
+    </ScrollView>
+  );
+};
+
+
 const ReportsScreen: React.FC = () => {
   // State Management
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -107,6 +209,7 @@ const ReportsScreen: React.FC = () => {
 
   const getSocialReferenceIcon = (source: string) => {
     const sourceLower = source.toLowerCase();
+    
 
     if (sourceLower.includes('google')) {
       return <FontAwesome name="google" size={17} color="#007b8e" />;
@@ -389,7 +492,8 @@ const ReportsScreen: React.FC = () => {
       </View>
     );
   };
-
+  const maxValue = Math.max(...socialReferenceData.map(item => item.count));
+  const segments = maxValue <= 1 ? 1 : Math.min(4, maxValue);
   return (
     <View style={styles.container}>
       <BackTabTop screenName="Reports" />
@@ -513,7 +617,7 @@ const ReportsScreen: React.FC = () => {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#3498db" style={styles.loader} />
+        <SkeletonUI theme={theme} />
       ) : error ? (
         <Text style={styles.errorText}>{error}</Text>
       ) : (
@@ -562,55 +666,59 @@ const ReportsScreen: React.FC = () => {
           <DoctorLeaderboard month={selectedMonth} year={selectedYear} />
 
           {/* Social Reference Bar Chart */}
+          
           {socialReferenceData.length > 0 ? (
             <View style={[styles.chartCard, styles.socialReferenceChartCard]}>
               <Text style={styles.chartTitle}>Social References</Text>
               <Text style={styles.chartSubtitle}>
                 {months[selectedMonth - 1]} {selectedYear}
               </Text>
+              
 
               <View style={{height: 280}}>
-                <BarChart
-                  data={socialReferenceBarChartData}
-                  width={screenWidth - 60}
-                  height={220}
-                  yAxisLabel=""
-                  chartConfig={{
-                    backgroundColor: theme.colors.card,
-                    backgroundGradientFrom: theme.colors.card,
-                    backgroundGradientTo: theme.colors.card,
-                    backgroundGradientFromOpacity: 0, // Force full opacity
-                    backgroundGradientToOpacity: 0,
-                    decimalPlaces: 0,
-                    color: (opacity = 1) => `rgba(0, 123, 142, ${opacity})`,
-                    labelColor: () => theme.colors.text,
-                    fillShadowGradientFrom: '#007b8e',
-                    fillShadowGradientTo: '#c1e3e8',
-                    fillShadowGradientFromOpacity: 0.8,
-                    fillShadowGradientToOpacity: 0.4,
-                    propsForHorizontalLabels: {
-                      fontSize: 12,
-                      rotation: 0,
-                      translateY: 5,
-                    },
-                    propsForVerticalLabels: {
-                      fontSize: 5,
-                    },
-                  }}
-                  verticalLabelRotation={45}
-                  showValuesOnTopOfBars={true}
-                  withInnerLines={true}
-                  fromZero={true}
-                  style={{
-                    marginVertical: 2,
-                    borderRadius: 16,
-                    paddingRight: 20,
-                  }}
-                  yAxisInterval={1}
-                  horizontalLabelRotation={-80}
-                  yAxisSuffix=""
-                  segments={3}
-                />
+                
+              <BarChart
+  data={socialReferenceBarChartData}
+  width={screenWidth - 60}
+  height={220}
+  yAxisLabel=""
+  chartConfig={{
+    backgroundColor: theme.colors.card,
+    backgroundGradientFrom: theme.colors.card,
+    backgroundGradientTo: theme.colors.card,
+    backgroundGradientFromOpacity: 0,
+    backgroundGradientToOpacity: 0,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(0, 123, 142, ${opacity})`,
+    labelColor: () => theme.colors.text,
+    fillShadowGradientFrom: '#007b8e',
+    fillShadowGradientTo: '#c1e3e8',
+    fillShadowGradientFromOpacity: 0.8,
+    fillShadowGradientToOpacity: 0.4,
+    propsForHorizontalLabels: {
+      fontSize: 12,
+      rotation: 0,
+      translateY: 5,
+    },
+    propsForVerticalLabels: {
+      fontSize: 5,
+    },
+    formatYLabel: (yValue) => yValue,
+  }}
+  verticalLabelRotation={45}
+  showValuesOnTopOfBars={true}
+  withInnerLines={true}
+  fromZero={true}
+  style={{
+    marginVertical: 2,
+    borderRadius: 16,
+    paddingRight: 20,
+  }}
+  yAxisInterval={1}
+  horizontalLabelRotation={-80}
+  yAxisSuffix=""
+  segments={maxValue <= 1 ? 1 : Math.min(4, maxValue)}
+/>
 
                 {/* Custom icons row */}
                 <View style={styles.customIcon}>
@@ -692,7 +800,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderRadius: 10,
       borderWidth: 1,
       borderColor: theme.colors.border,
-      maxHeight: 520, // Maximum height for the container
+      maxHeight: 580, // Maximum height for the container
       elevation: 5,
       shadowColor: '#000',
       shadowOffset: {width: 0, height: 2},
@@ -725,7 +833,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     dropdownList: {
       flexGrow: 0,
-      maxHeight: 520, // Match container height
+      maxHeight: 580, // Match container height
     },
     dropdownItem: {
       paddingHorizontal: 15,
@@ -901,6 +1009,117 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 13,
       color: theme.colors.text,
     },
+
+    
+  // Skeleton UI styles to add to your getStyles function
+// Skeleton UI styles with fixed conditional logic
+skeletonTitle: {
+  height: 20,
+  width: '70%',
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#444' : '#E0E0E0',
+  borderRadius: 4,
+  alignSelf: 'center',
+  marginBottom: 15,
+},
+skeletonSubtitle: {
+  height: 14,
+  width: '50%',
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#3A3A3A' : '#EEEEEE',
+  borderRadius: 4,
+  alignSelf: 'center',
+  marginBottom: 15,
+},
+skeletonLabel: {
+  height: 14,
+  width: 80,
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#3A3A3A' : '#EEEEEE',
+  borderRadius: 4,
+  marginBottom: 5,
+},
+skeletonValue: {
+  height: 20,
+  width: 50,
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#444' : '#E0E0E0',
+  borderRadius: 4,
+},
+skeletonCircle: {
+  height: 30,
+  width: 30,
+  borderRadius: 15,
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#444' : '#E0E0E0',
+  marginRight: 10,
+},
+skeletonText: {
+  height: 16,
+  width: 120,
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#3A3A3A' : '#EEEEEE',
+  borderRadius: 4,
+  marginRight: 10,
+},
+skeletonSmallText: {
+  height: 16,
+  width: 40,
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#3A3A3A' : '#EEEEEE',
+  borderRadius: 4,
+},
+skeletonHeaderText: {
+  height: 16,
+  width: '80%',
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#444' : '#E0E0E0',
+  borderRadius: 4,
+  marginBottom: 8,
+},
+leaderboardRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingVertical: 10,
+  borderBottomWidth: 1,
+  borderBottomColor: theme.colors.inputBox === '#121212' ? '#333' : '#f0f0f0',
+},
+skeletonPieChart: {
+  height: 200,
+  width: 200,
+  borderRadius: 100,
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#3A3A3A' : '#EEEEEE',
+  alignSelf: 'center',
+  marginVertical: 20,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+skeletonPieInner: {
+  height: 100,
+  width: 100,
+  borderRadius: 50,
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#444' : '#E0E0E0',
+},
+skeletonLegendBox: {
+  width: 15,
+  height: 15,
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#444' : '#E0E0E0',
+  borderRadius: 3,
+  marginRight: 5,
+},
+skeletonLegendText: {
+  height: 12,
+  width: 80,
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#3A3A3A' : '#EEEEEE',
+  borderRadius: 4,
+},
+skeletonBarChart: {
+  flexDirection: 'row',
+  height: 150,
+  justifyContent: 'space-between',
+  alignItems: 'flex-end',
+  marginTop: 20,
+  paddingHorizontal: 10,
+},
+skeletonBar: {
+  width: '18%',
+  height: '60%',
+  backgroundColor: theme.colors.inputBox === '#121212' ? '#3A3A3A' : '#EEEEEE',
+  borderTopLeftRadius: 4,
+  borderTopRightRadius: 4,
+},
   });
 
 export default ReportsScreen;

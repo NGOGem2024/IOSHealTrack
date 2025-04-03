@@ -129,6 +129,14 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
               </TouchableOpacity>
             </>
           )}
+
+          <TouchableOpacity
+            style={styles.drawerItem}
+            onPress={() => navigateToScreen('AdminReport')}>
+            <Ionicons name="document-text-outline" size={24} color="#007B8E" />
+            <Text style={styles.drawerItemText}>Reports</Text>
+          </TouchableOpacity>
+
           <View style={styles.drawerDivider} />
 
           <TouchableOpacity
@@ -161,7 +169,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     dropdown: {
       backgroundColor: '#FFFFFF',
-      height: '34%',
+      maxHeight: 320,
+      minHeight: 50,
       padding: 0,
       shadowColor: '#000',
       shadowOffset: {

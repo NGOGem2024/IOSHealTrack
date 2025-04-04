@@ -236,6 +236,11 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   const onChangeEndDate = (event: any, selectedDate?: Date) => {
     setShowEndDatePicker(false);
     if (selectedDate) {
+      // If selected date is on or before start date, don't update
+      if (selectedDate <= startDate) {
+        Alert.alert("Invalid Date", "End date must be after start date");
+        return;
+      }
       setEndDate(selectedDate);
     }
   };
@@ -454,8 +459,6 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     }
   };
 
-
- 
   useEffect(() => {
     const total = parseFloat(therapyPlan.total_amount) || 0;
     const received = parseFloat(therapyPlan.received_amount) || 0;
@@ -468,11 +471,11 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
       <SafeAreaView style={styles.safeArea}>
         <BackTabTop screenName="Edit Plan" />
         <EditPlanSkeleton
-          isDarkMode={isDarkMode} 
+          isDarkMode={isDarkMode}
           colors={{
             background: theme.colors.background,
             skeleton: isDarkMode ? '#333333' : '#E0E0E0',
-          }} 
+          }}
         />
       </SafeAreaView>
     );
@@ -557,7 +560,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
               showDatePicker={showStartDatePicker}
               onPress={showStartDatepicker}
               onChange={onChangeStartDate}
-              disabled={true} // Disable the start date picker
+              disabled={true} // Start date is disabled as per your requirement
             />
 
             <DatePickerField
@@ -566,6 +569,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
               showDatePicker={showEndDatePicker}
               onPress={showEndDatepicker}
               onChange={onChangeEndDate}
+              minimumDate={new Date(startDate.getTime() + 86400000)} // Add one day to start date (86400000 ms = 1 day)
             />
           </View>
           {errors.date && <Text style={styles.errorText}>{errors.date}</Text>}
@@ -732,13 +736,17 @@ const InputField: React.FC<InputFieldProps> = ({
     </View>
   );
 };
-const DatePickerField: React.FC<DatePickerFieldProps> = ({
+// In your DatePickerField component, modify it to accept a minimumDate prop
+const DatePickerField: React.FC<
+  DatePickerFieldProps & {minimumDate?: Date}
+> = ({
   label,
   date,
   showDatePicker,
   onPress,
   onChange,
   disabled = false,
+  minimumDate,
 }) => {
   const {theme, isDarkMode} = useTheme();
   const styles = createStyles(theme.colors, isDarkMode);
@@ -768,12 +776,12 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
           mode="date"
           display="default"
           onChange={onChange}
+          minimumDate={minimumDate}
         />
       )}
     </View>
   );
 };
-
 
 const Dropdown: React.FC<DropdownProps> = ({value, onValueChange, items}) => {
   const {theme, isDarkMode} = useTheme();
@@ -793,7 +801,6 @@ const Dropdown: React.FC<DropdownProps> = ({value, onValueChange, items}) => {
     </View>
   );
 };
-
 
 const createStyles = (colors: any, isDarkMode: boolean) =>
   StyleSheet.create({

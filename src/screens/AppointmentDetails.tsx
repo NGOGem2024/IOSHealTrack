@@ -547,7 +547,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     container: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.card,
     },
     safeArea: {
       flex: 1,
@@ -671,7 +671,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 16,
     },
     dateContainer: {
-      backgroundColor: theme.colors.card, // Light neutral background
+      backgroundColor: theme.colors.inputBox, // Light neutral background
       borderLeftWidth: 4,
       borderLeftColor: '#119FB3', // Accent color matching header
       width: '90%',
@@ -742,8 +742,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       zIndex: 1,
     },
     card: {
-      backgroundColor: theme.colors.card,
+      backgroundColor: theme.colors.inputBox,
       borderRadius: 15,
+      borderColor: theme.colors.border,
+      borderWidth: 1,
       padding: 12,
       marginBottom: 16,
     },
@@ -763,19 +765,23 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderRadius: 8,
       padding: 8,
       height: 100,
-      color: 'gray',
+      color: theme.colors.text,
       textAlignVertical: 'top',
       marginBottom: 16,
-      backgroundColor:theme.colors.card,
+      borderColor: theme.colors.border,
+      borderWidth: 1,
+      backgroundColor:theme.colors.inputBox,
     },
     remarksInput2: {
       borderRadius: 8,
       padding: 8,
       height: 100,
-      color: 'gray',
+      color: theme.colors.text,
       textAlignVertical: 'top',
       marginBottom: 16,
-      backgroundColor:theme.colors.secondary,
+      borderColor: theme.colors.border,
+      borderWidth: 1,
+      backgroundColor:theme.colors.inputBox,
     },
     modalContainer: {
       flex: 1,

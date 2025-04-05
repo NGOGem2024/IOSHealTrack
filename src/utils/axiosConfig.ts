@@ -2,6 +2,14 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSession} from '../context/SessionContext';
 import {Platform} from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
+
+let isConnected: boolean = true;
+
+NetInfo.addEventListener(state => {
+  // Handle the null case explicitly
+  isConnected = state.isConnected === null ? false : state.isConnected;
+});
 
 const instance = axios.create({
   baseURL: 'https://healtrack.azurewebsites.net/',
@@ -14,8 +22,22 @@ const instance = axios.create({
   },
 });
 
+class NetworkError extends Error {
+  isNetworkError: boolean;
+  
+  constructor(message: string) {
+    super(message);
+    this.name = 'NetworkError';
+    this.isNetworkError = true;
+  }
+}
+
 instance.interceptors.request.use(
   async config => {
+    if (!isConnected) {
+      throw new NetworkError('No internet connection');
+    }
+    
     const idToken = await AsyncStorage.getItem('userToken');
     const accessToken = await AsyncStorage.getItem('googleAccessToken');
     const liveSwitchToken = await AsyncStorage.getItem('LiveTokens');
@@ -42,7 +64,7 @@ instance.interceptors.request.use(
       config.headers['auth'] = `Bearer ${accessToken}`;
     }
 
-    if (liveSwitchToken /* && !isTokenExpired(expiresIn)*/) {
+    if (liveSwitchToken ) {
       config.headers['x-liveswitch-token'] = liveSwitchToken;
     }
 
@@ -55,10 +77,8 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   async response => {
-    // Check if the response contains a new access token in the headers
-    const newAccessToken = response.headers['newAccessToken']; // or the key that holds your access token in the header
+    const newAccessToken = response.headers['newAccessToken']; 
     if (newAccessToken) {
-      // Use the updateAccessToken method to store the new access token
       console.log('here1 :', newAccessToken);
       const {updateAccessToken} = useSession();
       await updateAccessToken(newAccessToken);
@@ -66,15 +86,18 @@ instance.interceptors.response.use(
     return response;
   },
   async error => {
+    if (error.message === 'Network Error' || !error.response || (error instanceof NetworkError && error.isNetworkError)) {
+      console.error('Network error occurred:', error);
+      return Promise.reject(new NetworkError('No internet connection'));
+    }
+    
     if (
       error.config &&
       error.response &&
       (error.response.status === 401 || error.response.status === 403)
     ) {
-      // Handle token refresh here if needed
       const originalRequest = error.config;
       try {
-        // Attempt to refresh token or handle auth error
         const newToken = await AsyncStorage.getItem('userToken');
         if (newToken) {
           originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
@@ -83,11 +106,6 @@ instance.interceptors.response.use(
       } catch (refreshError) {
         console.error('Error refreshing token:', refreshError);
       }
-    }
-
-    if (error.message === 'Network Error' || !error.response) {
-      console.error('Network error occurred:', error);
-      // You might want to show a user-friendly error message here
     }
 
     return Promise.reject(error);

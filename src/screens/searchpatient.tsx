@@ -36,8 +36,9 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [noResultsMessage, setNoResultsMessage] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const {session} = useSession();
 
@@ -51,20 +52,37 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
   }, []);
 
   useEffect(() => {
-    if (searchQuery.length > 2) {
-      handleSearch();
-    } else {
-      setSearchResults([]);
-      setNoResultsMessage('');
+    // Clear any existing timeout to prevent multiple searches
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
+
+    // Don't search if query is empty
+    if (searchQuery.trim() === '') {
+      setSearchResults([]);
+      setHasSearched(false);
+      return;
+    }
+
+    // Set a small timeout to wait for user to finish typing
+    searchTimeoutRef.current = setTimeout(() => {
+      handleSearch();
+    }, 500);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, [searchQuery]);
 
   const handleSearch = async () => {
     setIsLoading(true);
-    setNoResultsMessage('');
+    setHasSearched(true);
     try {
+      // Modified to make a GET request that supports partial phone number and any part of name
       const response = await axiosInstance.get(
-        `/search/patient?query=${searchQuery}`,
+        `/search/patient?query=${encodeURIComponent(searchQuery)}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -76,14 +94,33 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         setSearchResults([]);
-        setNoResultsMessage('No patients found with this name.');
       } else {
         console.error('Error searching patients:', error);
-        setNoResultsMessage('Type something Please...');
+        setSearchResults([]);
       }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // For locally filtering results if backend search isn't customizable
+  const localFilterPatients = (patients: Patient[], query: string): Patient[] => {
+    if (!query.trim()) return patients;
+    
+    const normalizedQuery = query.toLowerCase().trim();
+    
+    return patients.filter(patient => {
+      const fullName = `${patient.patient_first_name} ${patient.patient_last_name}`.toLowerCase();
+      const phone = patient.patient_phone;
+      
+      // Check if query is part of name (anywhere in the name, not just start)
+      const nameMatch = fullName.includes(normalizedQuery);
+      
+      // Check if query is part of phone number (anywhere in the number)
+      const phoneMatch = phone.includes(normalizedQuery);
+      
+      return nameMatch || phoneMatch;
+    });
   };
 
   const navigateToPatient = (patientId: string) => {
@@ -100,6 +137,14 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
       <Text style={styles.patientDetails}>{item.patient_phone}</Text>
       <Text style={styles.patientDetails}>{item.patient_email}</Text>
     </TouchableOpacity>
+  );
+
+  // No results component
+  const NoResultsMessage = () => (
+    <View style={styles.noResultsContainer}>
+      <Icon name="exclamation-circle" size={50} color="#FFFFFF" />
+      <Text style={styles.noResultsText}>No patient found</Text>
+    </View>
   );
 
   return (
@@ -120,7 +165,7 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
             <Icon
               name="search"
               size={20}
-              color="#333333"
+              color="#FFFFFF"
               style={styles.searchIcon}
             />
           </TouchableOpacity>
@@ -133,8 +178,8 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
             renderItem={renderPatientItem}
             keyExtractor={item => item._id}
             ListEmptyComponent={
-              noResultsMessage ? (
-                <Text style={styles.emptyText}>{noResultsMessage}</Text>
+              hasSearched && searchQuery.trim() !== '' ? (
+                <NoResultsMessage />
               ) : null
             }
           />
@@ -171,7 +216,6 @@ const styles = StyleSheet.create({
   searchIcon: {
     marginLeft: 8,
     marginRight: 8,
-    color: '#ffffff',
   },
   searchButton: {
     padding: 10,
@@ -191,12 +235,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
   },
-  emptyText: {
-    textAlign: 'center',
-    marginTop: 20,
-    fontSize: 16,
-    color: '#666666',
+  noResultsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    marginTop: 50,
   },
+  noResultsText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginTop: 10,
+    textAlign: 'center',
+  }
 });
 
 export default SearchPatients;

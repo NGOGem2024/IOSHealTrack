@@ -754,7 +754,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     addonsContainer: {
       marginTop: 12,
       padding: 12,
-      backgroundColor: '#f8f9fa',
+      backgroundColor: theme.colors.border,
       borderRadius: 8,
       flexDirection: 'row',
       justifyContent: 'space-between',

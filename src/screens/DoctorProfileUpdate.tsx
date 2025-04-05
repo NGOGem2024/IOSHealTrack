@@ -1043,7 +1043,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       height: 50,
       paddingHorizontal: 16,
       fontSize: 16,
-      color: '#2C3E50',
+      color: theme.colors.text,
     },
     videoModalButtonsRow: {
       flexDirection: 'row',

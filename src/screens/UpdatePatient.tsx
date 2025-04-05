@@ -102,7 +102,7 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
     doctor_id: '',
   });
   const [fadeAnim] = useState(new Animated.Value(0));
-
+  const [phoneError, setPhoneError] = useState<boolean>(false);
   // Theme handling similar to PatientRegister
   const colorScheme = useColorScheme();
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
@@ -120,9 +120,16 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
-
+  const validatePhone = (phone: string): boolean => {
+    const isValid = phone.startsWith('+');
+    setPhoneError(!isValid);
+    return isValid;
+  };
   const handleTextChange = useCallback(
     (field: keyof PatientData, value: string) => {
+      if (field === 'patient_phone') {
+        validatePhone(value);
+      }
       setPatientData(prev => ({
         ...prev,
         [field]: field === 'patient_email' ? value.toLowerCase() : value,
@@ -215,6 +222,16 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
       );
       return;
     }
+  
+    if (!validatePhone(patientData.patient_phone)) {
+      Alert.alert(
+        'Invalid Phone Number',
+        'Please enter a valid phone number with country code (e.g., +1, +44).',
+        [{text: 'OK'}]
+      );
+      return;
+    }
+  
     setIsLoading(true);
     try {
       await axiosInstance.post(`/patient/update/${patientId}`, patientData);
@@ -294,22 +311,28 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
             </View>
 
             {/* Contact Number */}
-            <View style={styles.inputWrapper}>
-              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
-                <View style={styles.iconContainer}>
-                  <Icon name="phone" size={24} color={currentColors.primary} />
-                </View>
-                <TextInput
-                  style={[styles.input, {color: currentColors.text}]}
-                  placeholder="Contact Number"
-                  value={patientData.patient_phone}
-                  onChangeText={text => handleTextChange('patient_phone', text)}
-                  keyboardType="numeric"
-                  placeholderTextColor={currentColors.placeholderText}
-                />
-              </View>
-            </View>
-
+<View style={styles.inputWrapper}>
+  <View style={[
+    styles.inputContainer, 
+    {
+      borderColor: phoneError ? currentColors.error : currentColors.inputBorder,
+      backgroundColor: currentColors.inputBg
+    }
+  ]}>
+    <View style={styles.iconContainer}>
+      <Icon name="phone" size={24} color={phoneError ? currentColors.error : currentColors.primary} />
+    </View>
+    <TextInput
+      style={[styles.input, {color: currentColors.text}]}
+      placeholder="Contact Number"
+      value={patientData.patient_phone}
+      onChangeText={text => handleTextChange('patient_phone', text)}
+      keyboardType="phone-pad"
+      placeholderTextColor={phoneError ? currentColors.error : currentColors.placeholderText}
+    />
+  </View>
+  
+</View>
             {/* Doctor Picker */}
             <DoctorPicker
               doctors={doctors}

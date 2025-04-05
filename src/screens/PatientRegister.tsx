@@ -140,10 +140,8 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
         }
         break;
       case 'patient_phone':
-        if (phoneInput.current?.isValidNumber(value)) {
-          return '';
-        } else if (value) {
-          return 'Invalid phone number';
+        if (value && value.length < 10) {
+          return 'Please enter a valid 10-digit contact number';
         }
         break;
     }
@@ -159,12 +157,22 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
     } else if (field === 'patient_email') {
       newValue = value.toLowerCase();
     }
-
+  
     setPatientData(prev => ({...prev, [field]: newValue}));
     setFieldStatus(prev => ({...prev, [field]: newValue.length > 0}));
-
-    const error = validateField(field, newValue);
-    setErrors(prev => ({...prev, [field]: error}));
+  
+    // Always validate phone number when it changes
+    if (field === 'patient_phone') {
+      const error = validateField(field, newValue);
+      setErrors(prev => ({...prev, [field]: error}));
+    } else if (newValue) {
+      // For other fields, only validate if there's content
+      const error = validateField(field, newValue);
+      setErrors(prev => ({...prev, [field]: error}));
+    } else {
+      // Clear error if field is empty
+      setErrors(prev => ({...prev, [field]: ''}));
+    }
   };
 
   const handlePatientRegister = async () => {
@@ -282,7 +290,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
             styles.countryPickerButton,
             {
               backgroundColor: colors.inputBg,
-              borderColor: errors.doctor_phone
+              borderColor: errors.patient_phone
                 ? colors.error
                 : colors.inputBorder,
             },
@@ -293,13 +301,13 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
             +{selectedCountry.callingCode}
           </Text>
         </TouchableOpacity>
-
+  
         <TextInput
           style={[
             styles.phoneInput,
             {
               backgroundColor: colors.inputBg,
-              borderColor: errors.doctor_phone
+              borderColor: errors.patient_phone
                 ? colors.error
                 : colors.inputBorder,
               color: colors.text,
@@ -312,7 +320,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
           keyboardType="numeric"
           maxLength={10}
         />
-
+  
         <CustomCountryPicker
           selectedCountry={selectedCountry}
           onSelect={(country: Country) => {
@@ -323,12 +331,13 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
           theme={colors}
         />
       </View>
-      {errors.doctor_phone && (
-        <Text style={styles.errorText}>{errors.doctor_phone}</Text>
+      {errors.patient_phone && (
+        <Text style={[styles.errorText, {color: colors.error}]}>
+          {errors.patient_phone}
+        </Text>
       )}
     </Animatable.View>
   );
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={[styles.container, {backgroundColor: colors.background}]}>

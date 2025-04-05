@@ -774,7 +774,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     backgroundColor: '#F0F8FF',
   },
   scrollContainer: {
-    flexGrow: 1,
+   // flexGrow: 1,
     paddingBottom: 20,
   },
   scrollViewDark: {
@@ -947,7 +947,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     backgroundColor: '#119FB3',
   },
   radioLabel: {
-    fontSize: 10 ,
+    fontSize: 13 ,
     color: '#333333',
   },
 

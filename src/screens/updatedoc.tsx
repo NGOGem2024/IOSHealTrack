@@ -82,14 +82,43 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   const [phoneDigits, setPhoneDigits] = useState('');
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState<string | null>(null); 
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState({
+    doctor_first_name: false,
+    doctor_last_name: false,
+    qualification: false,
+    doctor_email: false,
+    doctor_phone: false,
+    is_admin: false,
+    status: false,
+  });
 
   const validatePhone = (fullPhone: string): boolean => {
-    const phoneRegex = /^\+\d{1,4}[6-9]\d{9}$/;
-    const isValid = phoneRegex.test(fullPhone);
-    setPhoneError(
-      isValid ? null : 'Please enter a valid phone number starting with 6-9',
-    );
+    let isValid = false;
+    
+    if (fullPhone.startsWith('+1')) {
+      // US numbers: +1 followed by area code (2-9) and 7 more digits (total 10 digits)
+      const usRegex = /^\+1[2-9]\d{9}$/;
+      isValid = usRegex.test(fullPhone);
+      setPhoneError(
+        isValid ? null : 'US numbers must start with 2-9 and be 10 digits total'
+      );
+    } else if (fullPhone.startsWith('+44')) {
+      // UK numbers: +44 followed by digits starting with 1-5 (total 12 digits)
+      const ukRegex = /^\+44[1-5]\d{9}$/;
+      isValid = ukRegex.test(fullPhone);
+      setPhoneError(
+        isValid ? null : 'UK numbers must start with 1-5 and be 12 digits total'
+      );
+    } else {
+      // Default validation for other countries (you can adjust this as needed)
+      const defaultRegex = /^\+\d{1,4}\d{6,}$/;
+      isValid = defaultRegex.test(fullPhone);
+      setPhoneError(
+        isValid ? null : 'Please enter a valid phone number'
+      );
+    }
+    
     return isValid;
   };
   const validateEmail = (email: string): boolean => {
@@ -98,6 +127,18 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     setEmailError(isValid ? null : 'Please enter a valid email address');
     return isValid;
   };
+  
+  const validateField = (field: string, value: any): boolean => {
+    if (field === 'doctor_email') {
+      return validateEmail(value);
+    } else if (field === 'doctor_phone') {
+      return validatePhone(countryCode + phoneDigits);
+    } else {
+      // For text fields, check if they're not empty
+      return value.trim() !== '';
+    }
+  };
+  
   useEffect(() => {
     if (session.idToken) {
       fetchDoctorInfo();
@@ -141,30 +182,8 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     if (!session.idToken) {
       return;
     }
-    const fetchDoctorInfo = async () => {
-      if (!session.idToken) {
-        return;
-      }
 
-      setIsLoading(true);
-
-      try {
-        const response = await axiosInstance.get<ProfileInfo>(
-          `/doctor/${doctorId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${session.idToken}`,
-            },
-          },
-        );
-        setProfileInfo(response.data);
-        setOriginalProfileInfo(response.data);
-      } catch (error) {
-        handleError(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    setIsLoading(true);
 
     try {
       const response = await axiosInstance.get<ProfileInfo>(
@@ -192,6 +211,12 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     setPhoneDigits(limited);
     // Validate the full number (combine country code and digits)
     validatePhone(countryCode + limited);
+    
+    // Update form errors
+    setFormErrors(prev => ({
+      ...prev,
+      doctor_phone: limited.length === 0,
+    }));
   };
 
   const handleInputChange = (field: keyof ProfileInfo, value: any) => {
@@ -199,12 +224,18 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       handlePhoneChange(value);
     } else {
       setProfileInfo(prev => ({...prev, [field]: value}));
+      
+      // Validate field and update form errors
+      setFormErrors(prev => ({
+        ...prev,
+        [field]: !validateField(field, value),
+      }));
+      
       if (field === 'doctor_email') {
         validateEmail(value); // Trigger validation on email change
       }
     }
   };
-
 
   const hasChanges = () => {
     const currentFullPhone = countryCode + phoneDigits;
@@ -215,33 +246,53 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     );
   };
 
+  const validateAllFields = (): boolean => {
+    const fullPhone = countryCode + phoneDigits;
+    
+    const errors = {
+      doctor_first_name: profileInfo.doctor_first_name.trim() === '',
+      doctor_last_name: profileInfo.doctor_last_name.trim() === '',
+      qualification: profileInfo.qualification.trim() === '',
+      doctor_email: !validateEmail(profileInfo.doctor_email),
+      doctor_phone: !validatePhone(fullPhone),
+      is_admin: false, // These are always valid as they have default values
+      status: false,   // These are always valid as they have default values
+    };
+    
+    setFormErrors(errors);
+    
+    // Check if any errors exist
+    return !Object.values(errors).some(error => error === true);
+  };
+  
   const handleSave = async () => {
     Keyboard.dismiss();
-    const fullPhone = countryCode + phoneDigits;
-
-    const isPhoneValid = validatePhone(fullPhone);
-    const isEmailValid = validateEmail(profileInfo.doctor_email);
-
-    if (!isPhoneValid || !isEmailValid) {
+    
+    // Validate all fields first
+    if (!validateAllFields()) {
+      // If validation fails, show a validation error message
       Alert.alert(
-        'Invalid Input',
-        'Please check your phone number and email address.',
+        'Validation Error',
+        'Please fill in all required fields correctly.',
+        [{ text: 'OK' }]
       );
       return;
     }
-
+    
+    const fullPhone = countryCode + phoneDigits;
+  
     if (!hasChanges()) {
       showSuccessToast('No changes were made to the profile.');
       return;
     }
-
+  
     if (!session.idToken) {
       handleError(new Error('You must be logged in to update the profile'));
       return;
     }
-
+  
     setIsSaving(true);
-
+  
     try {
       const response = await axiosInstance.put(
         `/doctor/update/${profileInfo._id}`,
@@ -260,10 +311,10 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           },
         },
       );
-
+  
       setOriginalProfileInfo({...profileInfo, doctor_phone: fullPhone});
       showSuccessToast('Profile updated successfully');
-
+  
       // Redirect to the doctor's profile
       navigation.navigate('Doctor', {doctorId: profileInfo._id});
     } catch (error) {
@@ -312,9 +363,12 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
 
             <View style={styles.formContainer}>
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>First Name</Text>
+                <Text style={styles.label}>First Name <Text style={styles.requiredStar}>*</Text></Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    formErrors.doctor_first_name && styles.inputError,
+                  ]}
                   value={profileInfo.doctor_first_name}
                   onChangeText={text =>
                     handleInputChange('doctor_first_name', text)
@@ -323,9 +377,12 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Last Name</Text>
+                <Text style={styles.label}>Last Name <Text style={styles.requiredStar}>*</Text></Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    formErrors.doctor_last_name && styles.inputError,
+                  ]}
                   value={profileInfo.doctor_last_name}
                   onChangeText={text =>
                     handleInputChange('doctor_last_name', text)
@@ -334,9 +391,12 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Qualification</Text>
+                <Text style={styles.label}>Qualification <Text style={styles.requiredStar}>*</Text></Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    formErrors.qualification && styles.inputError,
+                  ]}
                   value={profileInfo.qualification}
                   onChangeText={text =>
                     handleInputChange('qualification', text)
@@ -345,26 +405,24 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
               </View>
 
               <View style={styles.inputGroup}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={[
-            styles.input,
-            emailError && styles.inputError, // Apply error style
-          ]}
-          value={profileInfo.doctor_email}
-          onChangeText={text => handleInputChange('doctor_email', text)}
-        />
-        {emailError && <Text style={styles.errorText}>{emailError}</Text>}
-      </View>
+                <Text style={styles.label}>Email <Text style={styles.requiredStar}>*</Text></Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    (emailError || formErrors.doctor_email) && styles.inputError,
+                  ]}
+                  value={profileInfo.doctor_email}
+                  onChangeText={text => handleInputChange('doctor_email', text)}
+                />
+              </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Phone</Text>
+                <Text style={styles.label}>Phone <Text style={styles.requiredStar}>*</Text></Text>
                 <View style={styles.phoneContainer}>
                   <CountryPicker
                     selectedCode={countryCode}
                     onValueChange={code => {
                       setCountryCode(code);
-
                       validatePhone(code + phoneDigits);
                     }}
                   />
@@ -372,7 +430,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                   <TextInput
                     style={[
                       styles.phoneinput,
-                      phoneError && styles.inputError,
+                      (phoneError || formErrors.doctor_phone) && styles.inputError,
                       {flex: 1},
                     ]}
                     value={phoneDigits}
@@ -382,13 +440,10 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                     maxLength={10}
                   />
                 </View>
-                {phoneError && (
-                  <Text style={styles.errorText}>{phoneError}</Text>
-                )}
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Role</Text>
+                <Text style={styles.label}>Role <Text style={styles.requiredStar}>*</Text></Text>
                 <CustomPicker
                   selectedValue={profileInfo.is_admin}
                   onValueChange={value => handleInputChange('is_admin', value)}
@@ -399,7 +454,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Status</Text>
+                <Text style={styles.label}>Status <Text style={styles.requiredStar}>*</Text></Text>
                 <CustomRadioGroup
                   value={profileInfo.status}
                   onValueChange={value => handleInputChange('status', value)}
@@ -557,12 +612,15 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginBottom: 5,
       fontWeight: 'bold',
     },
+    requiredStar: {
+      color: 'red',
+      fontWeight: 'bold',
+    },
     labelText: {
       fontSize: 16,
       marginBottom: 5,
       color: '#333333',
     },
-
     radioButtonContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',

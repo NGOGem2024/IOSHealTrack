@@ -694,7 +694,7 @@ const DoctorProfileEdit: React.FC = () => {
           <View style={styles.coverPhoto}>
             <View style={styles.headerInfo}>
               <Text style={styles.profileName}>
-                Dr. {profileInfo.doctor_first_name}{' '}
+                 {profileInfo.doctor_first_name}{' '}
                 {profileInfo.doctor_last_name}
               </Text>
               <Text style={styles.profileQualification}>

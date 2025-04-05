@@ -1113,7 +1113,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignItems: 'center',
     },
     iconButton: {
-      marginLeft: 5,
+      marginLeft: 10,
     },
 
     iconButton1: {

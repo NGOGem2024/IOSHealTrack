@@ -676,7 +676,6 @@ const ReportsScreen: React.FC = () => {
               
 
               <View style={{height: 280}}>
-                
               <BarChart
   data={socialReferenceBarChartData}
   width={screenWidth - 60}
@@ -701,9 +700,13 @@ const ReportsScreen: React.FC = () => {
       translateY: 5,
     },
     propsForVerticalLabels: {
-      fontSize: 5,
+      fontSize: 10,
     },
-    formatYLabel: (yValue) => yValue,
+    formatYLabel: (yValue) => {
+      // Format y-axis labels to avoid decimals for integer values
+      const num = Number(yValue);
+      return num % 1 === 0 ? num.toString() : num.toFixed(1);
+    },
   }}
   verticalLabelRotation={45}
   showValuesOnTopOfBars={true}
@@ -717,7 +720,7 @@ const ReportsScreen: React.FC = () => {
   yAxisInterval={1}
   horizontalLabelRotation={-80}
   yAxisSuffix=""
-  segments={maxValue <= 1 ? 1 : Math.min(4, maxValue)}
+  segments={calculateSegments(maxValue)}
 />
 
                 {/* Custom icons row */}
@@ -748,6 +751,16 @@ const ReportsScreen: React.FC = () => {
   );
 };
 
+const calculateSegments = (maxValue: number): number => {
+  if (maxValue <= 0) return 1;
+  if (maxValue === 1) return 1;
+  if (maxValue <= 5) return Math.min(4, maxValue);
+  if (maxValue <= 10) return 5;
+  if (maxValue <= 20) return 4;
+  if (maxValue <= 50) return 5;
+  if (maxValue <= 100) return 5;
+  return 5; // Default for larger values
+};
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     container: {

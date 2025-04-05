@@ -772,9 +772,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderRadius: 8,
       padding: 8,
       height: 100,
-      color: 'gray',
+      color: theme.colors.text,
       textAlignVertical: 'top',
       marginBottom: 16,
+      
       backgroundColor:theme.colors.secondary,
     },
     modalContainer: {

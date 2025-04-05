@@ -294,12 +294,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderBottomColor: '#f0f0f0',
     },
     label: {
-      fontSize: 16,
+      fontSize: 14,
       color: '#666',
       flex: 1,
     },
     value: {
-      fontSize: 16,
+      fontSize: 14,
       color: '#333',
       flex: 2,
       textAlign: 'right',

@@ -110,7 +110,7 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
           <TextInput
             ref={searchInputRef}
             style={styles.searchBar}
-            placeholder="Search by Name, Phone number"
+            placeholder="Search by Name, Number, Email"
             placeholderTextColor="rgba(255, 255, 255, 0.8)"
             value={searchQuery}
             onChangeText={setSearchQuery}

@@ -1,4 +1,3 @@
-// ForgotPasswordModal.tsx
 import React, {useState} from 'react';
 import {
   Modal,
@@ -38,6 +37,19 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Add state variables for password visibility
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+
+  // Toggle functions for password visibility
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setConfirmPasswordVisible(!confirmPasswordVisible);
+  };
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -191,8 +203,15 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                         placeholderTextColor="#999"
                         value={password}
                         onChangeText={setPassword}
-                        secureTextEntry
+                        secureTextEntry={!passwordVisible}
                       />
+                      <TouchableOpacity onPress={togglePasswordVisibility}>
+                        <Icon
+                          name={passwordVisible ? "eye-off" : "eye"}
+                          size={20}
+                          style={styles.iconStyle}
+                        />
+                      </TouchableOpacity>
                     </View>
                   </View>
                   <View style={styles.inputWrapper}>
@@ -208,8 +227,15 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                         placeholderTextColor="#999"
                         value={confirmPassword}
                         onChangeText={setConfirmPassword}
-                        secureTextEntry
+                        secureTextEntry={!confirmPasswordVisible}
                       />
+                      <TouchableOpacity onPress={toggleConfirmPasswordVisibility}>
+                        <Icon
+                          name={confirmPasswordVisible ? "eye-off" : "eye"}
+                          size={20}
+                          style={styles.iconStyle}
+                        />
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </>

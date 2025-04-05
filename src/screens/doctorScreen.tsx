@@ -151,7 +151,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
               <View style={styles.headerInfo}>
                 <View style={styles.nameContainer}>
                   <Text style={styles.doctorName}>
-                    Dr. {doctorData?.doctor_first_name}{' '}
+                    {doctorData?.doctor_first_name}{' '}
                     {doctorData?.doctor_last_name}
                   </Text>
                   {doctorData?.is_admin && (
@@ -339,7 +339,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       paddingHorizontal: 10,
       paddingVertical: 3,
       borderRadius: 16,
-      marginLeft: 15,
+      marginLeft: 10,
     },
     adminBadgeText: {
       color: 'white',

@@ -813,7 +813,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   buttonDelete: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: 'red',
   },
   doneButton: {
     backgroundColor: '#007B8E',

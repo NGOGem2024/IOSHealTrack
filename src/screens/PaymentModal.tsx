@@ -398,13 +398,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       paddingHorizontal: 12,
     },
     currencySymbol: {
-      fontSize: 18,
+      fontSize: 16,
       color: theme.colors.text,
-      marginRight: 8,
+      marginRight: 3,
     },
     currencyInput: {
       flex: 1,
-      fontSize: 18,
+      fontSize: 14,
       color: theme.colors.text,
       padding: 12,
     },
@@ -445,7 +445,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: theme.colors.border,
       color: theme.colors.text,
       marginRight: 8,
-      fontSize: 16,
+      fontSize: 14,
     },
     addonAmountWrapper: {
       flex: 2,
@@ -461,7 +461,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     addonAmountInput: {
       flex: 1,
       padding: 12,
-      fontSize: 16,
+      fontSize: 14,
     },
     addButton: {
       backgroundColor: '#119FB3',

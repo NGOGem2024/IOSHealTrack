@@ -1,3 +1,5 @@
+// doctor dashboard 
+
 import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
@@ -507,7 +509,7 @@ const DoctorDashboard: React.FC = () => {
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>
-                Dr. {doctorInfo.doctor_first_name} {doctorInfo.doctor_last_name}
+                 {doctorInfo.doctor_first_name} {doctorInfo.doctor_last_name}
               </Text>
               <Text style={styles.profileDetailText1}>
                 {doctorInfo.qualification}

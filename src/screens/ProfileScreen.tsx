@@ -138,6 +138,19 @@ type DoctorProfileScreenProps = {
   navigation: StackNavigationProp<RootTabParamList, 'Profile'>;
 };
 
+// Function to format phone number with space after country code
+const formatPhoneNumber = (phone: string): string => {
+  if (!phone) return '';
+  
+  // Check if the phone number starts with '+' and has at least 3 characters
+  if (phone.startsWith('+') && phone.length >= 3) {
+    // Insert a space after the country code (first 2 digits after the '+')
+    return `${phone.substring(0, 3)} ${phone.substring(3)}`;
+  }
+  
+  return phone;
+};
+
 const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
   const {session} = useSession();
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo | null>(null);
@@ -203,7 +216,7 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
                 <Text style={[styles.infoHeaderText, {color: currentColors.text}]}>Contact</Text>
               </View>
               <Text style={[styles.infoText, {color: currentColors.secondary}]}>
-                {doctorInfo?.doctor_phone}
+                {formatPhoneNumber(doctorInfo?.doctor_phone || '')}
               </Text>
               <Text style={[styles.infoText, {color: currentColors.secondary}]}>
                 {doctorInfo?.doctor_email}
@@ -258,7 +271,7 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
           </View>
           <View style={styles.profileInfoContainer}>
             <Text style={[styles.name, {color: currentColors.text}]}>
-              Dr. {doctorInfo?.doctor_first_name} {doctorInfo?.doctor_last_name}
+               {doctorInfo?.doctor_first_name} {doctorInfo?.doctor_last_name}
             </Text>
             <Text style={[styles.specialization, {color: currentColors.secondary}]}>
               {doctorInfo?.qualification}

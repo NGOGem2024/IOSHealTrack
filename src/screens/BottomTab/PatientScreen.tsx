@@ -289,23 +289,31 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
           <View style={styles.contactInfo}>
             {patientData?.patient_email && (
               <View style={styles.infoRow}>
-                <MaterialIcons name="email" size={20} color="#119FB3" />
+                <View style={styles.iconContainer}>
+                  <MaterialIcons name="email" size={20} color="#119FB3" />
+                </View>
                 <Text style={styles.infoText}>{patientData.patient_email}</Text>
               </View>
             )}
             <View style={styles.infoRow}>
-              <MaterialIcons name="call" size={20} color="#119FB3" />
+              <View style={styles.iconContainer}>
+                <MaterialIcons name="call" size={20} color="#119FB3" />
+              </View>
               <Text style={styles.infoText}>{patientData?.patient_phone}</Text>
             </View>
             {patientData?.doctor_name && (
               <View style={styles.infoRow}>
-                <Icon name="user-md" size={20} color="#119FB3" />
+                <View style={styles.iconContainer}>
+                  <Icon name="user-md" size={20} color="#119FB3" />
+                </View>
                 <Text style={styles.infoText}>{patientData.doctor_name}</Text>
               </View>
             )}
             {patientData?.patient_address1 && (
               <View style={styles.infoRow}>
-                <MaterialIcons name="location-on" size={20} color="#119FB3" />
+                <View style={styles.iconContainer}>
+                  <MaterialIcons name="location-on" size={20} color="#119FB3" />
+                </View>
                 <Text style={styles.infoText}>
                   {patientData.patient_address1}
                 </Text>
@@ -534,15 +542,21 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     contactInfo: {
       marginTop: 8,
     },
+    iconContainer: {
+      width: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     infoRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 8,
+      marginBottom: 12,
     },
     infoText: {
-      marginLeft: 8,
       fontSize: 14,
       color: theme.colors.text,
+      flex: 1,
+      paddingLeft: 8,
     },
     sectionTitle: {
       fontSize: 18,

@@ -754,14 +754,17 @@ const TherapyPlanDetails: React.FC = () => {
         </View>
 
         <View style={styles.card}>
-  <View style={styles.cardHeader}>
-    <TouchableOpacity
-      style={styles.iconButton1}
-      onPress={() => setIsNoteModalVisible(true)}>
-      <Text style={styles.sectionTitle}>Notes</Text>
-      <Icon name="plus" size={20} color="#119FB3" />
-    </TouchableOpacity>
-  </View>
+        <View style={styles.notesContainer}>
+  <Text style={styles.notesText}>Notes</Text>
+  <TouchableOpacity onPress={() => setIsNoteModalVisible(true)}>
+    <MaterialCommunityIcons 
+      name="plus-circle" 
+      size={24} 
+      color='#007b8e' 
+      style={styles.plusIcon} 
+    />
+  </TouchableOpacity>
+</View>
 
   {plan.notes && plan.notes.length > 0 && (
     <>
@@ -1026,6 +1029,21 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       padding: 16,
       borderRadius: 8,
     },
+      notesContainer: {
+        flexDirection: 'row',  // Align items in a row
+        alignItems: 'center',  // Align vertically centered
+        justifyContent: 'space-between', // Ensure spacing is balanced
+        paddingHorizontal: 10,  // Adjust padding as needed
+        marginVertical: 8,  // Space out from other elements
+      },
+      notesText: {
+        fontSize: 16, 
+        fontWeight: 'bold',
+        color: theme.colors.text,
+      },
+      plusIcon: {
+        marginLeft: 10,  // Adjust spacing between text and icon
+      },
     sessionListTitle: {
       fontSize: 16,
       marginTop: 16,
@@ -1113,7 +1131,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignItems: 'center',
     },
     iconButton: {
-      marginLeft: 5,
+      marginLeft: 10,
     },
 
     iconButton1: {

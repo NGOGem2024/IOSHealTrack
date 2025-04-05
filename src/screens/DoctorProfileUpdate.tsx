@@ -164,17 +164,28 @@ const DoctorProfileEdit: React.FC = () => {
       }
     }
   }, [profileInfo.doctor_phone]);
+  const [phoneError, setPhoneError] = useState('');
 
   const handlePhoneChange = (text: string) => {
-    // Remove any non-digit characters
-    const cleanedText = text.replace(/\D/g, '');
+  // Remove any non-digit characters
+  const cleanedText = text.replace(/\D/g, '');
+  
+  // Limit to 10 digits
+  const limitedText = cleanedText.slice(0, 10);
 
-    setPhoneWithoutCode(cleanedText);
+  setPhoneWithoutCode(limitedText);
 
-    // Update the profile phone with country code
-    const fullPhoneNumber = `+${selectedCountry.callingCode}${cleanedText}`;
-    handleInputChange('doctor_phone', fullPhoneNumber);
-  };
+  // Validate phone number length
+  if (limitedText.length < 10) {
+    setPhoneError('Please enter a valid 10-digit phone number');
+  } else {
+    setPhoneError('');
+  }
+
+  // Update the profile phone with country code
+  const fullPhoneNumber = `+${selectedCountry.callingCode}${limitedText}`;
+  handleInputChange('doctor_phone', fullPhoneNumber);
+};
 
   const fetchDoctorInfo = async () => {
     if (!session.idToken) {
@@ -787,31 +798,35 @@ const DoctorProfileEdit: React.FC = () => {
               </View>
             ))}
             <View style={[styles.inputGroup, styles.inputBorder]}>
-              <Text style={styles.label}>Phone Number</Text>
-              <View style={styles.phoneInputContainer}>
-                {/* Country Selector */}
-                <TouchableOpacity
-                  style={styles.countrySelector}
-                  onPress={() => setShowCountryPicker(true)}>
-                  <Text style={styles.countryFlag}>{selectedCountry.flag}</Text>
-                  <Text style={styles.countryCode}>
-                    +{selectedCountry.callingCode}
-                  </Text>
-                  <Icon name="chevron-down" size={16} color="#007B8E" />
-                </TouchableOpacity>
+  <Text style={styles.label}>Phone Number</Text>
+  <View style={styles.phoneInputContainer}>
+    {/* Country Selector */}
+    <TouchableOpacity
+      style={styles.countrySelector}
+      onPress={() => setShowCountryPicker(true)}>
+      <Text style={styles.countryFlag}>{selectedCountry.flag}</Text>
+      <Text style={styles.countryCode}>
+        +{selectedCountry.callingCode}
+      </Text>
+      <Icon name="chevron-down" size={16} color="#007B8E" />
+    </TouchableOpacity>
 
-                {/* Phone Input */}
-                <View style={styles.phoneInputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    value={phoneWithoutCode}
-                    onChangeText={handlePhoneChange}
-                    keyboardType="phone-pad"
-                    placeholderTextColor="#999"
-                    placeholder="Enter phone number"
-                  />
-                </View>
+    {/* Phone Input */}
+    <View style={styles.phoneInputWrapper}>
+      <TextInput
+        style={[styles.input, phoneError ? styles.inputError : null]}
+        value={phoneWithoutCode}
+        onChangeText={handlePhoneChange}
+        keyboardType="phone-pad"
+        placeholderTextColor="#999"
+        placeholder="Enter phone number"
+        maxLength={10}
+      />
+    </View>
               </View>
+              {phoneError ? (
+    <Text style={styles.errorText}>{phoneError}</Text>
+  ) : null}
             </View>
           </View>
 
@@ -1353,6 +1368,14 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 16,
       fontWeight: '600',
       marginLeft: 10,
+    },
+    inputError: {
+      borderColor: '#DC2626',
+    },
+    errorText: {
+      color: '#DC2626',
+      fontSize: 12,
+      marginTop: 4,
     },
   });
 

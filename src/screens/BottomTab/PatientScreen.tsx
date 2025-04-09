@@ -10,6 +10,9 @@ import {
   SafeAreaView,
   RefreshControl,
   Animated,
+  Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../../types/types';
@@ -41,6 +44,18 @@ type PatientScreenProps = StackScreenProps<RootStackParamList, 'Patient'>;
 interface TherapySession {
   _id: string;
   status: string;
+}
+
+// New Consultation interface to match your requirements
+interface Consultation {
+  _id: string;
+  causes: string;
+  consultationDate: string; // ISO date string
+  consultationTime: string;
+  doctorName: string;
+  notes: string;
+  results: string;
+  patientSymptoms: string;
 }
 
 interface TherapyPlan {
@@ -77,7 +92,7 @@ const PatientScreenSkeleton: React.FC<{theme: any}> = ({theme}) => {
           duration: 1000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
     animation.start();
     return () => animation.stop();
@@ -88,12 +103,7 @@ const PatientScreenSkeleton: React.FC<{theme: any}> = ({theme}) => {
       <BackTopTab screenName="Patient" />
       <ScrollView style={styles.container}>
         {/* Main Card Skeleton */}
-        <Animated.View 
-          style={[
-            styles.mainCard, 
-            {opacity: fadeAnim}
-          ]}
-        >
+        <Animated.View style={[styles.mainCard, {opacity: fadeAnim}]}>
           <View style={styles.cardHeader}>
             <View style={styles.skeletonNameLine} />
             <View style={styles.skeletonEditIcon} />
@@ -108,12 +118,7 @@ const PatientScreenSkeleton: React.FC<{theme: any}> = ({theme}) => {
         </Animated.View>
 
         {/* Quick Actions Skeleton */}
-        <Animated.View 
-          style={[
-            styles.card, 
-            {opacity: fadeAnim}
-          ]}
-        >
+        <Animated.View style={[styles.card, {opacity: fadeAnim}]}>
           <View style={styles.skeletonSectionTitle} />
           <View style={styles.quickActionsContainer}>
             <View style={styles.skeletonQuickAction} />
@@ -122,13 +127,14 @@ const PatientScreenSkeleton: React.FC<{theme: any}> = ({theme}) => {
           </View>
         </Animated.View>
 
+        {/* Consultations Skeleton */}
+        <Animated.View style={[styles.card, {opacity: fadeAnim}]}>
+          <View style={styles.skeletonSectionTitle} />
+          <View style={styles.skeletonConsultation} />
+        </Animated.View>
+
         {/* Therapy Plans Skeleton */}
-        <Animated.View 
-          style={[
-            styles.card, 
-            {opacity: fadeAnim}
-          ]}
-        >
+        <Animated.View style={[styles.card, {opacity: fadeAnim}]}>
           <View style={styles.skeletonSectionTitle} />
           <View style={styles.skeletonTherapyPlan} />
         </Animated.View>
@@ -136,7 +142,6 @@ const PatientScreenSkeleton: React.FC<{theme: any}> = ({theme}) => {
     </SafeAreaView>
   );
 };
-
 
 const calculateTherapyProgress = (therapyPlan: TherapyPlan): number => {
   try {
@@ -186,6 +191,7 @@ interface PatientData {
   doctor_name?: string;
   patient_address1: string;
   therapy_plans: TherapyPlan[];
+  consultations?: Consultation[]; // Add consultations to the patient data
 }
 
 const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
@@ -201,6 +207,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
   const [patientData, setPatientData] = useState<PatientData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentConsultationIndex, setCurrentConsultationIndex] = useState(0);
   const fetchPatientData = async () => {
     if (!session.idToken) return;
     setIsRefreshing(true); // Show loading indicator during refresh
@@ -211,12 +218,21 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
           Authorization: 'Bearer ' + session.idToken,
         },
       });
+      // console.log(response.data.patientData)
       setPatientData(response.data.patientData);
     } catch (error) {
       handleError(error);
     } finally {
       setIsRefreshing(false); // Hide loading indicator after refresh
     }
+  };
+
+  const handleScroll = (event: {
+    nativeEvent: {layoutMeasurement: {width: any}; contentOffset: {x: number}};
+  }) => {
+    const slideSize = event.nativeEvent.layoutMeasurement.width;
+    const index = Math.round(event.nativeEvent.contentOffset.x / slideSize);
+    setCurrentConsultationIndex(index);
   };
 
   const onRefresh = useCallback(async () => {
@@ -227,6 +243,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
       setRefreshing(false);
     }
   }, []);
+
   useEffect(() => {
     const loadInitialData = async () => {
       setIsLoading(true);
@@ -247,6 +264,10 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
     // Cleanup subscription on unmount
     return unsubscribe;
   }, [patientId, session.idToken, navigation]);
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString();
+  };
 
   if (isLoading) {
     return <PatientScreenSkeleton theme={theme} />;
@@ -302,11 +323,13 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
               <Text style={styles.infoText}>{patientData?.patient_phone}</Text>
             </View>
             {patientData?.doctor_name && (
-              <View style={styles.infoRow}>
-                <View style={styles.iconContainer}>
-                  <Icon name="user-md" size={20} color="#119FB3" />
+              <View>
+                <View style={styles.infoRow}>
+                  <View style={styles.iconContainer}>
+                    <Icon name="user-md" size={20} color="#119FB3" />
+                  </View>
+                  <Text style={styles.infoText}>{patientData.doctor_name}</Text>
                 </View>
-                <Text style={styles.infoText}>{patientData.doctor_name}</Text>
               </View>
             )}
             {patientData?.patient_address1 && (
@@ -360,11 +383,134 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Consultations Section - Modified to always show */}
+        <View style={styles.card}>
+          <View style={styles.sectionHeaderContainer}>
+            <Text style={styles.sectionTitle}>Consultations</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() =>
+                navigation.navigate('CreateConsultation', {
+                  patientId: patientId,
+                })
+              }>
+              <MaterialIcons name="add" size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          {patientData?.consultations &&
+          patientData.consultations.length > 0 ? (
+            <>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                pagingEnabled
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                style={styles.horizontalScrollView}
+                contentContainerStyle={styles.horizontalScrollContent}>
+                {patientData.consultations
+                  .slice()
+                  .reverse()
+                  .map(consultation => (
+                    <View
+                      key={consultation._id}
+                      style={styles.consultationItemContainer}>
+                      <View style={styles.consultationItem}>
+                        <View style={styles.consultationHeader}>
+                          <View style={styles.consultationHeaderLeft}>
+                            <View style={styles.consultationIconContainer}>
+                              <MaterialIcons
+                                name="medical-services"
+                                size={20}
+                                color="#119FB3"
+                              />
+                            </View>
+                            <View>
+                              <Text style={styles.consultationCause}>
+                                {consultation.causes}
+                              </Text>
+                              <Text style={styles.consultationDatetime}>
+                              {formatDate(consultation.consultationDate)} •{' '}
+                              {consultation.consultationTime}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+
+                        <View style={styles.consultationDetails}>
+                          <View style={styles.consultationDetailRow}>
+                            <Text style={styles.consultationDetailLabel}>
+                              Doctor:
+                            </Text>
+                            <Text style={styles.consultationDetailValue}>
+                              {consultation.doctorName}
+                            </Text>
+                          </View>
+
+                          <View style={styles.consultationDetailRow}>
+                            <Text style={styles.consultationDetailLabel}>
+                              Symptoms:
+                            </Text>
+                            <Text style={styles.consultationDetailValue}>
+                              {consultation.patientSymptoms}
+                            </Text>
+                          </View>
+
+                          <View style={styles.consultationDetailRow}>
+                            <Text style={styles.consultationDetailLabel}>
+                              Notes:
+                            </Text>
+                            <Text style={styles.consultationDetailValue}>
+                              {consultation.notes}
+                            </Text>
+                          </View>
+
+                          <View style={styles.consultationDetailRow}>
+                            <Text style={styles.consultationDetailLabel}>
+                              Results:
+                            </Text>
+                            <Text style={styles.consultationDetailValue}>
+                              {consultation.results}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+              </ScrollView>
+
+              {/* Indicator dots */}
+              <View style={styles.dotsContainer}>
+                {patientData.consultations
+                  .slice()
+                  .reverse()
+                  .map((consultation, index) => (
+                    <View
+                      key={`dot-${consultation._id}`}
+                      style={[
+                        styles.dot,
+                        currentConsultationIndex === index && styles.activeDot,
+                      ]}
+                    />
+                  ))}
+              </View>
+            </>
+          ) : (
+            <View style={styles.noConsultationsContainer}>
+              <Text style={styles.noConsultationsText}>
+                No consultations yet
+              </Text>
+            </View>
+          )}
+        </View>
         {isRefreshing && (
           <View style={styles.refreshLoadingContainer}>
             <ActivityIndicator size="small" color="black" />
           </View>
         )}
+
         {/* Therapy Plans Card */}
         {patientData?.therapy_plans && patientData.therapy_plans.length > 0 && (
           <View style={styles.card}>
@@ -439,6 +585,83 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
+    consultationButtonContainer: {
+      paddingLeft: '35%',
+      marginBottom: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    // Add these styles to your getStyles function
+    noConsultationsContainer: {
+      padding: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 8,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: 'rgba(17, 159, 179, 0.3)',
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgba(245, 250, 255, 0.5)'
+          : 'rgba(17, 159, 179, 0.05)',
+    },
+    noConsultationsText: {
+      fontSize: 14,
+      color: theme.colors.text + '99',
+      margin: 5,
+    },
+    addFirstConsultationButton: {
+      backgroundColor: '#119FB3',
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+    },
+    addFirstConsultationText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    consultationButton: {
+      backgroundColor: '#007b8e',
+      borderRadius: 15,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      alignSelf: 'flex-start',
+    },
+    consultationButtonText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    dotsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 15,
+    },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: '#CCCCCC',
+      marginHorizontal: 4,
+    },
+    activeDot: {
+      backgroundColor: '#119FB3',
+    },
+    horizontalScrollView: {
+      marginHorizontal: -16, // Counteract card padding
+    },
+    horizontalScrollContent: {
+      paddingHorizontal: 16, // Re-add padding for content
+    },
+    consultationItemContainer: {
+      width: Dimensions.get('window').width - 32, // Full width minus card padding
+      paddingRight: 35, // Spacing between items
+    },
     therapyPlanDetails: {
       flexDirection: 'column',
     },
@@ -566,7 +789,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     quickActionsContainer: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'space-around',
     },
     quickActionButton: {
       alignItems: 'center',
@@ -607,8 +830,83 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: theme.colors.text,
     },
 
-     // New Skeleton Loader Styles
-     skeletonNameLine: {
+    // Consultations Styles - NEW
+    sectionHeaderContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    addButton: {
+      backgroundColor: '#119FB3',
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    consultationItem: {
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgb(245, 250, 255)'
+          : 'rgba(17, 159, 179, 0.1)',
+      borderRadius: 8,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: '#119FB3',
+      width: '100%',
+    },
+    consultationHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    consultationHeaderLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    consultationIconContainer: {
+      backgroundColor: 'rgba(17, 159, 179, 0.1)',
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    consultationCause: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.text,
+    },
+    consultationDatetime: {
+      fontSize: 12,
+      color: theme.colors.text + '99',
+      marginTop: 2,
+    },
+    consultationDetails: {
+      marginTop: 12,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: 'rgba(17, 159, 179, 0.2)',
+    },
+    consultationDetailRow: {
+      flexDirection: 'row',
+      marginBottom: 8,
+    },
+    consultationDetailLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.text,
+      width: 60,
+    },
+    consultationDetailValue: {
+      fontSize: 14,
+      color: theme.colors.text,
+      flex: 1,
+    },
+    // Skeleton styles
+    skeletonNameLine: {
       height: 30,
       width: '60%',
       backgroundColor: '#E1E9EE',
@@ -642,6 +940,11 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     skeletonTherapyPlan: {
       height: 150,
+      backgroundColor: '#E1E9EE',
+      borderRadius: 8,
+    },
+    skeletonConsultation: {
+      height: 120,
       backgroundColor: '#E1E9EE',
       borderRadius: 8,
     },

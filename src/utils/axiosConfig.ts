@@ -12,8 +12,8 @@ NetInfo.addEventListener(state => {
 });
 
 const instance = axios.create({
-  baseURL: 'https://healtrack.azurewebsites.net/',
-  //baseURL: 'http://192.168.31.74:5000',3
+  //baseURL: 'https://healtrack.azurewebsites.net/',
+  baseURL: 'http://192.168.31.74:5000',
   //baseURL: 'https://healtrackapp-production-b2ab.up.railway.app',
   headers: {
     'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ instance.interceptors.request.use(
     }
 
     if (idToken) {
-     // console.log(idToken)
+     //console.log(idToken)
       config.headers['Authorization'] = `Bearer ${idToken}`;
     }
 

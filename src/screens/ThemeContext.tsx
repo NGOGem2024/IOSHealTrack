@@ -10,6 +10,7 @@ import {useColorScheme} from 'react-native';
 type ThemeName = 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark';
 
 interface ThemeColors {
+  mainColor: string | undefined;
   primary: string;
   background: string;
   card: string;
@@ -40,7 +41,8 @@ const lightTheme: Theme = {
     text: '#000000',
     border: '#E0E0E0',
     notification: '#FF0000',
-    box:'#F5F7FA'
+    box:'#F5F7FA',
+    mainColor: '#007b8e'
   },
 };
 
@@ -53,8 +55,8 @@ const darkTheme: Theme = {
     text: '#FFFFFF',
     border: '#2C2C2C',
     notification: '#FF6B6B',
-    box:'#1d2229'
-
+    box:'#1d2229',
+    mainColor: '#007b8e'
   },
 };
 
@@ -68,7 +70,8 @@ const purpleTheme: Theme = {
     text: '#4B0082',
     border: '#D8BFD8',
     notification: '#FF1493',
-    box:'#F5F7FA'
+    box:'#F5F7FA',
+    mainColor: '#007b8e'
   },
 };
 

@@ -38,6 +38,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import {TouchableOpacity} from 'react-native';
 import OrganizationSettingsScreen from './src/screens/OrganizationSettingsScreen';
 import AdminReport from './src/screens/AdminReport';
+import CreateConsultationScreen from './src/screens/CreateConsultationScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -155,12 +156,16 @@ const HomeStackNavigator = () => (
       component={OrganizationSettingsScreen}
       options={{headerShown: false}}
     />
-     <Stack.Screen
+    <Stack.Screen
       name="AdminReport"
       component={AdminReport}
       options={{headerShown: false}}
     />
-
+    <Stack.Screen
+      name="CreateConsultation"
+      component={CreateConsultationScreen}
+      options={{headerShown: false}}
+    />
   </Stack.Navigator>
 );
 
@@ -181,33 +186,32 @@ const TabNavigator = () => (
       },
       tabBarHideOnKeyboard: true,
     }}>
-   
-<Tab.Screen
-  name="HomeStackNavigator"
-  component={HomeStackNavigator}
-  options={({navigation}) => ({
-    headerShown: false,
-    tabBarIcon: ({color, size}) => (
-      <Icon name="home-outline" color={color} size={size} />
-    ),
-    tabBarButton: props => (
-      <TouchableOpacity
-        {...props}
-        onPress={() => {
-          // If we're already on the HomeStack, navigate to DoctorDashboard
-          // and pass params to trigger scroll to top
-          navigation.navigate('HomeStackNavigator', {
-            screen: 'DoctorDashboard',
-            params: {
-              scrollToTop: true,
-              timestamp: Date.now(), // Force re-render
-            },
-          });
-        }}
-      />
-    ),
-  })}
-/>
+    <Tab.Screen
+      name="HomeStackNavigator"
+      component={HomeStackNavigator}
+      options={({navigation}) => ({
+        headerShown: false,
+        tabBarIcon: ({color, size}) => (
+          <Icon name="home-outline" color={color} size={size} />
+        ),
+        tabBarButton: props => (
+          <TouchableOpacity
+            {...props}
+            onPress={() => {
+              // If we're already on the HomeStack, navigate to DoctorDashboard
+              // and pass params to trigger scroll to top
+              navigation.navigate('HomeStackNavigator', {
+                screen: 'DoctorDashboard',
+                params: {
+                  scrollToTop: true,
+                  timestamp: Date.now(), // Force re-render
+                },
+              });
+            }}
+          />
+        ),
+      })}
+    />
     <Tab.Screen
       name="AllAppointments"
       component={AllAppointmentsPage}

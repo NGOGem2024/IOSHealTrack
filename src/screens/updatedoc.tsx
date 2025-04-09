@@ -294,6 +294,9 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     setIsSaving(true);
   
     try {
+       // Capitalize the first letter of status
+    const capitalizedStatus = profileInfo.status.charAt(0).toUpperCase() + profileInfo.status.slice(1);
+
       const response = await axiosInstance.put(
         `/doctor/update/${profileInfo._id}`,
         {
@@ -303,7 +306,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           doctor_email: profileInfo.doctor_email,
           doctor_phone: fullPhone, // Save the combined phone number
           is_admin: profileInfo.is_admin,
-          status: profileInfo.status,
+          status: capitalizedStatus,
         },
         {
           headers: {

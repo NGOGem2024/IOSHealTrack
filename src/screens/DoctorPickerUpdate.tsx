@@ -119,7 +119,7 @@ const DoctorPicker = memo<DoctorPickerProps>(
           ]}
           onPress={() => setModalVisible(true)}
           disabled={isLoading}>
-          <Icon name="person" size={24} color={currentColors.primary} />
+          <Icon name="medical-services" size={24} color={currentColors.primary} />
           <Text style={[styles.selectedText, {color: currentColors.text}]}>
             {selectedDoctor
               ? `${selectedDoctor.doctor_first_name} ${selectedDoctor.doctor_last_name}`

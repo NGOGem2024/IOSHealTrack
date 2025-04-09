@@ -268,47 +268,49 @@ const EditTherapy: React.FC<EditTherapyProps> = ({
     };
     return date.toLocaleDateString('en-US', options);
   };
-  const renderIOSPicker = (
-    isVisible: boolean,
-    onClose: () => void,
-    onSelect: (value: string) => void,
-    selectedValue: string | undefined,
-    items: PickerItem[],
-    title: string,
-  ) => {
-    return (
-      <Modal visible={isVisible} transparent={true} animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.pickerContainer}>
-            <View style={styles.pickerHeader}>
-              <Text style={styles.pickerTitle}>{title}</Text>
-              <TouchableOpacity onPress={onClose} style={styles.doneButton}>
-                <Text style={styles.doneButtonText}>Done</Text>
-              </TouchableOpacity>
-            </View>
-            <Picker
-              selectedValue={selectedValue ?? ''}
-              onValueChange={(itemValue: string) => {
-                if (itemValue !== '') {
-                  onSelect(itemValue);
-                  onClose();
-                }
-              }}
-              style={styles.iosPicker}>
-              <Picker.Item label={`Select a ${title.toLowerCase()}`} value="" />
-              {items.map(item => (
-                <Picker.Item
-                  key={item._id}
-                  label={item.label}
-                  value={item._id}
-                />
-              ))}
-            </Picker>
-          </View>
+  // Updated renderIOSPicker function
+const renderIOSPicker = (
+  isVisible: boolean,
+  onClose: () => void,
+  onSelect: (value: string) => void,
+  selectedValue: string | undefined,
+  items: PickerItem[],
+  title: string,
+  isDoctorPicker?: boolean // New parameter to identify doctor picker
+) => {
+  return (
+    <Modal visible={isVisible} transparent={true} animationType="slide">
+      <View style={styles.modalContainer}>
+        <View style={styles.pickerContainer}>
+          {/* ... existing header ... */}
+          <Picker
+            selectedValue={selectedValue ?? ''}
+            onValueChange={(itemValue: string) => {
+              if (itemValue !== '') {
+                onSelect(itemValue);
+                onClose();
+              }
+            }}
+            style={styles.iosPicker}>
+            <Picker.Item 
+              label={`Select a ${title.toLowerCase()}`} 
+              value="" 
+              color="#007b8e"  // Only this line changes
+            />
+            {items.map(item => (
+              <Picker.Item
+                key={item._id}
+                label={item.label}
+                value={item._id}
+                color={isDarkMode ? "#FFFFFF" : "#000000"}
+              />
+            ))}
+          </Picker>
         </View>
-      </Modal>
-    );
-  };
+      </View>
+    </Modal>
+  );
+};
   const handleAppointmentTypeChange = (type: string) => {
     setAppointmentType(type);
     setShowLiveSwitchLogin(type === 'Liveswitch' && !hasLiveSwitchAccess);
@@ -318,7 +320,7 @@ const EditTherapy: React.FC<EditTherapyProps> = ({
       const doctorName = selectedDoctor
         ? `${selectedDoctor.doctor_first_name} ${selectedDoctor.doctor_last_name}`
         : undefined;
-
+  
       return (
         <>
           {renderPickerField(
@@ -341,33 +343,41 @@ const EditTherapy: React.FC<EditTherapyProps> = ({
               label: `${doctor.doctor_first_name} ${doctor.doctor_last_name}`,
             })),
             'Doctor',
+            true // Add this parameter to indicate it's the doctor picker
           )}
         </>
       );
     }
-
+  
     return (
       <Picker
-        selectedValue={selectedDoctor?._id ?? ''}
-        onValueChange={(itemValue: string) => {
-          if (itemValue !== '') {
-            setSelectedDoctor(doctors.find(d => d._id === itemValue) || null);
-            setAvailableSlots([]);
-            setSelectedSlot(null);
-          }
-        }}
-        style={styles.picker}>
-        <Picker.Item label="Select a doctor" value="" />
-        {doctors.map(doctor => (
-          <Picker.Item
-            key={doctor._id}
-            label={`${doctor.doctor_first_name} ${doctor.doctor_last_name}`}
-            value={doctor._id}
-          />
-        ))}
-      </Picker>
+  selectedValue={selectedDoctor?._id ?? ''}
+  onValueChange={(itemValue: string) => {
+    if (itemValue !== '') {
+      setSelectedDoctor(doctors.find(d => d._id === itemValue) || null);
+      setAvailableSlots([]);
+      setSelectedSlot(null);
+    }
+  }}
+  style={styles.picker}>
+  <Picker.Item 
+    label="Select a doctor" 
+    value="" 
+    color="#007b8e"  // Only this line changes
+    style={styles.placeholderItem}
+  />
+  {doctors.map(doctor => (
+    <Picker.Item
+      key={doctor._id}
+      label={`${doctor.doctor_first_name} ${doctor.doctor_last_name}`}
+      value={doctor._id}
+      color={isDarkMode ? "#FFFFFF" : "#000000"} // Explicit default colors
+    />
+  ))}
+</Picker>
     );
   };
+  
   const handleLiveSwitchLoginSuccess = async () => {
     await checkLiveSwitchAccess();
     showSuccessToast('Signed in with LiveSwitch successfully');
@@ -859,6 +869,9 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
   picker: {
     backgroundColor: isDarkMode ? '#1e1e1e' : '#F8F9FA',
     color: isDarkMode ? '#F8F9FA' : '#333333',
+  },
+  placeholderItem: {
+    color: '#007b8e', // This will only affect the placeholder text
   },
 });
 

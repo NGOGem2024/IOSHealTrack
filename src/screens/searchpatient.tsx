@@ -19,6 +19,8 @@ import {useSession} from '../context/SessionContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
+import { useTheme } from './ThemeContext';
+import { getTheme } from './Theme';
 
 interface Patient {
   _id: string;
@@ -39,6 +41,12 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
   const [hasSearched, setHasSearched] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const {theme} = useTheme();
+    const styles = getStyles(
+      getTheme(
+        theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+      )
+    );
 
   const {session} = useSession();
 
@@ -189,7 +197,7 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: 'black',
@@ -221,19 +229,21 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   patientItem: {
-    backgroundColor: '#FFFFFF',
-    padding: 10,
+    backgroundColor: theme.colors.card,
+    padding: 15,
     borderRadius: 5,
     marginBottom: 10,
+    marginLeft:5,
+    marginRight: 5
   },
   patientName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000000',
+    color: theme.colors.text,
   },
   patientDetails: {
     fontSize: 14,
-    color: '#666666',
+    color: theme.colors.text,
   },
   noResultsContainer: {
     flex: 1,

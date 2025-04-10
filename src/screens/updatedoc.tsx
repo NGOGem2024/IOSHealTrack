@@ -194,7 +194,10 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           },
         },
       );
-      setProfileInfo(response.data);
+      setProfileInfo({
+        ...response.data,
+        status: response.data.status.toLowerCase()
+      });
       setOriginalProfileInfo(response.data);
     } catch (error) {
       handleError(error);

@@ -1,5 +1,3 @@
-// doctor dashboard 
-
 import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
@@ -628,7 +626,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       alignItems: 'flex-end',
     },
     dropdown: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.card,
       height: '40%', // Changed to 100% to accommodate all items
       padding: 0,
       shadowColor: '#000',
@@ -646,7 +644,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       alignItems: 'center',
       paddingHorizontal: 10,
       paddingVertical: 10,
-      backgroundColor: '#F8F8F8',
+      backgroundColor: theme.colors.card,
     },
     drawerTitle: {
       fontSize: 18,
@@ -666,7 +664,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     drawerItemText: {
       fontSize: 16,
-      color: '#333333',
+      color: theme.colors.text,
       marginLeft: 16,
     },
     logoutItem: {

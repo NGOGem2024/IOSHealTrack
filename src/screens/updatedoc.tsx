@@ -522,7 +522,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       padding: 12,
       fontSize: 16,
       color: theme.colors.text,
-      marginLeft: 0,
+      marginLeft: -5,
     },
     input: {
       backgroundColor: theme.colors.card,

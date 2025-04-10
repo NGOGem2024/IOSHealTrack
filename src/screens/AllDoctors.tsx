@@ -324,7 +324,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     container: {
       flex: 1,
-      padding: 16,
+     paddingLeft: 16,
+     paddingRight: 16,
       backgroundColor: '#007B8E',
     },
     backgroundImage: {
@@ -354,7 +355,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: theme.colors.card,
       borderRadius: 8,
       padding: 10,
-      marginBottom: 10,
+      marginTop: 5,
+      marginBottom:5,
       elevation: 4,
       shadowColor: '#000000',
       shadowOffset: {

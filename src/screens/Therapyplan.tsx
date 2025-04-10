@@ -26,8 +26,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useSession} from '../context/SessionContext';
-import { useTheme } from './ThemeContext';
-import { getTheme } from './Theme';
+import {useTheme} from './ThemeContext';
+import {getTheme} from './Theme';
 
 type CreateTherapyPlanProps = NativeStackScreenProps<
   RootStackParamList,
@@ -82,12 +82,12 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-const {theme} = useTheme();
-const styles = getStyles(
-  getTheme(
-    theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
-  ),
-);
+  const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(-100));
 
@@ -103,26 +103,26 @@ const styles = getStyles(
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-// Add this useEffect
-useEffect(() => {
-  const keyboardDidShowListener = Keyboard.addListener(
-    'keyboardDidShow',
-    () => {
-      setKeyboardVisible(true);
-    }
-  );
-  const keyboardDidHideListener = Keyboard.addListener(
-    'keyboardDidHide', // Corrected event name
-    () => {
-      setKeyboardVisible(false);
-    }
-  );
+  // Add this useEffect
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      },
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide', // Corrected event name
+      () => {
+        setKeyboardVisible(false);
+      },
+    );
 
-  return () => {
-    keyboardDidShowListener.remove();
-    keyboardDidHideListener.remove();
-  };
-}, []);
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
   useEffect(() => {
     Animated.parallel([
@@ -159,11 +159,11 @@ useEffect(() => {
       // Get today's date at midnight to compare only the date, not time
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       // Check if selected date is today or in the future
       if (selectedDate >= today) {
         setStartDate(selectedDate);
-        
+
         // Automatically adjust end date if it's before the new start date
         if (endDate < selectedDate) {
           // Set end date to 7 days after start date by default
@@ -174,8 +174,8 @@ useEffect(() => {
       } else {
         // Show an alert if a past date is selected
         Alert.alert(
-          'Invalid Date', 
-          'Please select today or a future date for the start of therapy.'
+          'Invalid Date',
+          'Please select today or a future date for the start of therapy.',
         );
       }
     }
@@ -210,8 +210,8 @@ useEffect(() => {
       } else {
         // Show an alert if a past date is selected
         Alert.alert(
-          'Invalid Date', 
-          'End date cannot be before the start date. Please select a date on or after the start date.'
+          'Invalid Date',
+          'End date cannot be before the start date. Please select a date on or after the start date.',
         );
       }
     }
@@ -337,53 +337,53 @@ useEffect(() => {
       setIsLoading(false);
     }
   };
-  
-const InputField: React.FC<InputFieldProps> = ({
-  icon,
-  placeholder,
-  value,
-  onChangeText,
-}) => (
-  <View style={styles.inputContainer}>
-    {icon}
-    <TextInput
-      style={styles.input}
-      placeholder={placeholder}
-      value={value}
-      onChangeText={onChangeText}
-      placeholderTextColor="#A0A0A0"
-    />
-  </View>
-);
 
-const DatePickerField: React.FC<DatePickerFieldProps> = ({
-  label,
-  date,
-  showDatePicker,
-  onPress,
-  onChange,
-  isDarkMode,
-}) => (
-  <View style={styles.dateTimeBlock}>
-    <Text style={styles.dateTimeLabel}>{label}</Text>
-    <TouchableOpacity
-      style={[styles.dateTimeContainer, isDarkMode && styles.saveButtonDark1]}
-      onPress={onPress}>
-      <Text style={[styles.dateTimeText, isDarkMode && styles.textDark]}>
-        {date.toLocaleDateString()}
-      </Text>
-      <FontAwesome name="calendar" size={24} color="#119FB3" />
-    </TouchableOpacity>
-    {showDatePicker && (
-      <DateTimePicker
-        value={date}
-        mode="date"
-        display="default"
-        onChange={onChange}
+  const InputField: React.FC<InputFieldProps> = ({
+    icon,
+    placeholder,
+    value,
+    onChangeText,
+  }) => (
+    <View style={styles.inputContainer}>
+      {icon}
+      <TextInput
+        style={styles.input}
+        placeholder={placeholder}
+        value={value}
+        onChangeText={onChangeText}
+        placeholderTextColor="#A0A0A0"
       />
-    )}
-  </View>
-);
+    </View>
+  );
+
+  const DatePickerField: React.FC<DatePickerFieldProps> = ({
+    label,
+    date,
+    showDatePicker,
+    onPress,
+    onChange,
+    isDarkMode,
+  }) => (
+    <View style={styles.dateTimeBlock}>
+      <Text style={styles.dateTimeLabel}>{label}</Text>
+      <TouchableOpacity
+        style={[styles.dateTimeContainer, isDarkMode && styles.saveButtonDark1]}
+        onPress={onPress}>
+        <Text style={[styles.dateTimeText, isDarkMode && styles.textDark]}>
+          {date.toLocaleDateString()}
+        </Text>
+        <FontAwesome name="calendar" size={24} color="#119FB3" />
+      </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="default"
+          onChange={onChange}
+        />
+      )}
+    </View>
+  );
 
   useEffect(() => {
     const total = parseFloat(therapyPlan.total_amount) || 0;
@@ -399,24 +399,29 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
         enableOnAndroid={true}
         enableAutomaticScroll={true}
         keyboardShouldPersistTaps="handled"
-        extraScrollHeight={20}
+        extraScrollHeight={50} // Adjust this value as needed
+        extraHeight={100} // Add this prop
         enableResetScrollToCoords={false}
         scrollEnabled={true}
-        bounces={true}
+        bounces={false} // Changed from true to false
         keyboardOpeningTime={0}
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="never"
         style={[styles.scrollView, isDarkMode && styles.scrollViewDark]}
-        contentContainerStyle={styles.scrollContainer}>
-    <Animated.View
-  style={[
-    styles.container,
-    isDarkMode && styles.containerDark,
-    keyboardVisible && { paddingBottom: 0 }, // Reduce padding when keyboard is visible
-    {
-      opacity: fadeAnim,
-      transform: [{translateY: slideAnim}],
-    },
-  ]}>
+        contentContainerStyle={[
+          styles.scrollContainer,
+          keyboardVisible && {paddingBottom: -30}, // Reduced padding when keyboard is visible
+        ]}>
+        <Animated.View
+          style={[
+            styles.container,
+            isDarkMode && styles.containerDark,
+            keyboardVisible && {paddingBottom: -350}, // Reduce padding when keyboard is visible
+            {
+              opacity: fadeAnim,
+              transform: [{translateY: slideAnim}],
+            },
+          ]}>
           <Text style={[styles.title, isDarkMode && styles.titleDark]}>
             Create Therapy Plan
           </Text>
@@ -744,7 +749,11 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
           )}
 
           <TouchableOpacity
-            style={[styles.saveButton, isDarkMode && styles.saveButtonDark]}
+            style={[
+              styles.saveButton,
+              isDarkMode && styles.saveButtonDark,
+              keyboardVisible && {marginTop: 5, marginBottom: -250}, // Dynamic adjustment
+            ]}
             onPress={handleCreateTherapyPlan}
             disabled={isLoading}>
             {isLoading ? (
@@ -757,249 +766,248 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
       </KeyboardAwareScrollView>
     </SafeAreaView>
   );
-  
 };
 
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
+  StyleSheet.create({
+    saveButtonDark1: {
+      backgroundColor: '#333333',
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: 'black',
+    },
+    scrollView: {
+      flex: 1,
+      backgroundColor: '#F0F8FF',
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      paddingBottom: 20,
+    },
+    scrollViewDark: {
+      backgroundColor: '#1A1A1A',
+    },
+    containerDark: {
+      backgroundColor: '#1A1A1A',
+    },
+    titleDark: {
+      color: '#66D9E8',
+    },
+    inputContainerDark: {
+      backgroundColor: '#333333',
+      borderColor: '#404040',
+    },
+    inputDark: {
+      color: '#FFFFFF',
+    },
+    textDark: {
+      color: '#FFFFFF',
+    },
+    labelDark: {
+      color: '#66D9E8',
+    },
+    dateTimeContainerDark: {
+      backgroundColor: '#333333',
+    },
+    durationContainerDark: {
+      backgroundColor: '#333333',
+    },
+    radioButtonDark: {
+      backgroundColor: '#333333',
+    },
+    radioButtonSelectedDark: {
+      backgroundColor: '#404040',
+      borderColor: '#66D9E8',
+    },
+    balanceContainerDark: {
+      backgroundColor: '#333333',
+    },
+    saveButtonDark: {
+      backgroundColor: '#007B8E',
+    },
+    balanceContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 20,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      elevation: 2,
+    },
+    balanceValue: {
+      fontSize: 16,
+      marginLeft: 10,
+      color: '#333333',
+      fontWeight: 'bold',
+    },
+    dateTimeRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 20,
+    },
+    dateTimeBlock: {
+      flex: 1,
+      marginHorizontal: 2,
+    },
+    dateTimeLabel: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#119FB3',
+      marginBottom: 5,
+    },
+    dateTimeContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      elevation: 2,
+    },
+    dateTimeText: {
+      fontSize: 16,
+      color: '#333333',
+    },
+    durationContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 20,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      elevation: 2,
+    },
+    durationValue: {
+      fontSize: 16,
+      marginLeft: 10,
+      color: '#333333',
+    },
+    labeledInputContainer: {
+      marginBottom: 0,
+    },
+    inputLabel: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#119FB3',
+      marginBottom: 5,
+    },
+    saveButton: {
+      backgroundColor: '#007B8E',
+      paddingVertical: 12,
+      borderRadius: 10,
+      width: '100%',
+      maxWidth: 300,
+      alignItems: 'center',
+      alignSelf: 'center',
+      marginTop: 20,
+    },
+    saveButtonText: {
+      color: '#FFFFFF',
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    errorText: {
+      color: '#FF6B6B',
+      textAlign: 'center',
+      marginBottom: 10,
+    },
+    paymentTypeContainer: {
+      marginBottom: 20,
+      width: '100%',
+    },
+    radioGroup: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 10,
+    },
+    radioButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: 10,
+      padding: 10,
+      flex: 0.49,
+      elevation: 2,
+    },
+    radioButtonSelected: {
+      backgroundColor: '#E6F7F9',
+      borderColor: '#119FB3',
+      borderWidth: 1,
+    },
+    radio: {
+      height: 20,
+      width: 20,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: '#119FB3',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 10,
+    },
+    radioSelected: {
+      height: 10,
+      width: 10,
+      borderRadius: 5,
+      backgroundColor: '#119FB3',
+    },
+    radioLabel: {
+      fontSize: 13,
+      color: '#333333',
+    },
 
-const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
-  saveButtonDark1: {
-    backgroundColor: '#333333',
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'black',
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: '#F0F8FF',
-  },
-  scrollContainer: {
-   // flexGrow: 1,
-    paddingBottom: 20,
-  },
-  scrollViewDark: {
-    backgroundColor: '#1A1A1A',
-  },
-  containerDark: {
-    backgroundColor: '#1A1A1A',
-  },
-  titleDark: {
-    color: '#66D9E8',
-  },
-  inputContainerDark: {
-    backgroundColor: '#333333',
-    borderColor: '#404040',
-  },
-  inputDark: {
-    color: '#FFFFFF',
-  },
-  textDark: {
-    color: '#FFFFFF',
-  },
-  labelDark: {
-    color: '#66D9E8',
-  },
-  dateTimeContainerDark: {
-    backgroundColor: '#333333',
-  },
-  durationContainerDark: {
-    backgroundColor: '#333333',
-  },
-  radioButtonDark: {
-    backgroundColor: '#333333',
-  },
-  radioButtonSelectedDark: {
-    backgroundColor: '#404040',
-    borderColor: '#66D9E8',
-  },
-  balanceContainerDark: {
-    backgroundColor: '#333333',
-  },
-  saveButtonDark: {
-    backgroundColor: '#007B8E',
-  },
-  balanceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    elevation: 2,
-  },
-  balanceValue: {
-    fontSize: 16,
-    marginLeft: 10,
-    color: '#333333',
-    fontWeight: 'bold',
-  },
-  dateTimeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  dateTimeBlock: {
-    flex: 1,
-    marginHorizontal: 2,
-  },
-  dateTimeLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#119FB3',
-    marginBottom: 5,
-  },
-  dateTimeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    elevation: 2,
-  },
-  dateTimeText: {
-    fontSize: 16,
-    color: '#333333',
-  },
-  durationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    elevation: 2,
-  },
-  durationValue: {
-    fontSize: 16,
-    marginLeft: 10,
-    color: '#333333',
-  },
-  labeledInputContainer: {
-    marginBottom: 0,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#119FB3',
-    marginBottom: 5,
-  },
-  saveButton: {
-    backgroundColor: '#007B8E',
-    paddingVertical: 12,
-    borderRadius: 10,
-    width: '100%',
-    maxWidth: 300,
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginTop: 20,
-  },
-  saveButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  errorText: {
-    color: '#FF6B6B',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  paymentTypeContainer: {
-    marginBottom: 20,
-    width: '100%',
-  },
-  radioGroup: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  radioButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    padding: 10,
-    flex: 0.49,
-    elevation: 2,
-  },
-  radioButtonSelected: {
-    backgroundColor: '#E6F7F9',
-    borderColor: '#119FB3',
-    borderWidth: 1,
-  },
-  radio: {
-    height: 20,
-    width: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#119FB3',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  radioSelected: {
-    height: 10,
-    width: 10,
-    borderRadius: 5,
-    backgroundColor: '#119FB3',
-  },
-  radioLabel: {
-    fontSize: 13 ,
-    color: '#333333',
-  },
-
-  container: {
-    flex: 1,
-    paddingHorizontal: '5%',
-    paddingVertical: 30,
-    backgroundColor: '#F0F8FF',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#119FB3',
-    textAlign: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    elevation: 2,
-  },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    color:theme.colors.text ,
-    fontSize: 16,
-    paddingVertical: 12,
-  },
-  picker: {
-    flex: 1,
-    marginLeft: 10,
-    color: '#333333',
-  },
-  sessionInfoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E6F7F9',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 20,
-  },
-  sessionInfoText: {
-    marginLeft: 10,
-    fontSize: 16,
-    color: '#333333',
-    lineHeight: 24,
-  },
-});
+    container: {
+      flex: 1,
+      paddingHorizontal: '5%',
+      paddingVertical: 30,
+      backgroundColor: '#F0F8FF',
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: '#119FB3',
+      textAlign: 'center',
+      marginBottom: 20,
+      paddingHorizontal: 10,
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      marginBottom: 20,
+      elevation: 2,
+    },
+    input: {
+      flex: 1,
+      marginLeft: 10,
+      color: theme.colors.text,
+      fontSize: 16,
+      paddingVertical: 12,
+    },
+    picker: {
+      flex: 1,
+      marginLeft: 10,
+      color: '#333333',
+    },
+    sessionInfoContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#E6F7F9',
+      borderRadius: 10,
+      padding: 15,
+      marginBottom: 20,
+    },
+    sessionInfoText: {
+      marginLeft: 10,
+      fontSize: 16,
+      color: '#333333',
+      lineHeight: 24,
+    },
+  });
 
 export default CreateTherapyPlan;

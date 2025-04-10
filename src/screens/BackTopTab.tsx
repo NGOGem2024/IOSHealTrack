@@ -168,7 +168,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       borderTopWidth: 1,
     },
     dropdown: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.card,
       maxHeight: 320,
       minHeight: 50,
       padding: 0,
@@ -187,7 +187,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       alignItems: 'center',
       paddingHorizontal: 10,
       paddingVertical: 10,
-      backgroundColor: '#F8F8F8',
+      backgroundColor: theme.colors.card,
     },
     drawerTitle: {
       fontSize: 18,
@@ -207,7 +207,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     drawerItemText: {
       fontSize: 16,
-      color: '#333333',
+      color: theme.colors.text,
       marginLeft: 16,
     },
     logoutItem: {

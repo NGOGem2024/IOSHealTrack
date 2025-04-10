@@ -84,11 +84,11 @@ const TherapySessionsList: React.FC = () => {
       case 'Completed':
         return '#4CAF50';
       case 'Scheduled':
-        return '#2196F3';
+        return '#f48c36';
       case 'Cancelled':
         return '#F44336';
       default:
-        return '#9E9E9E';
+        return '#4caf4f';
     }
   };
 
@@ -96,6 +96,70 @@ const TherapySessionsList: React.FC = () => {
     if (link) {
       Linking.openURL(link).catch(err => handleError(err));
     }
+  };
+
+  const renderSkeletonLoader = () => {
+    const isDarkTheme = theme.name === 'dark';
+    const skeletonBaseColor = isDarkTheme ? '#2a2a2a' : '#e1e1e1';
+    const skeletonHighlightColor = isDarkTheme ? '#3a3a3a' : '#f0f0f0';
+  
+    const skeletonStyles = StyleSheet.create({
+      container: {
+        flex: 1,
+      },
+      card: {
+        backgroundColor: skeletonBaseColor,
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+      },
+      header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+      },
+      dateContainer: {
+        height: 40,
+        width: '60%',
+        backgroundColor: skeletonHighlightColor,
+        borderRadius: 6,
+      },
+      status: {
+        height: 24,
+        width: 80,
+        backgroundColor: skeletonHighlightColor,
+        borderRadius: 12,
+      },
+      infoRow: {
+        height: 20,
+        backgroundColor: skeletonHighlightColor,
+        borderRadius: 4,
+        marginBottom: 12,
+        width: '80%',
+      },
+      button: {
+        height: 44,
+        backgroundColor: skeletonHighlightColor,
+        borderRadius: 8,
+        marginTop: 16,
+      },
+    });
+  
+    return (
+      <View style={skeletonStyles.container}>
+        {[...Array(3)].map((_, index) => (
+          <View key={index} style={skeletonStyles.card}>
+            <View style={skeletonStyles.header}>
+              <View style={skeletonStyles.dateContainer} />
+              <View style={skeletonStyles.status} />
+            </View>
+            <View style={skeletonStyles.infoRow} />
+            <View style={skeletonStyles.infoRow} />
+            <View style={skeletonStyles.button} />
+          </View>
+        ))}
+      </View>
+    );
   };
 
   const renderSessionCard = (session: TherapySession) => (
@@ -118,10 +182,10 @@ const TherapySessionsList: React.FC = () => {
 
       <View style={styles.sessionInfo}>
         <View style={styles.infoRow}>
-        <FontAwesome 
+          <FontAwesome 
             name="user-md"
             size={20}
-            color={theme.colors.text}
+            color="#007b8e"
           />
           <Text style={styles.infoText}>{session.doctor_name}</Text>
         </View>
@@ -129,7 +193,7 @@ const TherapySessionsList: React.FC = () => {
           <MaterialCommunityIcons
             name="calendar"
             size={20}
-            color={theme.colors.text}
+            color="#007b8e"
           />
           <Text style={styles.infoText}>{session.therepy_type}</Text>
         </View>
@@ -145,19 +209,13 @@ const TherapySessionsList: React.FC = () => {
     </View>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackTabTop screenName="Therapy Sessions" />
       <View style={styles.container}>
-        {sessions.length > 0 ? (
+        {loading ? (
+          renderSkeletonLoader()
+        ) : sessions.length > 0 ? (
           <ScrollView showsVerticalScrollIndicator={false}>
             {sessions.map(renderSessionCard)}
           </ScrollView>

@@ -542,10 +542,10 @@ const TherapyPlanDetails: React.FC = () => {
                         style={[
                           styles.statusBadge,
                           {
-                            backgroundColor:
-                              session.status === 'Completed'
-                                ? '#4CAF50'
-                                : '#FFA726',
+                            backgroundColor: 
+                            session.status === 'Completed' ? '#4caf4f' : 
+                            session.status === 'Scheduled' ? '#f48c36' : 
+                            '#4caf4f',  // Fallback color for any other status
                           },
                         ]}>
                         <Text style={styles.statusText}>{session.status}</Text>

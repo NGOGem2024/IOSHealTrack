@@ -12,8 +12,8 @@ NetInfo.addEventListener(state => {
 });
 
 const instance = axios.create({
-  //baseURL: 'https://healtrack.azurewebsites.net/',
-  baseURL: 'http://192.168.1.24:5000',
+  baseURL: 'https://healtrack.azurewebsites.net/',
+  //baseURL: 'http://192.168.1.24:5000',
   //baseURL: 'https://healtrackapp-production-b2ab.up.railway.app',
   headers: {
     'Content-Type': 'application/json',
@@ -24,7 +24,7 @@ const instance = axios.create({
 
 class NetworkError extends Error {
   isNetworkError: boolean;
-  
+
   constructor(message: string) {
     super(message);
     this.name = 'NetworkError';
@@ -37,7 +37,7 @@ instance.interceptors.request.use(
     if (!isConnected) {
       throw new NetworkError('No internet connection');
     }
-    
+
     const idToken = await AsyncStorage.getItem('userToken');
     const accessToken = await AsyncStorage.getItem('googleAccessToken');
     const liveSwitchToken = await AsyncStorage.getItem('LiveTokens');
@@ -56,7 +56,7 @@ instance.interceptors.request.use(
     }
 
     if (idToken) {
-     // console.log(idToken)
+      // console.log(idToken)
       config.headers['Authorization'] = `Bearer ${idToken}`;
     }
 
@@ -64,7 +64,7 @@ instance.interceptors.request.use(
       config.headers['auth'] = `Bearer ${accessToken}`;
     }
 
-    if (liveSwitchToken ) {
+    if (liveSwitchToken) {
       config.headers['x-liveswitch-token'] = liveSwitchToken;
     }
 
@@ -77,7 +77,7 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   async response => {
-    const newAccessToken = response.headers['newAccessToken']; 
+    const newAccessToken = response.headers['newAccessToken'];
     if (newAccessToken) {
       console.log('here1 :', newAccessToken);
       const {updateAccessToken} = useSession();
@@ -86,11 +86,15 @@ instance.interceptors.response.use(
     return response;
   },
   async error => {
-    if (error.message === 'Network Error' || !error.response || (error instanceof NetworkError && error.isNetworkError)) {
+    if (
+      error.message === 'Network Error' ||
+      !error.response ||
+      (error instanceof NetworkError && error.isNetworkError)
+    ) {
       console.error('Network error occurred:', error);
       return Promise.reject(new NetworkError('No internet connection'));
     }
-    
+
     if (
       error.config &&
       error.response &&

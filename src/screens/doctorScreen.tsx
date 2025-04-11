@@ -203,7 +203,11 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                 size={20}
                 color="#007B8E"
               />
-              <Text style={styles.infoText}>Status: {doctorData?.status}</Text>
+              <Text style={styles.infoText}>
+               Status: {doctorData?.status ? 
+               doctorData.status.charAt(0).toUpperCase() + doctorData.status.slice(1) : 
+              ''}
+              </Text>
             </View>
           </View>
         </View>

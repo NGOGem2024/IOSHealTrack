@@ -133,12 +133,14 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       return validateEmail(value);
     } else if (field === 'doctor_phone') {
       return validatePhone(countryCode + phoneDigits);
+    } else if (field === 'is_admin') {
+      // Boolean fields are always valid
+      return true;
     } else {
       // For text fields, check if they're not empty
-      return value.trim() !== '';
+      return typeof value === 'string' ? value.trim() !== '' : true;
     }
   };
-  
   useEffect(() => {
     if (session.idToken) {
       fetchDoctorInfo();
@@ -194,7 +196,10 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           },
         },
       );
-      setProfileInfo(response.data);
+      setProfileInfo({
+        ...response.data,
+        status: response.data.status.toLowerCase()
+      });
       setOriginalProfileInfo(response.data);
     } catch (error) {
       handleError(error);
@@ -223,13 +228,23 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     if (field === 'doctor_phone') {
       handlePhoneChange(value);
     } else {
+      // For is_admin, ensure value is treated as boolean
+      if (field === 'is_admin') {
+        // Convert string "true"/"false" to actual boolean if needed
+        if (typeof value === 'string') {
+          value = value === 'true';
+        }
+      }
+  
       setProfileInfo(prev => ({...prev, [field]: value}));
       
-      // Validate field and update form errors
-      setFormErrors(prev => ({
-        ...prev,
-        [field]: !validateField(field, value),
-      }));
+      // Validate field and update form errors - skip validation for boolean fields
+      if (field !== 'is_admin') {
+        setFormErrors(prev => ({
+          ...prev,
+          [field]: !validateField(field, value),
+        }));
+      }
       
       if (field === 'doctor_email') {
         validateEmail(value); // Trigger validation on email change
@@ -255,8 +270,8 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       qualification: profileInfo.qualification.trim() === '',
       doctor_email: !validateEmail(profileInfo.doctor_email),
       doctor_phone: !validatePhone(fullPhone),
-      is_admin: false, // These are always valid as they have default values
-      status: false,   // These are always valid as they have default values
+      is_admin: false, // Boolean field, no validation needed
+      status: false,   // This is a string with predefined values, no validation needed
     };
     
     setFormErrors(errors);
@@ -294,6 +309,9 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     setIsSaving(true);
   
     try {
+       // Capitalize the first letter of status
+    const capitalizedStatus = profileInfo.status.charAt(0).toUpperCase() + profileInfo.status.slice(1);
+
       const response = await axiosInstance.put(
         `/doctor/update/${profileInfo._id}`,
         {
@@ -303,7 +321,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           doctor_email: profileInfo.doctor_email,
           doctor_phone: fullPhone, // Save the combined phone number
           is_admin: profileInfo.is_admin,
-          status: profileInfo.status,
+          status: capitalizedStatus,
         },
         {
           headers: {
@@ -519,7 +537,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       padding: 12,
       fontSize: 16,
       color: theme.colors.text,
-      marginLeft: 0,
+      marginLeft: -5,
     },
     input: {
       backgroundColor: theme.colors.card,

@@ -11,6 +11,7 @@ import {
   Appearance,
   useColorScheme,
 } from 'react-native';
+import Icon2 from 'react-native-vector-icons/FontAwesome';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface Doctor {
@@ -119,7 +120,7 @@ const DoctorPicker = memo<DoctorPickerProps>(
           ]}
           onPress={() => setModalVisible(true)}
           disabled={isLoading}>
-          <Icon name="person" size={24} color={currentColors.primary} />
+          <Icon2 name="user-md" size={24} color={currentColors.primary} />
           <Text style={[styles.selectedText, {color: currentColors.text}]}>
             {selectedDoctor
               ? `${selectedDoctor.doctor_first_name} ${selectedDoctor.doctor_last_name}`

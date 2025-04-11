@@ -135,7 +135,7 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
         [field]: field === 'patient_email' ? value.toLowerCase() : value,
       }));
     },
-    []
+    [],
   );
 
   const handleDoctorChange = useCallback(
@@ -149,7 +149,7 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
         }));
       }
     },
-    [doctors]
+    [doctors],
   );
 
   const fetchDoctors = useCallback(async () => {
@@ -168,7 +168,7 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
       const patientInfo = response.data.patientData;
       const formattedPhone = patientInfo.patient_phone.replace(
         /^\+(\d{2})(\d+)/,
-        '+$1 $2'
+        '+$1 $2',
       );
       setPatientData(prevData => ({
         ...prevData,
@@ -215,23 +215,21 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
 
   const handlePatientUpdate = useCallback(async () => {
     if (!validateEmail(patientData.patient_email)) {
-      Alert.alert(
-        'Invalid Email',
-        'Please enter a valid email address.',
-        [{text: 'OK'}]
-      );
+      Alert.alert('Invalid Email', 'Please enter a valid email address.', [
+        {text: 'OK'},
+      ]);
       return;
     }
-  
+
     if (!validatePhone(patientData.patient_phone)) {
       Alert.alert(
         'Invalid Phone Number',
         'Please enter a valid phone number with country code (e.g., +1, +44).',
-        [{text: 'OK'}]
+        [{text: 'OK'}],
       );
       return;
     }
-  
+
     setIsLoading(true);
     try {
       await axiosInstance.post(`/patient/update/${patientId}`, patientData);
@@ -245,7 +243,8 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
   }, [patientData, patientId, navigation]);
 
   return (
-    <SafeAreaView style={[styles.safeArea, {backgroundColor: currentColors.background}]}>
+    <SafeAreaView
+      style={[styles.safeArea, {backgroundColor: currentColors.background}]}>
       <BackTabTop screenName="Patient" />
       <KeyboardAwareScrollView
         style={[styles.scrollView, {backgroundColor: currentColors.background}]}
@@ -254,7 +253,11 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
         contentContainerStyle={styles.scrollContent}
         extraScrollHeight={50}>
         <Animated.View style={[styles.container, {opacity: fadeAnim}]}>
-          <View style={[styles.formContainer, {backgroundColor: currentColors.card}]}>
+          <View
+            style={[
+              styles.formContainer,
+              {backgroundColor: currentColors.card},
+            ]}>
             <View style={styles.headerContainer}>
               <Text style={[styles.title, {color: currentColors.primary}]}>
                 Update Patient Profile
@@ -263,7 +266,14 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
 
             {/* First Name */}
             <View style={styles.inputWrapper}>
-              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: currentColors.inputBorder,
+                    backgroundColor: currentColors.inputBg,
+                  },
+                ]}>
                 <View style={styles.iconContainer}>
                   <Icon name="person" size={24} color={currentColors.primary} />
                 </View>
@@ -271,7 +281,9 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
                   style={[styles.input, {color: currentColors.text}]}
                   placeholder="First Name"
                   value={patientData.patient_first_name}
-                  onChangeText={text => handleTextChange('patient_first_name', text)}
+                  onChangeText={text =>
+                    handleTextChange('patient_first_name', text)
+                  }
                   placeholderTextColor={currentColors.placeholderText}
                 />
               </View>
@@ -279,7 +291,14 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
 
             {/* Last Name */}
             <View style={styles.inputWrapper}>
-              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: currentColors.inputBorder,
+                    backgroundColor: currentColors.inputBg,
+                  },
+                ]}>
                 <View style={styles.iconContainer}>
                   <Icon name="person" size={24} color={currentColors.primary} />
                 </View>
@@ -287,7 +306,9 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
                   style={[styles.input, {color: currentColors.text}]}
                   placeholder="Last Name"
                   value={patientData.patient_last_name}
-                  onChangeText={text => handleTextChange('patient_last_name', text)}
+                  onChangeText={text =>
+                    handleTextChange('patient_last_name', text)
+                  }
                   placeholderTextColor={currentColors.placeholderText}
                 />
               </View>
@@ -295,7 +316,14 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
 
             {/* Email Address */}
             <View style={styles.inputWrapper}>
-              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: currentColors.inputBorder,
+                    backgroundColor: currentColors.inputBg,
+                  },
+                ]}>
                 <View style={styles.iconContainer}>
                   <Icon name="email" size={24} color={currentColors.primary} />
                 </View>
@@ -311,28 +339,40 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
             </View>
 
             {/* Contact Number */}
-<View style={styles.inputWrapper}>
-  <View style={[
-    styles.inputContainer, 
-    {
-      borderColor: phoneError ? currentColors.error : currentColors.inputBorder,
-      backgroundColor: currentColors.inputBg
-    }
-  ]}>
-    <View style={styles.iconContainer}>
-      <Icon name="phone" size={24} color={phoneError ? currentColors.error : currentColors.primary} />
-    </View>
-    <TextInput
-      style={[styles.input, {color: currentColors.text}]}
-      placeholder="Contact Number"
-      value={patientData.patient_phone}
-      onChangeText={text => handleTextChange('patient_phone', text)}
-      keyboardType="phone-pad"
-      placeholderTextColor={phoneError ? currentColors.error : currentColors.placeholderText}
-    />
-  </View>
-  
-</View>
+            <View style={styles.inputWrapper}>
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: phoneError
+                      ? currentColors.error
+                      : currentColors.inputBorder,
+                    backgroundColor: currentColors.inputBg,
+                  },
+                ]}>
+                <View style={styles.iconContainer}>
+                  <Icon
+                    name="phone"
+                    size={24}
+                    color={
+                      phoneError ? currentColors.error : currentColors.primary
+                    }
+                  />
+                </View>
+                <TextInput
+                  style={[styles.input, {color: currentColors.text}]}
+                  placeholder="Contact Number"
+                  value={patientData.patient_phone}
+                  onChangeText={text => handleTextChange('patient_phone', text)}
+                  keyboardType="phone-pad"
+                  placeholderTextColor={
+                    phoneError
+                      ? currentColors.error
+                      : currentColors.placeholderText
+                  }
+                />
+              </View>
+            </View>
             {/* Doctor Picker */}
             <DoctorPicker
               doctors={doctors}
@@ -343,15 +383,28 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
 
             {/* Primary Address */}
             <View style={styles.inputWrapper}>
-              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: currentColors.inputBorder,
+                    backgroundColor: currentColors.inputBg,
+                  },
+                ]}>
                 <View style={styles.iconContainer}>
-                  <Icon name="location-on" size={24} color={currentColors.primary} />
+                  <Icon
+                    name="location-on"
+                    size={24}
+                    color={currentColors.primary}
+                  />
                 </View>
                 <TextInput
                   style={[styles.input, {color: currentColors.text}]}
                   placeholder="Primary Address"
                   value={patientData.patient_address1}
-                  onChangeText={text => handleTextChange('patient_address1', text)}
+                  onChangeText={text =>
+                    handleTextChange('patient_address1', text)
+                  }
                   placeholderTextColor={currentColors.placeholderText}
                 />
               </View>
@@ -359,15 +412,28 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
 
             {/* Secondary Address */}
             <View style={styles.inputWrapper}>
-              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: currentColors.inputBorder,
+                    backgroundColor: currentColors.inputBg,
+                  },
+                ]}>
                 <View style={styles.iconContainer}>
-                  <Icon name="location-on" size={24} color={currentColors.primary} />
+                  <Icon
+                    name="location-on"
+                    size={24}
+                    color={currentColors.primary}
+                  />
                 </View>
                 <TextInput
                   style={[styles.input, {color: currentColors.text}]}
                   placeholder="Secondary Address"
                   value={patientData.patient_address2}
-                  onChangeText={text => handleTextChange('patient_address2', text)}
+                  onChangeText={text =>
+                    handleTextChange('patient_address2', text)
+                  }
                   placeholderTextColor={currentColors.placeholderText}
                 />
               </View>
@@ -375,7 +441,14 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
 
             {/* Age */}
             <View style={styles.inputWrapper}>
-              <View style={[styles.inputContainer, {borderColor: currentColors.inputBorder, backgroundColor: currentColors.inputBg}]}>
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor: currentColors.inputBorder,
+                    backgroundColor: currentColors.inputBg,
+                  },
+                ]}>
                 <View style={styles.iconContainer}>
                   <Icon name="tag" size={24} color={currentColors.primary} />
                 </View>
@@ -392,7 +465,10 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
 
             {/* Save Button */}
             <TouchableOpacity
-              style={[styles.saveButton, {backgroundColor: currentColors.primary}]}
+              style={[
+                styles.saveButton,
+                {backgroundColor: currentColors.primary},
+              ]}
               onPress={handlePatientUpdate}
               disabled={isLoading}>
               {isLoading ? (
@@ -488,4 +564,3 @@ const styles = StyleSheet.create({
 });
 
 export default UpdatePatient;
-  

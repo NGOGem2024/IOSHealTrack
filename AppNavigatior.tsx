@@ -38,6 +38,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import {TouchableOpacity} from 'react-native';
 import OrganizationSettingsScreen from './src/screens/OrganizationSettingsScreen';
 import AdminReport from './src/screens/AdminReport';
+import CreateConsultationScreen from './src/screens/CreateConsultationScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -158,6 +159,11 @@ const HomeStackNavigator = () => (
     <Stack.Screen
       name="AdminReport"
       component={AdminReport}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="CreateConsultation"
+      component={CreateConsultationScreen}
       options={{headerShown: false}}
     />
   </Stack.Navigator>

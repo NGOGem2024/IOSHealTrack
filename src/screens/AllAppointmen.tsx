@@ -196,7 +196,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       // Convert the appointments object into an array of DayData
       const dayDataArray: DayData[] = [];
       const appointments = response.data.appointments;
-     // console.log(appointments)
+
       // Create a date iterator to ensure we have entries for all dates
       let currentDate = new Date(startDate);
       const endDateObj = new Date(endDate);
@@ -482,6 +482,12 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
             <View style={styles.appointmentInfo}>
               <View style={styles.typeAndButtonContainer}>
                 <Text style={styles.appointmentType}>{item.therepy_type}</Text>
+                {/* Add consultation badge here */}
+                {item.is_consultation && (
+                  <View style={styles.consultationBadge}>
+                    <Text style={styles.consultationBadgeText}>Consultation</Text>
+                  </View>
+                )}
               </View>
   
               {item.patient_name && (
@@ -536,6 +542,12 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
             <View style={styles.appointmentInfo}>
               <View style={styles.typeAndButtonContainer}>
                 <Text style={styles.appointmentType}>{item.therepy_type}</Text>
+                {/* Add consultation badge here too */}
+                {item.is_consultation && (
+                  <View style={styles.consultationBadge}>
+                    <Text style={styles.consultationBadgeText}>Consultation</Text>
+                  </View>
+                )}
               </View>
   
               {item.patient_name && (
@@ -568,7 +580,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
           renderStartButton(item)}
       </View>
     </Animated.View>
-  );
+  )
   const renderNoAppointments = () => (
     <View style={styles.noAppointmentsContainer}>
       <Icon name="calendar-outline" size={48} color="#007B8E" />
@@ -855,10 +867,11 @@ const getStyles = (
     },
     typeAndButtonContainer: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-start', // Changed from space-between
       alignItems: 'center',
       marginBottom: 4,
-      width: '85%',
+      width: '100%', // Changed from 85%
+      flexWrap: 'wrap', // Allow wrapping if needed
     },
 
     appointmentActions: {
@@ -1042,6 +1055,19 @@ const getStyles = (
       fontSize: 12,
       fontWeight: '600',
     },
+    consultationBadge: {
+      backgroundColor: '#FFD700', // Gold color for consultation
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 8,
+      marginLeft: 8,
+    },
+    consultationBadgeText: {
+      color: '#000',
+      fontSize: 10,
+      fontWeight: 'bold',
+    },
+    
   });
 
 export default AllAppointmentsPage;

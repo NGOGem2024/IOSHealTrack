@@ -43,6 +43,7 @@ interface Appointment {
   patient_name?: string;
   doctor_name?: string;
   status?: string;
+  is_consultation?: boolean;
 }
 
 interface DayData {
@@ -437,8 +438,18 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
     <TouchableOpacity
       onPress={e => {
         e.stopPropagation(); // Prevent event bubbling to parent
-        setSelectedAppointment(appointment);
-        setIsAppointmentModalVisible(true);
+        
+        // Check if this is a consultation appointment
+        if (appointment.is_consultation) {
+          // Navigate to the consultation screen with patientId
+          navigation.navigate('CreateConsultation', {
+            patientId: appointment.patient_id,
+          });
+        } else {
+          // Open the appointment modal for regular appointments
+          setSelectedAppointment(appointment);
+          setIsAppointmentModalVisible(true);
+        }
       }}
       activeOpacity={0.7}
       style={styles.startButtonContainer}>
@@ -446,63 +457,113 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       <Text style={styles.startButtonText}>Start</Text>
     </TouchableOpacity>
   );
-
   const renderAppointment = ({item}: {item: Appointment}) => (
     <Animated.View style={[styles.appointmentItem]}>
       <View style={styles.appointmentContent}>
-        <TouchableOpacity
-          style={styles.mainContentTouchable}
-          onPress={() => {
-            navigation.navigate('planDetails', {
-              planId: item.plan_id,
-            });
-          }}>
-          <View style={styles.timeContainer}>
-            <Text style={styles.appointmentTime}>
-              {item.therepy_start_time}
-            </Text>
-            <Icon
-              name={
-                item.therepy_type.toLowerCase().includes('video')
-                  ? 'videocam'
-                  : 'person'
-              }
-              size={24}
-              color="#119FB3"
-              style={styles.appointmentIcon}
-            />
-          </View>
-
-          <View style={styles.appointmentInfo}>
-            <View style={styles.typeAndButtonContainer}>
-              <Text style={styles.appointmentType}>{item.therepy_type}</Text>
+        {/* If it's a consultation, don't wrap in TouchableOpacity */}
+        {item.is_consultation ? (
+          <View style={styles.mainContentTouchable}>
+            <View style={styles.timeContainer}>
+              <Text style={styles.appointmentTime}>
+                {item.therepy_start_time}
+              </Text>
+              <Icon
+                name={
+                  item.therepy_type.toLowerCase().includes('video')
+                    ? 'videocam'
+                    : 'person'
+                }
+                size={24}
+                color="#119FB3"
+                style={styles.appointmentIcon}
+              />
             </View>
-
-            {item.patient_name && (
-              <Text style={styles.patientName} numberOfLines={1}>
-                {item.patient_name}
-              </Text>
-            )}
-            {item.doctor_name && (
-              <Text style={styles.doctorName} numberOfLines={1}>
-                Dr. {item.doctor_name}
-              </Text>
-            )}
-            <View style={styles.appointmentActions}>
-              <View
-                style={[
-                  styles.statusBadge,
-                  {
-                    backgroundColor: getStatusColor(item.status),
-                  },
-                ]}>
-                <Text style={styles.statusText}>
-                  {item.status || 'Scheduled'}
+  
+            <View style={styles.appointmentInfo}>
+              <View style={styles.typeAndButtonContainer}>
+                <Text style={styles.appointmentType}>{item.therepy_type}</Text>
+              </View>
+  
+              {item.patient_name && (
+                <Text style={styles.patientName} numberOfLines={1}>
+                  {item.patient_name}
                 </Text>
+              )}
+              {item.doctor_name && (
+                <Text style={styles.doctorName} numberOfLines={1}>
+                  Dr. {item.doctor_name}
+                </Text>
+              )}
+              <View style={styles.appointmentActions}>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor: getStatusColor(item.status),
+                    },
+                  ]}>
+                  <Text style={styles.statusText}>
+                    {getFormattedStatus(item.status)}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
-        </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.mainContentTouchable}
+            onPress={() => {
+              navigation.navigate('planDetails', {
+                planId: item.plan_id,
+              });
+            }}>
+            <View style={styles.timeContainer}>
+              <Text style={styles.appointmentTime}>
+                {item.therepy_start_time}
+              </Text>
+              <Icon
+                name={
+                  item.therepy_type.toLowerCase().includes('video')
+                    ? 'videocam'
+                    : 'person'
+                }
+                size={24}
+                color="#119FB3"
+                style={styles.appointmentIcon}
+              />
+            </View>
+  
+            <View style={styles.appointmentInfo}>
+              <View style={styles.typeAndButtonContainer}>
+                <Text style={styles.appointmentType}>{item.therepy_type}</Text>
+              </View>
+  
+              {item.patient_name && (
+                <Text style={styles.patientName} numberOfLines={1}>
+                  {item.patient_name}
+                </Text>
+              )}
+              {item.doctor_name && (
+                <Text style={styles.doctorName} numberOfLines={1}>
+                  Dr. {item.doctor_name}
+                </Text>
+              )}
+              <View style={styles.appointmentActions}>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor: getStatusColor(item.status),
+                    },
+                  ]}>
+                  <Text style={styles.statusText}>
+                    {getFormattedStatus(item.status)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+        )}
         {(!item.status || item.status.toLowerCase() !== 'completed') &&
           renderStartButton(item)}
       </View>

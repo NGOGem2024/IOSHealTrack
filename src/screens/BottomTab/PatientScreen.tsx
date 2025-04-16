@@ -898,7 +898,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 14,
       fontWeight: '600',
       color: theme.colors.text,
-      width: 60,
+      width: 90,
     },
     consultationDetailValue: {
       fontSize: 14,

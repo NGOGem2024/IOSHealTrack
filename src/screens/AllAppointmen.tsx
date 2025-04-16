@@ -195,7 +195,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       // Convert the appointments object into an array of DayData
       const dayDataArray: DayData[] = [];
       const appointments = response.data.appointments;
-
+     // console.log(appointments)
       // Create a date iterator to ensure we have entries for all dates
       let currentDate = new Date(startDate);
       const endDateObj = new Date(endDate);

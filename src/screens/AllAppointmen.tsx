@@ -196,7 +196,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       // Convert the appointments object into an array of DayData
       const dayDataArray: DayData[] = [];
       const appointments = response.data.appointments;
-
+      console.log(response.data.appointments)
       // Create a date iterator to ensure we have entries for all dates
       let currentDate = new Date(startDate);
       const endDateObj = new Date(endDate);
@@ -441,9 +441,10 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
         
         // Check if this is a consultation appointment
         if (appointment.is_consultation) {
-          // Navigate to the consultation screen with patientId
+          // Navigate to the consultation screen with all relevant parameters
           navigation.navigate('CreateConsultation', {
             patientId: appointment.patient_id,
+            appointmentId: appointment._id
           });
         } else {
           // Open the appointment modal for regular appointments

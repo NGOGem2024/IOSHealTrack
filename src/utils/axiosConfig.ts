@@ -13,7 +13,7 @@ NetInfo.addEventListener(state => {
 
 const instance = axios.create({
   //baseURL: 'https://healtrack.azurewebsites.net/',
-  baseURL: 'http://192.168.31.74:5000',
+  baseURL: 'http://192.168.1.9:5000',
   //baseURL: 'https://healtrackapp-production-b2ab.up.railway.app',
   headers: {
     'Content-Type': 'application/json',

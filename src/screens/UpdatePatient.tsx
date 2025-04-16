@@ -103,6 +103,7 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
   });
   const [fadeAnim] = useState(new Animated.Value(0));
   const [phoneError, setPhoneError] = useState<boolean>(false);
+  const [emailError, setEmailError] = useState<boolean>(false);
   // Theme handling similar to PatientRegister
   const colorScheme = useColorScheme();
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
@@ -117,18 +118,32 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
   const currentColors = themeColors[isDarkMode ? 'dark' : 'light'];
 
   const validateEmail = (email: string): boolean => {
+    // If email is empty or just whitespace, it's valid (since it's optional)
+    if (!email || email.trim() === '') {
+      setEmailError(false); // Make sure to clear any error state
+      return true;
+    }
+    
+    // Otherwise, validate the email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    const isValid = emailRegex.test(email);
+    setEmailError(!isValid);
+    return isValid;
   };
+  
   const validatePhone = (phone: string): boolean => {
     const isValid = phone.startsWith('+');
     setPhoneError(!isValid);
     return isValid;
   };
+  
   const handleTextChange = useCallback(
     (field: keyof PatientData, value: string) => {
       if (field === 'patient_phone') {
         validatePhone(value);
+      }
+      if (field === 'patient_email') {
+        validateEmail(value);
       }
       setPatientData(prev => ({
         ...prev,
@@ -214,8 +229,9 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
   }, [fetchPatientData, fetchDoctors, fadeAnim]);
 
   const handlePatientUpdate = useCallback(async () => {
-    if (!validateEmail(patientData.patient_email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.', [
+    // Email validation - only validate if a value is provided (not empty)
+    if (patientData.patient_email.trim() !== '' && !validateEmail(patientData.patient_email)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address or leave it empty.', [
         {text: 'OK'},
       ]);
       return;
@@ -320,22 +336,27 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
                 style={[
                   styles.inputContainer,
                   {
-                    borderColor: currentColors.inputBorder,
+                    borderColor: emailError ? currentColors.error : currentColors.inputBorder,
                     backgroundColor: currentColors.inputBg,
                   },
                 ]}>
                 <View style={styles.iconContainer}>
-                  <Icon name="email" size={24} color={currentColors.primary} />
+                  <Icon name="email" size={24} color={emailError ? currentColors.error : currentColors.primary} />
                 </View>
                 <TextInput
                   style={[styles.input, {color: currentColors.text}]}
-                  placeholder="Email Address"
+                  placeholder="Email Address (Optional)"
                   value={patientData.patient_email}
                   onChangeText={text => handleTextChange('patient_email', text)}
                   keyboardType="email-address"
-                  placeholderTextColor={currentColors.placeholderText}
+                  placeholderTextColor={emailError ? currentColors.error : currentColors.placeholderText}
                 />
               </View>
+              {emailError && (
+                <Text style={[styles.errorText, {color: currentColors.error}]}>
+                  Please enter a valid email or leave it empty
+                </Text>
+              )}
             </View>
 
             {/* Contact Number */}
@@ -372,6 +393,11 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
                   }
                 />
               </View>
+              {phoneError && (
+                <Text style={[styles.errorText, {color: currentColors.error}]}>
+                  Phone number must start with + (country code)
+                </Text>
+              )}
             </View>
             {/* Doctor Picker */}
             <DoctorPicker
@@ -560,6 +586,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     margin: 5,
     textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 12,
+    marginTop: 5,
+    marginLeft: 5,
   },
 });
 

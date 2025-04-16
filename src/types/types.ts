@@ -44,7 +44,7 @@ export type RootStackParamList = {
   Main: undefined;
   planDetails: {planId: string};
   AdminReport: undefined;
-  CreateConsultation: {patientId: string};
+  CreateConsultation: {patientId: string, appointmentId: string};
 };
 
 export type RootTabParamList = {

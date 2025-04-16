@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -56,7 +56,7 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
   navigation,
   route,
 }) => {
-  const {patientId} = route.params;
+  const {patientId,appointmentId} = route.params;
   const {session} = useSession();
   const {theme} = useTheme();
   const styles = getStyles(
@@ -80,6 +80,7 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
+  const [patientInfo, setPatientInfo] = useState<string>('');
 
   const handleInputChange = (
     name: keyof FormDataType,
@@ -176,6 +177,17 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
         resultsValue = 'Therapy not needed';
       }
 
+      useEffect(() => {
+        // You could add additional appointment information to notes or another field
+        if (appointmentId) {
+          setFormData(prev => ({
+            ...prev,
+            notes: prev.notes + `\nAppointment ID: ${appointmentId}\n` 
+          }));
+        }
+      }, [appointmentId]);
+    
+
       const consultationData = {
         patientSymptoms: formData.patientSymptoms,
         causes: formData.causes,
@@ -183,6 +195,7 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
         results: resultsValue,
         consultationDate: consultationDate,
         consultationTime: consultationTime,
+        appointmentId: appointmentId || null,
       };
 
       const response = await axiosInstance.post<ConsultationResponseType>(

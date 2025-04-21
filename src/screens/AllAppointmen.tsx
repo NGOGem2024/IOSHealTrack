@@ -60,7 +60,7 @@ interface SkeletonProps {
 }
 
 // Skeleton component for appointments
-const AppointmentSkeleton = ({isDarkMode}:SkeletonProps) => {
+const AppointmentSkeleton = ({isDarkMode}: SkeletonProps) => {
   const styles = getSkeletonStyles(isDarkMode);
   const fadeAnim = useRef(new Animated.Value(0.3)).current;
 
@@ -83,23 +83,21 @@ const AppointmentSkeleton = ({isDarkMode}:SkeletonProps) => {
 
   return (
     <Animated.View style={[styles.appointmentItem, {opacity: fadeAnim}]}>
-     
-        <View style={styles.appointmentContent}>
-          <View style={styles.timeContainer}>
-            <View style={styles.timeText} />
-            <View style={styles.iconPlaceholder} />
-          </View>
-          
-          <View style={styles.appointmentInfo}>
-            <View style={styles.typePlaceholder} />
-            <View style={styles.namePlaceholder} />
-            <View style={styles.doctorPlaceholder} />
-            <View style={styles.statusPlaceholder} />
-          </View>
-          
-          <View style={styles.buttonPlaceholder} />
+      <View style={styles.appointmentContent}>
+        <View style={styles.timeContainer}>
+          <View style={styles.timeText} />
+          <View style={styles.iconPlaceholder} />
         </View>
-    
+
+        <View style={styles.appointmentInfo}>
+          <View style={styles.typePlaceholder} />
+          <View style={styles.namePlaceholder} />
+          <View style={styles.doctorPlaceholder} />
+          <View style={styles.statusPlaceholder} />
+        </View>
+
+        <View style={styles.buttonPlaceholder} />
+      </View>
     </Animated.View>
   );
 };
@@ -110,7 +108,10 @@ interface DaySectionSkeletonProps {
 }
 
 // Skeleton for a day section with multiple appointments
-const DaySectionSkeleton = ({ isDarkMode, appointmentCount = 2 }: DaySectionSkeletonProps) => {
+const DaySectionSkeleton = ({
+  isDarkMode,
+  appointmentCount = 2,
+}: DaySectionSkeletonProps) => {
   const styles = getSkeletonStyles(isDarkMode);
   const fadeAnim = useRef(new Animated.Value(0.3)).current;
 
@@ -174,7 +175,6 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       const response = await axiosInstance.post('/get/appointments', {
         date: formattedDate,
       });
-      console.log(response.data);
       return response.data || [];
     } catch (error) {
       return [];
@@ -196,7 +196,6 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       // Convert the appointments object into an array of DayData
       const dayDataArray: DayData[] = [];
       const appointments = response.data.appointments;
-      console.log(response.data.appointments)
       // Create a date iterator to ensure we have entries for all dates
       let currentDate = new Date(startDate);
       const endDateObj = new Date(endDate);
@@ -438,13 +437,13 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
     <TouchableOpacity
       onPress={e => {
         e.stopPropagation(); // Prevent event bubbling to parent
-        
+
         // Check if this is a consultation appointment
         if (appointment.is_consultation) {
           // Navigate to the consultation screen with all relevant parameters
           navigation.navigate('CreateConsultation', {
             patientId: appointment.patient_id,
-            appointmentId: appointment._id
+            appointmentId: appointment._id,
           });
         } else {
           // Open the appointment modal for regular appointments
@@ -479,18 +478,20 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
                 style={styles.appointmentIcon}
               />
             </View>
-  
+
             <View style={styles.appointmentInfo}>
               <View style={styles.typeAndButtonContainer}>
                 <Text style={styles.appointmentType}>{item.therepy_type}</Text>
                 {/* Add consultation badge here */}
                 {item.is_consultation && (
                   <View style={styles.consultationBadge}>
-                    <Text style={styles.consultationBadgeText}>Consultation</Text>
+                    <Text style={styles.consultationBadgeText}>
+                      Consultation
+                    </Text>
                   </View>
                 )}
               </View>
-  
+
               {item.patient_name && (
                 <Text style={styles.patientName} numberOfLines={1}>
                   {item.patient_name}
@@ -539,18 +540,20 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
                 style={styles.appointmentIcon}
               />
             </View>
-  
+
             <View style={styles.appointmentInfo}>
               <View style={styles.typeAndButtonContainer}>
                 <Text style={styles.appointmentType}>{item.therepy_type}</Text>
                 {/* Add consultation badge here too */}
                 {item.is_consultation && (
                   <View style={styles.consultationBadge}>
-                    <Text style={styles.consultationBadgeText}>Consultation</Text>
+                    <Text style={styles.consultationBadgeText}>
+                      Consultation
+                    </Text>
                   </View>
                 )}
               </View>
-  
+
               {item.patient_name && (
                 <Text style={styles.patientName} numberOfLines={1}>
                   {item.patient_name}
@@ -581,7 +584,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
           renderStartButton(item)}
       </View>
     </Animated.View>
-  )
+  );
   const renderNoAppointments = () => (
     <View style={styles.noAppointmentsContainer}>
       <Icon name="calendar-outline" size={48} color="#007B8E" />
@@ -633,7 +636,9 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
               <View style={styles.loadPreviousButton}>
                 <View style={styles.loadPreviousContent}>
                   <Icon name="chevron-up" size={20} color="#b7c7c9" />
-                  <Text style={styles.loadPreviousText}>Load Previous Days</Text>
+                  <Text style={styles.loadPreviousText}>
+                    Load Previous Days
+                  </Text>
                 </View>
               </View>
             }
@@ -1068,7 +1073,6 @@ const getStyles = (
       fontSize: 10,
       fontWeight: 'bold',
     },
-    
   });
 
 export default AllAppointmentsPage;

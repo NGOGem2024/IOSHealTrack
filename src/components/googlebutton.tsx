@@ -4,7 +4,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import {
   GoogleSignin,
   statusCodes,
-  User,
+  SignInResponse,
 } from '@react-native-google-signin/google-signin';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSession} from '../context/SessionContext';
@@ -21,10 +21,10 @@ interface ServerResponse {
   accessToken: string;
 }
 
-// Extended User interface to include serverAuthCode with 'string | null' type
-interface GoogleSignInResponse extends User {
-  serverAuthCode: string | null;
-}
+// Extend SignInResponse to include serverAuthCode
+type ExtendedSignInResponse = SignInResponse & {
+  serverAuthCode?: string;
+};
 
 const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   onSignInSuccess,
@@ -35,80 +35,62 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
     GoogleSignin.configure({
       webClientId: GOOGLE_WEB_CLIENT_ID,
       offlineAccess: true,
+      forceCodeForRefreshToken: true,
       scopes: [
         'https://www.googleapis.com/auth/calendar',
         'https://www.googleapis.com/auth/userinfo.email',
         'https://www.googleapis.com/auth/userinfo.profile',
         'https://www.googleapis.com/auth/calendar.events',
       ],
-      forceCodeForRefreshToken: true,
     });
   }, []);
 
   const signInWithGoogle = async () => {
     try {
       await GoogleSignin.hasPlayServices();
-      const userInfo =
-        (await GoogleSignin.signIn()) as unknown as GoogleSignInResponse;
-      const tokens = await GoogleSignin.getTokens();
 
+      const userInfo = (await GoogleSignin.signIn()) as ExtendedSignInResponse;
+      const serverAuthCode = userInfo.data?.serverAuthCode;
+
+      if (!serverAuthCode) {
+        console.warn('No serverAuthCode received from Google Sign-In.');
+        Alert.alert(
+          'Error',
+          'No server auth code received. Please try again or check your configuration.',
+        );
+        return;
+      }
+
+      // Save tokens (optional)
+      const tokens = await GoogleSignin.getTokens();
       await AsyncStorage.setItem('googleTokens', JSON.stringify(tokens));
-      const expirationTime = Date.now() + 3300000; // 1 hour from now
+      const expirationTime = Date.now() + 3300000;
       await AsyncStorage.setItem(
         'tokenExpirationTime',
         expirationTime.toString(),
       );
 
-      if (userInfo.serverAuthCode) {
-        try {
-          const response = await axiosInstance.post<ServerResponse>(
-            '/exchange',
-            {
-              serverAuthCode: userInfo.serverAuthCode,
-            },
-          );
+      // Exchange auth code for backend access token
+      const response = await axiosInstance.post<ServerResponse>('/exchange', {
+        serverAuthCode,
+      });
 
-          const {accessToken} = response.data;
-          await updateAccessToken(accessToken);
-          onSignInSuccess();
-        } catch (error) {
-          const errorMessage =
-            error instanceof Error
-              ? error.message
-              : 'An unknown error occurred';
+      const {accessToken} = response.data;
+      await updateAccessToken(accessToken);
+      onSignInSuccess();
+    } catch (error: any) {
+      let errorMessage = 'Failed to sign in with Google.';
 
-          console.error('Error exchanging auth code:', errorMessage);
-          Alert.alert(
-            'Error',
-            'Failed to exchange auth code. Please try again.',
-          );
-        }
-      } else {
-        console.warn('No serverAuthCode present in userInfo');
-        Alert.alert(
-          'Error',
-          'Failed to obtain server auth code. Please try again.',
-        );
-      }
-    } catch (error) {
-      let errorMessage = 'Failed to sign in with Google. Please try again.';
-
-      if (error instanceof Error) {
-        switch (error.message) {
-          case statusCodes.SIGN_IN_CANCELLED:
-            errorMessage = 'Sign in was cancelled';
-            break;
-          case statusCodes.IN_PROGRESS:
-            errorMessage = 'Sign in is already in progress';
-            break;
-          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-            errorMessage = 'Play services are not available';
-            break;
-        }
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        errorMessage = 'Sign in was cancelled';
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        errorMessage = 'Sign in is already in progress';
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        errorMessage = 'Play services not available';
       }
 
-      console.error('Error during Google Sign-In:', error);
-      Alert.alert('Error', errorMessage);
+      console.error('Google Sign-In error:', error);
+      Alert.alert('Sign-In Error', errorMessage);
     }
   };
 

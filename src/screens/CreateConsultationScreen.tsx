@@ -56,7 +56,7 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
   navigation,
   route,
 }) => {
-  const {patientId,appointmentId} = route.params;
+  const {patientId, appointmentId} = route.params;
   const {session} = useSession();
   const {theme} = useTheme();
   const styles = getStyles(
@@ -177,17 +177,6 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
         resultsValue = 'Therapy not needed';
       }
 
-      useEffect(() => {
-        // You could add additional appointment information to notes or another field
-        if (appointmentId) {
-          setFormData(prev => ({
-            ...prev,
-            notes: prev.notes + `\nAppointment ID: ${appointmentId}\n` 
-          }));
-        }
-      }, [appointmentId]);
-    
-
       const consultationData = {
         patientSymptoms: formData.patientSymptoms,
         causes: formData.causes,
@@ -297,7 +286,9 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
             />
           )}
 
-          <Text style={styles.label}>Patient Symptoms <Text style={styles.required}>*</Text></Text>
+          <Text style={styles.label}>
+            Patient Symptoms <Text style={styles.required}>*</Text>
+          </Text>
           <TextInput
             style={[styles.input, styles.multilineInput]}
             value={formData.patientSymptoms}
@@ -308,7 +299,9 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
             numberOfLines={4}
           />
 
-          <Text style={styles.label}>Causes <Text style={styles.required}>*</Text></Text>
+          <Text style={styles.label}>
+            Causes <Text style={styles.required}>*</Text>
+          </Text>
           <TextInput
             style={[styles.input, styles.multilineInput]}
             value={formData.causes}
@@ -319,7 +312,9 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
             numberOfLines={4}
           />
 
-          <Text style={styles.label}>Notes <Text style={styles.required}>*</Text></Text>
+          <Text style={styles.label}>
+            Notes <Text style={styles.required}>*</Text>
+          </Text>
           <TextInput
             style={[styles.input, styles.multilineInput]}
             value={formData.notes}
@@ -330,7 +325,9 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
             numberOfLines={4}
           />
 
-          <Text style={styles.label}>Results <Text style={styles.required}>*</Text></Text>
+          <Text style={styles.label}>
+            Results <Text style={styles.required}>*</Text>
+          </Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={formData.results}
@@ -383,7 +380,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       paddingBottom: 90,
     },
     required: {
-      color: theme.colors.notification
+      color: theme.colors.notification,
     },
     dateTimeContainer: {
       flexDirection: 'row',

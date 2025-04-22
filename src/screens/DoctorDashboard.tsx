@@ -34,6 +34,7 @@ import ActiveTherapyPlans from './Activeplans';
 import LoadingScreen from '../components/loadingScreen';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import EnhancedProfilePhoto from './EnhancedProfilePhoto';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface DoctorInfo {
   _id: string;
@@ -58,6 +59,7 @@ interface Appointment {
   therepy_date: string;
   patient_name?: string;
   doctor_name?: string;
+  is_consultation?: boolean;
 }
 
 type RootStackParamList = {
@@ -66,6 +68,10 @@ type RootStackParamList = {
   Logout: undefined;
   DoctorRegister: undefined;
   MyPatient: undefined;
+  CreateConsultation: {
+    patientId: string;
+    appointmentId: string;
+  };
 };
 
 type DashboardScreenNavigationProp =
@@ -268,8 +274,15 @@ const DoctorDashboard: React.FC = () => {
   })();
 
   const handleAppointmentPress = (item: Appointment) => {
-    setSelectedAppointment(item);
-    setIsAppointmentModalVisible(true);
+    if (item.is_consultation) {
+      navigation.navigate('CreateConsultation', {
+        patientId: item.patient_id,
+        appointmentId: item._id,
+      });
+    } else {
+      setSelectedAppointment(item);
+      setIsAppointmentModalVisible(true);
+    }
   };
 
   const closeAppointmentModal = () => {
@@ -279,17 +292,27 @@ const DoctorDashboard: React.FC = () => {
 
   const renderAppointment = ({item}: {item: Appointment}) => (
     <TouchableOpacity
-      style={styles.appointmentItem}
+      style={[
+        styles.appointmentItem,
+        item.is_consultation && styles.consultationAppointment,
+      ]}
       onPress={() => handleAppointmentPress(item)}>
-      <Icon
-        name={
-          item.therepy_type.toLowerCase().includes('video')
-            ? 'videocam-outline'
-            : 'person-outline'
-        }
-        size={24}
-        color={styles.iconColor.color}
-      />
+      <View style={styles.appointmentTypeIconContainer}>
+        {item.is_consultation ? (
+          <>
+            <Image
+              source={require('../assets/consultation.png')}
+              style={styles.consultationIcon}
+            />
+          </>
+        ) : (
+          <MaterialCommunityIcons
+            name="stethoscope"
+            size={22}
+            color="#007b8e"
+          />
+        )}
+      </View>
       <View style={styles.appointmentInfo}>
         <View style={styles.appointmentMainInfo}>
           <View>
@@ -318,13 +341,16 @@ const DoctorDashboard: React.FC = () => {
       </View>
     </TouchableOpacity>
   );
-
-  const handleNavigation = (screen?: keyof RootStackParamList) => {
-    if (screen) {
-      navigation.navigate(screen);
+  const handleNavigation = (
+    screen: keyof RootStackParamList,
+    params?: RootStackParamList[keyof RootStackParamList],
+  ) => {
+    if (params) {
+      navigation.navigate(screen as any, params);
+    } else {
+      navigation.navigate(screen as any);
     }
   };
-
   const toggleAllAppointments = () => {
     setShowAllAppointments(prev => !prev);
   };
@@ -507,7 +533,7 @@ const DoctorDashboard: React.FC = () => {
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>
-                 {doctorInfo.doctor_first_name} {doctorInfo.doctor_last_name}
+                {doctorInfo.doctor_first_name} {doctorInfo.doctor_last_name}
               </Text>
               <Text style={styles.profileDetailText1}>
                 {doctorInfo.qualification}
@@ -1029,6 +1055,29 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       marginTop: 8,
       textAlign: 'center',
       fontSize: 12,
+    },
+    consultationIcon: {
+      width: 24,
+      height: 24,
+      resizeMode: 'contain',
+    },
+    appointmentTypeIconContainer: {
+      position: 'relative',
+      width: 30,
+      height: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    consultationAppointment: {
+      borderWidth: 1,
+      borderColor: '#b79501',
+      borderStyle: 'solid',
+      borderRadius: 12,
+    },
+    consultationIndicator: {
+      position: 'absolute',
+      borderWidth: 1,
+      borderColor: '#007b8e',
     },
   });
 

@@ -458,7 +458,11 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
     </TouchableOpacity>
   );
   const renderAppointment = ({item}: {item: Appointment}) => (
-    <Animated.View style={[styles.appointmentItem]}>
+    <Animated.View
+      style={[
+        styles.appointmentItem,
+        item.is_consultation && styles.consultationItem,
+      ]}>
       <View style={styles.appointmentContent}>
         {/* If it's a consultation, don't wrap in TouchableOpacity */}
         {item.is_consultation ? (
@@ -856,6 +860,20 @@ const getStyles = (
       borderColor: isDarkMode ? '#119FB3' : 'white',
       borderWidth: 1,
       overflow: 'hidden', // Ensure no content spills outside
+    },
+    consultationItem: {
+      marginHorizontal: 16,
+      marginBottom: 12,
+      borderRadius: 16,
+      backgroundColor: isDarkMode ? '#233436' : '#FFFFFF',
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: isDarkMode ? 0.4 : 0.1,
+      shadowRadius: 4,
+      borderColor: isDarkMode ? '#b79501' : 'white',
+      borderWidth: 1,
+      overflow: 'hidden',
     },
     startButtonText: {
       color: 'black',

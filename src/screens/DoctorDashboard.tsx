@@ -34,6 +34,7 @@ import ActiveTherapyPlans from './Activeplans';
 import LoadingScreen from '../components/loadingScreen';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import EnhancedProfilePhoto from './EnhancedProfilePhoto';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface DoctorInfo {
   _id: string;
@@ -58,6 +59,7 @@ interface Appointment {
   therepy_date: string;
   patient_name?: string;
   doctor_name?: string;
+  is_consultation?: boolean;
 }
 
 type RootStackParamList = {
@@ -66,6 +68,10 @@ type RootStackParamList = {
   Logout: undefined;
   DoctorRegister: undefined;
   MyPatient: undefined;
+  CreateConsultation: {
+    patientId: string;
+    appointmentId: string;
+  };
 };
 
 type DashboardScreenNavigationProp =
@@ -105,16 +111,16 @@ const DoctorDashboard: React.FC = () => {
   const [noAppointmentsPopupVisible, setNoAppointmentsPopupVisible] =
     useState(false);
 
-    // Add this function to format the phone number
-const formatPhoneNumber = (phoneNumber: string) => {
-  if (!phoneNumber) return '';
-  
-  // Check if the phone number starts with a '+' and has country code
-  if (phoneNumber.startsWith('+')) {
-    return phoneNumber.replace(/^(\+\d{1,3})(\d{10})$/, '$1 $2');
-  }
-  return phoneNumber;
-};
+  // Add this function to format the phone number
+  const formatPhoneNumber = (phoneNumber: string) => {
+    if (!phoneNumber) return '';
+
+    // Check if the phone number starts with a '+' and has country code
+    if (phoneNumber.startsWith('+')) {
+      return phoneNumber.replace(/^(\+\d{1,3})(\d{10})$/, '$1 $2');
+    }
+    return phoneNumber;
+  };
   const fetchDoctorInfo = async () => {
     if (!session.idToken) return;
     setDoctorLoading(true);
@@ -131,23 +137,23 @@ const formatPhoneNumber = (phoneNumber: string) => {
   };
 
   // Add this to your DoctorDashboard component
-const route = useRoute();
+  const route = useRoute();
 
-useEffect(() => {
-  // Handle scroll to top when navigation params change
-  if ((route.params as any)?.scrollToTop) {
-    scrollViewRef.current?.scrollTo({y: 0, animated: true});
-  }
-}, [route.params]);
-// Keep your existing focus listener too
-useEffect(() => {
-  const unsubscribe = navigation.addListener('focus', () => {
-    // Scroll to top when screen comes into focus
-    scrollViewRef.current?.scrollTo({y: 0, animated: true});
-  });
+  useEffect(() => {
+    // Handle scroll to top when navigation params change
+    if ((route.params as any)?.scrollToTop) {
+      scrollViewRef.current?.scrollTo({y: 0, animated: true});
+    }
+  }, [route.params]);
+  // Keep your existing focus listener too
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Scroll to top when screen comes into focus
+      scrollViewRef.current?.scrollTo({y: 0, animated: true});
+    });
 
-  return unsubscribe;
-}, [navigation]);
+    return unsubscribe;
+  }, [navigation]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -191,7 +197,6 @@ useEffect(() => {
         },
       );
       setAllAppointments(allAppointmentsResponse.data);
-      
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         setAllAppointments([]);
@@ -269,8 +274,15 @@ useEffect(() => {
   })();
 
   const handleAppointmentPress = (item: Appointment) => {
-    setSelectedAppointment(item);
-    setIsAppointmentModalVisible(true);
+    if (item.is_consultation) {
+      navigation.navigate('CreateConsultation', {
+        patientId: item.patient_id,
+        appointmentId: item._id,
+      });
+    } else {
+      setSelectedAppointment(item);
+      setIsAppointmentModalVisible(true);
+    }
   };
 
   const closeAppointmentModal = () => {
@@ -280,17 +292,27 @@ useEffect(() => {
 
   const renderAppointment = ({item}: {item: Appointment}) => (
     <TouchableOpacity
-      style={styles.appointmentItem}
+      style={[
+        styles.appointmentItem,
+        item.is_consultation && styles.consultationAppointment,
+      ]}
       onPress={() => handleAppointmentPress(item)}>
-      <Icon
-        name={
-          item.therepy_type.toLowerCase().includes('video')
-            ? 'videocam-outline'
-            : 'person-outline'
-        }
-        size={24}
-        color={styles.iconColor.color}
-      />
+      <View style={styles.appointmentTypeIconContainer}>
+        {item.is_consultation ? (
+          <>
+            <Image
+              source={require('../assets/consultation.png')}
+              style={styles.consultationIcon}
+            />
+          </>
+        ) : (
+          <MaterialCommunityIcons
+            name="stethoscope"
+            size={22}
+            color="#007b8e"
+          />
+        )}
+      </View>
       <View style={styles.appointmentInfo}>
         <View style={styles.appointmentMainInfo}>
           <View>
@@ -319,13 +341,16 @@ useEffect(() => {
       </View>
     </TouchableOpacity>
   );
-
-  const handleNavigation = (screen?: keyof RootStackParamList) => {
-    if (screen) {
-      navigation.navigate(screen);
+  const handleNavigation = (
+    screen: keyof RootStackParamList,
+    params?: RootStackParamList[keyof RootStackParamList],
+  ) => {
+    if (params) {
+      navigation.navigate(screen as any, params);
+    } else {
+      navigation.navigate(screen as any);
     }
   };
-
   const toggleAllAppointments = () => {
     setShowAllAppointments(prev => !prev);
   };
@@ -366,14 +391,14 @@ useEffect(() => {
 
   const DashboardHeader = () => {
     const [isDropdownVisible, setDropdownVisible] = useState(false);
-  
+
     const toggleDropdown = () => setDropdownVisible(!isDropdownVisible);
-  
+
     const navigateToScreen = (screenName: string) => {
       navigation.navigate(screenName as never);
       setDropdownVisible(false);
     };
-  
+
     return (
       <View style={styles.dashboardHeader}>
         <StatusBar
@@ -412,21 +437,21 @@ useEffect(() => {
               </TouchableOpacity>
             </View>
             <View style={styles.drawerDivider} />
-  
+
             <TouchableOpacity
               style={styles.drawerItem}
               onPress={() => navigateToScreen('AllPatients')}>
               <Ionicons name="people-outline" size={24} color="#007B8E" />
               <Text style={styles.drawerItemText}>All Patients</Text>
             </TouchableOpacity>
-  
+
             <TouchableOpacity
               style={styles.drawerItem}
               onPress={() => navigateToScreen('DoctorDashboard')}>
               <Ionicons name="grid-outline" size={24} color="#007B8E" />
               <Text style={styles.drawerItemText}>Dashboard</Text>
             </TouchableOpacity>
-  
+
             {session.is_admin && (
               <>
                 <TouchableOpacity
@@ -435,18 +460,22 @@ useEffect(() => {
                   <Ionicons name="settings-outline" size={24} color="#007B8E" />
                   <Text style={styles.drawerItemText}>Settings</Text>
                 </TouchableOpacity>
-  
+
                 <TouchableOpacity
                   style={styles.drawerItem}
                   onPress={() => navigateToScreen('AdminReport')}>
-                  <Ionicons name="document-text-outline" size={24} color="#007B8E" />
+                  <Ionicons
+                    name="document-text-outline"
+                    size={24}
+                    color="#007B8E"
+                  />
                   <Text style={styles.drawerItemText}>Reports</Text>
                 </TouchableOpacity>
               </>
             )}
-  
+
             <View style={styles.drawerDivider} />
-  
+
             <TouchableOpacity
               style={[styles.drawerItem, styles.logoutItem]}
               onPress={() => navigateToScreen('Logout')}>
@@ -504,7 +533,7 @@ useEffect(() => {
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>
-                 {doctorInfo.doctor_first_name} {doctorInfo.doctor_last_name}
+                {doctorInfo.doctor_first_name} {doctorInfo.doctor_last_name}
               </Text>
               <Text style={styles.profileDetailText1}>
                 {doctorInfo.qualification}
@@ -525,15 +554,15 @@ useEffect(() => {
                 </Text>
               </View>
               <View style={styles.profileDetail}>
-  <Icon
-    name="call-outline"
-    size={16}
-    color={styles.profileDetailIcon.color}
-  />
-  <Text style={styles.profileDetailText}>
-    {formatPhoneNumber(doctorInfo.doctor_phone)}
-  </Text>
-</View>
+                <Icon
+                  name="call-outline"
+                  size={16}
+                  color={styles.profileDetailIcon.color}
+                />
+                <Text style={styles.profileDetailText}>
+                  {formatPhoneNumber(doctorInfo.doctor_phone)}
+                </Text>
+              </View>
             </View>
           </View>
         )}
@@ -544,15 +573,19 @@ useEffect(() => {
               <Text style={styles.statNumber}>
                 {doctorInfo?.patients?.length || 0}
               </Text>
-              <Text style={styles.statLabel}>{(doctorInfo?.patients?.length === 1) ? 'My Patient' : 'My Patients'}</Text>
-              
+              <Text style={styles.statLabel}>
+                {doctorInfo?.patients?.length === 1
+                  ? 'My Patient'
+                  : 'My Patients'}
+              </Text>
             </View>
           </TouchableOpacity>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{todayAppointments.length}</Text>
-            <Text style={styles.statLabel}>{todayAppointments.length === 1 ? 'Appointment' : 'Appointments'}</Text>
-            
+            <Text style={styles.statLabel}>
+              {todayAppointments.length === 1 ? 'Appointment' : 'Appointments'}
+            </Text>
           </View>
         </View>
 
@@ -566,17 +599,25 @@ useEffect(() => {
         <View style={styles.section}>
           <View style={styles.appointmentHeader}>
             <Text style={styles.sectionTitle}>
-            {showAllAppointments 
-      ? (allAppointments.length === 1 ? 'All Appointment' : 'All Appointments')
-      : (todayAppointments.length === 1 ? 'My Appointment' : 'My Appointments')}
+              {showAllAppointments
+                ? allAppointments.length === 1
+                  ? 'All Appointment'
+                  : 'All Appointments'
+                : todayAppointments.length === 1
+                ? 'My Appointment'
+                : 'My Appointments'}
             </Text>
             <TouchableOpacity
               style={styles.toggleButton}
               onPress={toggleAllAppointments}>
               <Text style={styles.toggleButtonText}>
-              {showAllAppointments 
-        ? (todayAppointments.length === 1 ? 'My Appointment' : 'My Appointments')
-        : (allAppointments.length === 1 ? 'All Appointment' : 'All Appointments')}
+                {showAllAppointments
+                  ? todayAppointments.length === 1
+                    ? 'My Appointment'
+                    : 'My Appointments'
+                  : allAppointments.length === 1
+                  ? 'All Appointment'
+                  : 'All Appointments'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -1014,6 +1055,29 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       marginTop: 8,
       textAlign: 'center',
       fontSize: 12,
+    },
+    consultationIcon: {
+      width: 24,
+      height: 24,
+      resizeMode: 'contain',
+    },
+    appointmentTypeIconContainer: {
+      position: 'relative',
+      width: 30,
+      height: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    consultationAppointment: {
+      borderWidth: 1,
+      borderColor: '#b79501',
+      borderStyle: 'solid',
+      borderRadius: 12,
+    },
+    consultationIndicator: {
+      position: 'absolute',
+      borderWidth: 1,
+      borderColor: '#007b8e',
     },
   });
 

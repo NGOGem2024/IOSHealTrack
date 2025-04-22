@@ -174,7 +174,6 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       const response = await axiosInstance.post('/get/appointments', {
         date: formattedDate,
       });
-      console.log(response.data);
       return response.data || [];
     } catch (error) {
       return [];
@@ -196,7 +195,6 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       // Convert the appointments object into an array of DayData
       const dayDataArray: DayData[] = [];
       const appointments = response.data.appointments;
-      console.log(response.data.appointments)
       // Create a date iterator to ensure we have entries for all dates
       let currentDate = new Date(startDate);
       const endDateObj = new Date(endDate);

@@ -52,7 +52,10 @@ interface ProfileInfo {
   doctor_email: string;
   doctor_phone: string;
   doctors_photo: string;
-  specialization: string; // New field for specialization
+  specialization: string;
+  consultation_fee: number;
+  therapy_fee: number;
+  doctor_description: string;
   youtube_videos: YouTubeVideo[]; // New field for YouTube videos
 }
 
@@ -65,7 +68,10 @@ const initialProfileState: ProfileInfo = {
   doctor_email: '',
   doctor_phone: '',
   doctors_photo: '',
-  specialization: '', // Default empty value
+  specialization: '',
+  consultation_fee: 0,
+  therapy_fee: 0,
+  doctor_description: '', // Default empty value
   youtube_videos: [], // Default empty array
 };
 
@@ -167,25 +173,25 @@ const DoctorProfileEdit: React.FC = () => {
   const [phoneError, setPhoneError] = useState('');
 
   const handlePhoneChange = (text: string) => {
-  // Remove any non-digit characters
-  const cleanedText = text.replace(/\D/g, '');
-  
-  // Limit to 10 digits
-  const limitedText = cleanedText.slice(0, 10);
+    // Remove any non-digit characters
+    const cleanedText = text.replace(/\D/g, '');
 
-  setPhoneWithoutCode(limitedText);
+    // Limit to 10 digits
+    const limitedText = cleanedText.slice(0, 10);
 
-  // Validate phone number length
-  if (limitedText.length < 10) {
-    setPhoneError('Please enter a valid 10-digit phone number');
-  } else {
-    setPhoneError('');
-  }
+    setPhoneWithoutCode(limitedText);
 
-  // Update the profile phone with country code
-  const fullPhoneNumber = `+${selectedCountry.callingCode}${limitedText}`;
-  handleInputChange('doctor_phone', fullPhoneNumber);
-};
+    // Validate phone number length
+    if (limitedText.length < 10) {
+      setPhoneError('Please enter a valid 10-digit phone number');
+    } else {
+      setPhoneError('');
+    }
+
+    // Update the profile phone with country code
+    const fullPhoneNumber = `+${selectedCountry.callingCode}${limitedText}`;
+    handleInputChange('doctor_phone', fullPhoneNumber);
+  };
 
   const fetchDoctorInfo = async () => {
     if (!session.idToken) {
@@ -230,7 +236,6 @@ const DoctorProfileEdit: React.FC = () => {
   };
 
   const hasChanges = () => {
-    // Check if any field has changed, including the new fields
     return (
       profileInfo.doctor_first_name !== originalProfileInfo.doctor_first_name ||
       profileInfo.doctor_last_name !== originalProfileInfo.doctor_last_name ||
@@ -238,6 +243,9 @@ const DoctorProfileEdit: React.FC = () => {
       profileInfo.doctor_email !== originalProfileInfo.doctor_email ||
       profileInfo.doctor_phone !== originalProfileInfo.doctor_phone ||
       profileInfo.specialization !== originalProfileInfo.specialization ||
+      profileInfo.consultation_fee !== originalProfileInfo.consultation_fee ||
+      profileInfo.therapy_fee !== originalProfileInfo.therapy_fee ||
+      profileInfo.doctor_description !== originalProfileInfo.doctor_description ||
       JSON.stringify(profileInfo.youtube_videos) !==
         JSON.stringify(originalProfileInfo.youtube_videos)
     );
@@ -266,6 +274,9 @@ const DoctorProfileEdit: React.FC = () => {
           doctor_email: profileInfo.doctor_email,
           doctor_phone: profileInfo.doctor_phone,
           specialization: profileInfo.specialization,
+          therapy_fee: profileInfo.therapy_fee,
+          consultation_fee : profileInfo.consultation_fee,
+          doctor_description : profileInfo.doctor_description,
           youtube_videos: profileInfo.youtube_videos,
         },
         {
@@ -544,13 +555,17 @@ const DoctorProfileEdit: React.FC = () => {
                 setShowPhotoOptions(false);
                 handleImagePick();
               }}>
-              <Icon 
-                name={profileInfo.doctors_photo ? "create-outline" : "add-circle-outline"} 
-                size={24} 
-                color="#007B8E" 
+              <Icon
+                name={
+                  profileInfo.doctors_photo
+                    ? 'create-outline'
+                    : 'add-circle-outline'
+                }
+                size={24}
+                color="#007B8E"
               />
               <Text style={styles.modalOptionText}>
-                {profileInfo.doctors_photo ? "Change Photo" : "Add Photo"}
+                {profileInfo.doctors_photo ? 'Change Photo' : 'Add Photo'}
               </Text>
             </TouchableOpacity>
             {profileInfo.doctors_photo && (
@@ -679,7 +694,6 @@ const DoctorProfileEdit: React.FC = () => {
     );
   }
 
-
   if (!session.idToken) {
     return (
       <View style={styles.loadingContainer}>
@@ -705,8 +719,7 @@ const DoctorProfileEdit: React.FC = () => {
           <View style={styles.coverPhoto}>
             <View style={styles.headerInfo}>
               <Text style={styles.profileName}>
-                 {profileInfo.doctor_first_name}{' '}
-                {profileInfo.doctor_last_name}
+                {profileInfo.doctor_first_name} {profileInfo.doctor_last_name}
               </Text>
               <Text style={styles.profileQualification}>
                 {profileInfo.qualification}
@@ -766,6 +779,32 @@ const DoctorProfileEdit: React.FC = () => {
                 field: 'organization_name',
                 disabled: true,
               },
+
+              {
+                label: 'Therapy Fee',
+                icon: 'wallet-outline',
+                value:
+                  profileInfo.therapy_fee != null
+                    ? String(profileInfo.therapy_fee)
+                    : '',
+                field: 'therapy_fee',
+              },
+              {
+                label: 'Consultation Fee',
+                icon: 'wallet-outline',
+                value:
+                  profileInfo.consultation_fee != null
+                    ? String(profileInfo.consultation_fee)
+                    : '',
+
+                field: 'consultation_fee',
+              },
+              {
+                label: 'Description',
+                icon: 'document-text-outline',
+                value: profileInfo.doctor_description, // Convert to string here
+                field: 'doctor_description',
+              },
             ].map((item, index) => (
               <View
                 key={item.field}
@@ -798,35 +837,38 @@ const DoctorProfileEdit: React.FC = () => {
               </View>
             ))}
             <View style={[styles.inputGroup, styles.inputBorder]}>
-  <Text style={styles.label}>Phone Number</Text>
-  <View style={styles.phoneInputContainer}>
-    {/* Country Selector */}
-    <TouchableOpacity
-      style={styles.countrySelector}
-      onPress={() => setShowCountryPicker(true)}>
-      <Text style={styles.countryFlag}>{selectedCountry.flag}</Text>
-      <Text style={styles.countryCode}>
-        +{selectedCountry.callingCode}
-      </Text>
-      <Icon name="chevron-down" size={16} color="#007B8E" />
-    </TouchableOpacity>
+              <Text style={styles.label}>Phone Number</Text>
+              <View style={styles.phoneInputContainer}>
+                {/* Country Selector */}
+                <TouchableOpacity
+                  style={styles.countrySelector}
+                  onPress={() => setShowCountryPicker(true)}>
+                  <Text style={styles.countryFlag}>{selectedCountry.flag}</Text>
+                  <Text style={styles.countryCode}>
+                    +{selectedCountry.callingCode}
+                  </Text>
+                  <Icon name="chevron-down" size={16} color="#007B8E" />
+                </TouchableOpacity>
 
-    {/* Phone Input */}
-    <View style={styles.phoneInputWrapper}>
-      <TextInput
-        style={[styles.input, phoneError ? styles.inputError : null]}
-        value={phoneWithoutCode}
-        onChangeText={handlePhoneChange}
-        keyboardType="phone-pad"
-        placeholderTextColor="#999"
-        placeholder="Enter phone number"
-        maxLength={10}
-      />
-    </View>
+                {/* Phone Input */}
+                <View style={styles.phoneInputWrapper}>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      phoneError ? styles.inputError : null,
+                    ]}
+                    value={phoneWithoutCode}
+                    onChangeText={handlePhoneChange}
+                    keyboardType="phone-pad"
+                    placeholderTextColor="#999"
+                    placeholder="Enter phone number"
+                    maxLength={10}
+                  />
+                </View>
               </View>
               {phoneError ? (
-    <Text style={styles.errorText}>{phoneError}</Text>
-  ) : null}
+                <Text style={styles.errorText}>{phoneError}</Text>
+              ) : null}
             </View>
           </View>
 

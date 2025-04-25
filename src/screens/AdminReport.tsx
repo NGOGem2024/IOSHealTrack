@@ -498,6 +498,11 @@ const ReportsScreen: React.FC = () => {
   };
   const maxValue = Math.max(...socialReferenceData.map(item => item.count));
   const segments = maxValue <= 1 ? 1 : Math.min(4, maxValue);
+  
+  // Get the chart width to calculate proper icon positioning
+  const chartWidth = screenWidth - 80;
+  const barWidth = (chartWidth / socialReferenceData.length) * 0.6; // Approximate bar width based on chart
+  
   return (
     <View style={styles.container}>
       <BackTabTop screenName="Reports" />
@@ -670,7 +675,6 @@ const ReportsScreen: React.FC = () => {
           <DoctorLeaderboard month={selectedMonth} year={selectedYear} />
 
           {/* Social Reference Bar Chart */}
-
           {socialReferenceData.length > 0 ? (
             <View style={[styles.chartCard, styles.socialReferenceChartCard]}>
               <Text style={styles.chartTitle}>Social References</Text>
@@ -681,7 +685,7 @@ const ReportsScreen: React.FC = () => {
               <View style={{height: 280}}>
                 <BarChart
                   data={socialReferenceBarChartData}
-                  width={screenWidth - 60}
+                  width={screenWidth - 80}
                   height={220}
                   yAxisLabel=""
                   chartConfig={{
@@ -725,11 +729,13 @@ const ReportsScreen: React.FC = () => {
                   segments={0} // Remove segment lines on Y-axis
                 />
 
-                {/* Custom icons row */}
-                <View style={styles.customIcon}>
+                {/* Fixed alignment for icons */}
+                <View style={styles.iconContainer}>
                   {socialReferenceData.map((item, index) => (
-                    <View key={`icon-${index}`} style={styles.icon}>
-                      {getSocialReferenceIcon(item.source)}
+                    <View key={`icon-${index}`} style={styles.iconWrapper}>
+                      <View style={styles.icon}>
+                        {getSocialReferenceIcon(item.source)}
+                      </View>
                     </View>
                   ))}
                 </View>
@@ -790,6 +796,19 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       position: 'relative',
       zIndex: 10, // Increased for better dropdown positioning
     },
+    iconContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginTop: -15,
+      paddingHorizontal: 8, // Match chart padding
+      position: 'relative',
+      width: '100%',
+    },
+    iconWrapper: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     customPicker: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -842,8 +861,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     customIcon: {
       flexDirection: 'row',
       justifyContent: 'space-around',
-      marginLeft: 28,
-      gap: 40,
+      marginLeft: 2,
+      gap: 1,
       marginTop: -20,
     },
     dropdownList: {

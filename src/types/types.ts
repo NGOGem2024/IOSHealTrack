@@ -44,6 +44,9 @@ export type RootStackParamList = {
   Main: undefined;
   planDetails: {planId: string};
   AdminReport: undefined;
+  CreateBlog: { blogId?: string; isEditing?: boolean } | undefined;
+  BlogDetails: { blogId: string };
+  UpdateBlog: { blogId: string };
   CreateConsultation: {patientId: string, appointmentId: string};
 };
 
@@ -54,7 +57,8 @@ export type RootTabParamList = {
   Dashboard: undefined;
   AllPatients: undefined;
   MainStack: undefined;
-  SearchPatients: undefined;
+  SearchPatients: undefined;CreateBlog: { blogId?: string; isEditing?: boolean } | undefined;
+  BlogDetails: { blogId: string };
   Patient: {patientId: string};
   AllAppointments: undefined;
   Profile: undefined;

@@ -13,6 +13,8 @@ import {
   Animated,
   Appearance,
   useColorScheme,
+  ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
@@ -21,8 +23,8 @@ import axiosInstance from '../utils/axiosConfig';
 import {handleError} from '../utils/errorHandler';
 import EnhancedProfilePhoto from './EnhancedProfilePhoto';
 import BackTabTop from './BackTopTab';
-import {RootStackParamList, RootTabParamList} from '../types/types';
 import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamList, RootTabParamList} from '../types/types';
 
 const {width} = Dimensions.get('window');
 
@@ -35,6 +37,7 @@ const themeColors = {
     text: '#333333',
     secondary: '#666666',
     skeleton: '#E1E9EE',
+    border: '#E0E0E0',
   },
   dark: {
     background: '#161c24',
@@ -43,6 +46,7 @@ const themeColors = {
     text: '#f3f4f6',
     secondary: '#cccccc',
     skeleton: '#3B3B3B',
+    border: '#3d4654',
   },
 };
 
@@ -133,7 +137,21 @@ interface DoctorInfo {
   patients?: any[];
   doctors_photo: string;
   address?: string;
+  blogs?: string[];
 }
+
+interface Blog {
+  _id: string;
+  title: string;
+  description: string;
+  image?: string;
+  genre: string;
+  readTime: number;
+  status: string;
+  createdAt: string;
+  doctor_name: string;
+}
+
 type DoctorProfileScreenProps = {
   navigation: StackNavigationProp<RootTabParamList, 'Profile'>;
 };
@@ -151,6 +169,13 @@ const formatPhoneNumber = (phone: string): string => {
   return phone;
 };
 
+// Function to format date to readable format
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const options = { year: 'numeric', month: 'short', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options as Intl.DateTimeFormatOptions);
+};
+
 const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
   const {session} = useSession();
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo | null>(null);
@@ -158,6 +183,10 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
   const [refreshing, setRefreshing] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [selectedTab, setSelectedTab] = useState('about');
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [blogsLoading, setBlogsLoading] = useState(false);
+  const [blogsPage, setBlogsPage] = useState(1);
+  const [hasMoreBlogs, setHasMoreBlogs] = useState(true);
 
   const colorScheme = useColorScheme();
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
@@ -191,19 +220,118 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
     }
   };
 
+  const fetchBlogs = async (page = 1, refresh = false) => {
+    if (!session.idToken || !doctorInfo?._id) return;
+    
+    setBlogsLoading(true);
+    try {
+      const response = await axiosInstance.get('/blogs', {
+        headers: {Authorization: `Bearer ${session.idToken}`},
+        params: {
+          page,
+          limit: 5,
+          sortBy: 'createdAt',
+          sortOrder: -1,
+        },
+      });
+      
+      const newBlogs = response.data.data;
+      //console.log('Fetched blogs:', newBlogs); // Add logging for debugging
+      
+      if (refresh) {
+        setBlogs(newBlogs);
+      } else {
+        setBlogs(prev => [...prev, ...newBlogs]);
+      }
+      
+      setHasMoreBlogs(newBlogs.length > 0 && page < response.data.pagination.pages);
+      setBlogsPage(page);
+    } catch (error) {
+      console.error('Error fetching blogs:', error);
+      handleError(error);
+    } finally {
+      setBlogsLoading(false);
+    }
+  };
+  
+
   useEffect(() => {
     fetchDoctorInfo();
   }, [session.idToken]);
 
+  useEffect(() => {
+    if (doctorInfo && selectedTab === 'blogs') {
+      fetchBlogs(1, true);
+    }
+  }, [doctorInfo, selectedTab]);
+
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchDoctorInfo();
+    if (selectedTab === 'blogs') {
+      await fetchBlogs(1, true);
+    }
     setRefreshing(false);
+  };
+
+  const loadMoreBlogs = () => {
+    if (!blogsLoading && hasMoreBlogs) {
+      fetchBlogs(blogsPage + 1);
+    }
+  };
+
+  const navigateToCreateBlog = () => {
+    navigation.navigate('CreateBlog');
+  };
+
+  const navigateToBlogDetails = (blogId: string) => {
+    navigation.navigate('BlogDetails', { blogId });
   };
 
   if (loading) {
     return <SkeletonLoader />;
   }
+
+  const renderBlogItem = ({ item }: { item: Blog }) => (
+    <TouchableOpacity 
+      style={[styles.blogCard, { backgroundColor: currentColors.card }]}
+      onPress={() => navigateToBlogDetails(item._id)}
+    >
+      {item.image && (
+        <Image 
+          source={{ uri: item.image }} 
+          style={styles.blogImage} 
+          resizeMode="cover"
+        />
+      )}
+      <View style={styles.blogContent}>
+        <Text style={[styles.blogTitle, { color: currentColors.text }]}>{item.title}</Text>
+        <Text 
+          style={[styles.blogDescription, { color: currentColors.secondary }]}
+          numberOfLines={2}
+        >
+          {item.description}
+        </Text>
+        <View style={styles.blogMeta}>
+          <View style={styles.blogMetaItem}>
+            <Icon name="book-outline" size={14} color={currentColors.primary} />
+            <Text style={[styles.blogMetaText, { color: currentColors.secondary }]}>
+              {item.readTime} min read
+            </Text>
+          </View>
+          <View style={styles.blogMetaItem}>
+            <Icon name="time-outline" size={14} color={currentColors.primary} />
+            <Text style={[styles.blogMetaText, { color: currentColors.secondary }]}>
+              {formatDate(item.createdAt)}
+            </Text>
+          </View>
+        </View>
+        <View style={[styles.blogGenre, { backgroundColor: currentColors.background }]}>
+          <Text style={{ color: currentColors.primary, fontSize: 12 }}>{item.genre}</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 
   const renderTabContent = () => {
     switch (selectedTab) {
@@ -222,31 +350,80 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
                 {doctorInfo?.doctor_email}
               </Text>
             </View>
-          </View>
-        );
-      case 'stats':
-        return (
-          <View style={styles.tabContent}>
-            <View style={styles.statsGrid}>
-              <View style={[styles.statCard, {backgroundColor: currentColors.card}]}>
-                <Icon name="people" size={28} color={currentColors.primary} />
-                <Text style={[styles.statNumber, {color: currentColors.text}]}>
-                  {doctorInfo?.patients?.length || 0}
-                </Text>
-                <Text style={[styles.statLabel, {color: currentColors.secondary}]}>
-                  Total Patients
-                </Text>
+            
+            {/* Statistics section moved to About tab */}
+            <View style={[styles.infoCard, {backgroundColor: currentColors.card}]}>
+              <View style={styles.infoHeader}>
+                <Icon name="stats-chart" size={20} color={currentColors.primary} />
+                <Text style={[styles.infoHeaderText, {color: currentColors.text}]}>Statistics</Text>
               </View>
-              <View style={[styles.statCard, {backgroundColor: currentColors.card}]}>
-                <Icon name="calendar" size={28} color={currentColors.primary} />
-                <Text style={[styles.statNumber, {color: currentColors.text}]}>
-                  {appointments.length}
-                </Text>
-                <Text style={[styles.statLabel, {color: currentColors.secondary}]}>
-                  Appointments
-                </Text>
+              <View style={styles.statsGrid}>
+                <View style={[styles.statItem, { borderRightColor: currentColors.border }]}>
+                  <Text style={[styles.statNumber, {color: currentColors.text}]}>
+                    {doctorInfo?.patients?.length || 0}
+                  </Text>
+                  <Text style={[styles.statLabel, {color: currentColors.secondary}]}>
+                    Patients
+                  </Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={[styles.statNumber, {color: currentColors.text}]}>
+                    {appointments.length}
+                  </Text>
+                  <Text style={[styles.statLabel, {color: currentColors.secondary}]}>
+                    Appointments
+                  </Text>
+                </View>
+                <View style={[styles.statItem, { borderRightColor: currentColors.border, borderTopColor: currentColors.border }]}>
+                  <Text style={[styles.statNumber, {color: currentColors.text}]}>
+                    {doctorInfo?.blogs?.length || 0}
+                  </Text>
+                  <Text style={[styles.statLabel, {color: currentColors.secondary}]}>
+                    Blogs
+                  </Text>
+                </View>
+                <View style={[styles.statItem, { borderTopColor: currentColors.border }]}>
+                  <Text style={[styles.statNumber, {color: currentColors.text}]}>0</Text>
+                  <Text style={[styles.statLabel, {color: currentColors.secondary}]}>
+                    Reviews
+                  </Text>
+                </View>
               </View>
             </View>
+          </View>
+        );
+      case 'blogs':
+        return (
+          <View style={styles.tabContent}>
+            {blogs.length === 0 && !blogsLoading ? (
+              <View style={[styles.emptyBlogsContainer, { backgroundColor: currentColors.card }]}>
+                <Icon name="document-text-outline" size={50} color={currentColors.primary} />
+                <Text style={[styles.emptyBlogsText, { color: currentColors.text }]}>
+                  You haven't created any blogs yet
+                </Text>
+                <TouchableOpacity
+                  style={styles.createBlogButton}
+                  onPress={navigateToCreateBlog}>
+                  <Text style={styles.createBlogButtonText}>Create Your First Blog</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <FlatList
+                data={blogs}
+                renderItem={renderBlogItem}
+                keyExtractor={(item) => item._id}
+                contentContainerStyle={styles.blogsList}
+                onEndReached={loadMoreBlogs}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={
+                  blogsLoading ? (
+                    <ActivityIndicator size="small" color={currentColors.primary} style={styles.loadingIndicator} />
+                  ) : null
+                }
+                showsVerticalScrollIndicator={false}
+                scrollEnabled={false} // Disable scrolling as parent ScrollView handles it
+              />
+            )}
           </View>
         );
     }
@@ -254,7 +431,7 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
 
   return (
     <SafeAreaView style={[styles.container, {backgroundColor: currentColors.background}]}>
-      <StatusBar backgroundColor={currentColors.background} barStyle="light-content" />
+      <StatusBar backgroundColor={currentColors.background} barStyle={isDarkMode ? "light-content" : "dark-content"} />
       <BackTabTop screenName="Profile" />
       <ScrollView
         refreshControl={
@@ -281,11 +458,16 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
                 {doctorInfo.organization_name}
               </Text>
             )}
-            <View style={styles.profileInfoContainer1}>
+            <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={styles.editButton}
                 onPress={() => navigation.navigate('DoctorProfileEdit')}>
                 <Text style={styles.editButtonText}>Edit Profile</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.addBlogButton}
+                onPress={navigateToCreateBlog}>
+                <Text style={styles.addBlogButtonText}>Add Blog</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -301,10 +483,10 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, selectedTab === 'stats' && styles.activeTab]}
-            onPress={() => setSelectedTab('stats')}>
-            <Text style={[styles.tabText, selectedTab === 'stats' && styles.activeTabText]}>
-              Statistics
+            style={[styles.tab, selectedTab === 'blogs' && styles.activeTab]}
+            onPress={() => setSelectedTab('blogs')}>
+            <Text style={[styles.tabText, selectedTab === 'blogs' && styles.activeTabText]}>
+              Your Blogs
             </Text>
           </TouchableOpacity>
         </View>
@@ -338,9 +520,11 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 10,
   },
-  profileInfoContainer1: {
-    width: 80,
-    height: 30,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginTop: 8,
   },
   name: {
     fontSize: 18,
@@ -357,18 +541,31 @@ const styles = StyleSheet.create({
   },
   editButton: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#007b8e',
     padding: 6,
     borderRadius: 10,
-    borderColor: '#000000',
-    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  editButtonText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  addBlogButton: {
+    flexDirection: 'row',
+    backgroundColor: '#007B8E',
+    padding: 6,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  editButtonText: {
-    color: '#000000',
+  addBlogButtonText: {
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
+    marginLeft: 3,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -419,23 +616,103 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  statCard: {
-    width: '48%',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+  statItem: {
+    width: '50%',
+    padding: 12,
     alignItems: 'center',
+    borderRightWidth: 1,
+    borderTopWidth: 0,
+    borderRightColor: '#E0E0E0',
+    borderTopColor: '#E0E0E0',
   },
   statNumber: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginTop: 8,
+    marginBottom: 4,
   },
   statLabel: {
-    fontSize: 15,
-    marginTop: 4,
+    fontSize: 14,
+  },
+  // Blog related styles
+  blogsList: {
+    paddingBottom: 16,
+  },
+  blogCard: {
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  blogImage: {
+    width: '100%',
+    height: 150,
+  },
+  blogContent: {
+    padding: 16,
+  },
+  blogTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  blogDescription: {
+    fontSize: 14,
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  blogMeta: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  blogMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  blogMetaText: {
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  blogGenre: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 16,
+  },
+  emptyBlogsContainer: {
+    padding: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyBlogsText: {
+    fontSize: 16,
+    marginTop: 12,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  createBlogButton: {
+    backgroundColor: '#007B8E',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  createBlogButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  loadingIndicator: {
+    marginVertical: 16,
   },
   // Skeleton Loader Styles
   skeletonProfileImage: {

@@ -238,7 +238,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     if (selectedDate) {
       // If selected date is on or before start date, don't update
       if (selectedDate <= startDate) {
-        Alert.alert("Invalid Date", "End date must be after start date");
+        Alert.alert('Invalid Date', 'End date must be after start date');
         return;
       }
       setEndDate(selectedDate);
@@ -300,8 +300,10 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
 
     if (
       therapyPlan.payment_type === 'one-time' &&
-      parseFloat(therapyPlan.received_amount) !==
-        parseFloat(therapyPlan.total_amount)
+      Math.abs(
+        parseFloat(therapyPlan.received_amount) -
+          parseFloat(therapyPlan.total_amount),
+      ) > 0.01
     ) {
       newErrors.received_amount = 'One-time payment requires full amount';
     }

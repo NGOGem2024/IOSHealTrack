@@ -400,92 +400,101 @@ const DoctorDashboard: React.FC = () => {
     };
 
     return (
-      <View style={styles.dashboardHeader}>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor="black"
-          translucent={false}
-        />
-        <View>
-          <Image
-            source={require('../assets/healtrack_logo1.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
+      <View style={{zIndex: 1000}}>
+        <View style={{backgroundColor: 'black', height: insets.top}} />
+        <View style={styles.dashboardHeader}>
+          <StatusBar
+            barStyle="light-content"
+            backgroundColor="black"
+            translucent={false}
           />
-          <Text style={styles.versionText}>v0.5</Text>
-        </View>
-        <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
-          <Ionicons name="menu" size={26} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Modal
-          isVisible={isDropdownVisible}
-          onBackdropPress={toggleDropdown}
-          animationIn="slideInRight"
-          animationOut="slideOutRight"
-          animationInTiming={300}
-          animationOutTiming={300}
-          backdropTransitionInTiming={300}
-          backdropTransitionOutTiming={300}
-          style={styles.modal}
-          propagateSwipe={true}
-          backdropOpacity={0.5}>
-          <View style={[styles.dropdown, {width: width * 0.5}]}>
-            <View style={styles.drawerHeader}>
-              <Text style={styles.drawerTitle}>Menu</Text>
-              <TouchableOpacity onPress={toggleDropdown}>
-                <Ionicons name="close" size={24} color="#007B8E" />
+          <View>
+            <Image
+              source={require('../assets/healtrack_logo1.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.versionText}>v0.5</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={toggleDropdown}>
+            <Ionicons name="menu" size={26} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Modal
+            isVisible={isDropdownVisible}
+            onBackdropPress={toggleDropdown}
+            animationIn="slideInRight"
+            animationOut="slideOutRight"
+            animationInTiming={300}
+            animationOutTiming={300}
+            backdropTransitionInTiming={300}
+            backdropTransitionOutTiming={300}
+            style={styles.modal}
+            propagateSwipe={true}
+            backdropOpacity={0.5}>
+            <View style={[styles.dropdown, {width: width * 0.5}]}>
+              <View style={styles.drawerHeader}>
+                <Text style={styles.drawerTitle}>Menu</Text>
+                <TouchableOpacity onPress={toggleDropdown}>
+                  <Ionicons name="close" size={24} color="#007B8E" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.drawerDivider} />
+
+              <TouchableOpacity
+                style={styles.drawerItem}
+                onPress={() => navigateToScreen('AllPatients')}>
+                <Ionicons name="people-outline" size={24} color="#007B8E" />
+                <Text style={styles.drawerItemText}>All Patients</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.drawerItem}
+                onPress={() => navigateToScreen('DoctorDashboard')}>
+                <Ionicons name="grid-outline" size={24} color="#007B8E" />
+                <Text style={styles.drawerItemText}>Dashboard</Text>
+              </TouchableOpacity>
+
+              {session.is_admin && (
+                <>
+                  <TouchableOpacity
+                    style={styles.drawerItem}
+                    onPress={() => navigateToScreen('Settings')}>
+                    <Ionicons
+                      name="settings-outline"
+                      size={24}
+                      color="#007B8E"
+                    />
+                    <Text style={styles.drawerItemText}>Settings</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.drawerItem}
+                    onPress={() => navigateToScreen('AdminReport')}>
+                    <Ionicons
+                      name="document-text-outline"
+                      size={24}
+                      color="#007B8E"
+                    />
+                    <Text style={styles.drawerItemText}>Reports</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              <View style={styles.drawerDivider} />
+
+              <TouchableOpacity
+                style={[styles.drawerItem, styles.logoutItem]}
+                onPress={() => navigateToScreen('Logout')}>
+                <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
+                <Text style={[styles.drawerItemText, styles.logoutText]}>
+                  Logout
+                </Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.drawerDivider} />
-
-            <TouchableOpacity
-              style={styles.drawerItem}
-              onPress={() => navigateToScreen('AllPatients')}>
-              <Ionicons name="people-outline" size={24} color="#007B8E" />
-              <Text style={styles.drawerItemText}>All Patients</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.drawerItem}
-              onPress={() => navigateToScreen('DoctorDashboard')}>
-              <Ionicons name="grid-outline" size={24} color="#007B8E" />
-              <Text style={styles.drawerItemText}>Dashboard</Text>
-            </TouchableOpacity>
-
-            {session.is_admin && (
-              <>
-                <TouchableOpacity
-                  style={styles.drawerItem}
-                  onPress={() => navigateToScreen('Settings')}>
-                  <Ionicons name="settings-outline" size={24} color="#007B8E" />
-                  <Text style={styles.drawerItemText}>Settings</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.drawerItem}
-                  onPress={() => navigateToScreen('AdminReport')}>
-                  <Ionicons
-                    name="document-text-outline"
-                    size={24}
-                    color="#007B8E"
-                  />
-                  <Text style={styles.drawerItemText}>Reports</Text>
-                </TouchableOpacity>
-              </>
-            )}
-
-            <View style={styles.drawerDivider} />
-
-            <TouchableOpacity
-              style={[styles.drawerItem, styles.logoutItem]}
-              onPress={() => navigateToScreen('Logout')}>
-              <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
-              <Text style={[styles.drawerItemText, styles.logoutText]}>
-                Logout
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </Modal>
+          </Modal>
+        </View>
       </View>
     );
   };
@@ -742,18 +751,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     dashboardHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      position: 'absolute',
-      top: insets.top, // Dynamically adjust top position
-      left: 0,
-      right: 0,
-      zIndex: 1000,
       justifyContent: 'space-between',
       paddingVertical: 10,
       paddingHorizontal: 15,
       backgroundColor: '#007B8E',
+      borderBottomWidth: 1,
       borderBottomColor: 'white',
       borderTopColor: 'white',
-      borderBottomWidth: 1,
       borderTopWidth: 1,
     },
     logoImage: {
@@ -852,7 +856,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     profileSection: {
       flexDirection: 'row',
-      paddingTop: 70,
+      paddingTop: 10,
       paddingBottom: 30,
       backgroundColor: theme.colors.card,
       borderBottomLeftRadius: 0,

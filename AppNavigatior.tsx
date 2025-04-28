@@ -179,7 +179,7 @@ const HomeStackNavigator = () => (
       component={BlogDetailsScreen}
       options={{headerShown: false}}
     />
-     <Stack.Screen
+    <Stack.Screen
       name="UpdateBlog"
       component={UpdateBlogScreen}
       options={{headerShown: false}}

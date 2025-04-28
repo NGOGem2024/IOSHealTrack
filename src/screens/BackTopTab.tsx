@@ -21,6 +21,11 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   const navigation = useNavigation();
   const {theme} = useTheme();
   const insets = useSafeAreaInsets();
+  const route = useRoute();
+  const {session} = useSession();
+  const [isDropdownVisible, setDropdownVisible] = useState(false);
+  const [storedPhoto, setStoredPhoto] = useState<string | null>(null);
+  const {width} = useWindowDimensions();
 
   const styles = getStyles(
     getTheme(
@@ -28,12 +33,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
     ),
     insets,
   );
-  const route = useRoute();
-  const {session} = useSession();
-  const [isDropdownVisible, setDropdownVisible] = useState(false);
-  const [storedPhoto, setStoredPhoto] = useState<string | null>(null);
 
-  const {width} = useWindowDimensions();
   const toggleDropdown = () => setDropdownVisible(!isDropdownVisible);
 
   const navigateToScreen = (screenName: string) => {
@@ -41,7 +41,6 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
     setDropdownVisible(false);
   };
 
-  // Fetch stored photo from AsyncStorage
   useEffect(() => {
     const getStoredPhoto = async () => {
       try {
@@ -57,98 +56,116 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
   }, []);
 
   return (
-    <View style={styles.header}>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}>
-        <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
-        <Image
-          source={require('../assets/healtrack_logo1.png')}
-          style={styles.logoImage}
-          resizeMode="contain"
+    <View style={{zIndex: 1000}}>
+      {/* Black background for the status bar */}
+      <View style={{backgroundColor: 'black', height: insets.top}} />
+
+      {/* Blue header */}
+      <View style={styles.header}>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor="black"
+          translucent={false}
         />
-        <Text style={styles.versionText}>v0.5</Text>
-      </TouchableOpacity>
 
-      <View style={styles.rightSection}>
-        <Text style={styles.screenNameText}>{screenName}</Text>
-        <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
-          {storedPhoto ? (
-            <Image source={{uri: storedPhoto}} style={styles.profilePhoto} />
-          ) : (
-            <Image
-              source={require('../assets/profile.png')}
-              style={styles.profilePhoto}
-            />
-          )}
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
+          <Image
+            source={require('../assets/healtrack_logo1.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.versionText}>v0.5</Text>
         </TouchableOpacity>
-      </View>
 
-      <Modal
-        isVisible={isDropdownVisible}
-        onBackdropPress={toggleDropdown}
-        animationIn="slideInRight"
-        animationOut="slideOutRight"
-        animationInTiming={300}
-        animationOutTiming={300}
-        backdropTransitionInTiming={300}
-        backdropTransitionOutTiming={300}
-        style={styles.modal}
-        propagateSwipe={true}
-        backdropOpacity={0.5}>
-        <View style={[styles.dropdown, {width: width * 0.5}]}>
-          <View style={styles.drawerHeader}>
-            <Text style={styles.drawerTitle}>Menu</Text>
-            <TouchableOpacity onPress={toggleDropdown}>
-              <Ionicons name="close" size={24} color="#007B8E" />
+        <View style={styles.rightSection}>
+          <Text style={styles.screenNameText}>{screenName}</Text>
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={toggleDropdown}>
+            {storedPhoto ? (
+              <Image source={{uri: storedPhoto}} style={styles.profilePhoto} />
+            ) : (
+              <Image
+                source={require('../assets/profile.png')}
+                style={styles.profilePhoto}
+              />
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Dropdown Modal */}
+        <Modal
+          isVisible={isDropdownVisible}
+          onBackdropPress={toggleDropdown}
+          animationIn="slideInRight"
+          animationOut="slideOutRight"
+          animationInTiming={300}
+          animationOutTiming={300}
+          backdropTransitionInTiming={300}
+          backdropTransitionOutTiming={300}
+          style={styles.modal}
+          propagateSwipe={true}
+          backdropOpacity={0.5}>
+          <View style={[styles.dropdown, {width: width * 0.5}]}>
+            <View style={styles.drawerHeader}>
+              <Text style={styles.drawerTitle}>Menu</Text>
+              <TouchableOpacity onPress={toggleDropdown}>
+                <Ionicons name="close" size={24} color="#007B8E" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.drawerDivider} />
+
+            <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => navigateToScreen('AllPatients')}>
+              <Ionicons name="people-outline" size={24} color="#007B8E" />
+              <Text style={styles.drawerItemText}>All Patients</Text>
             </TouchableOpacity>
-          </View>
-          <View style={styles.drawerDivider} />
 
-          <TouchableOpacity
-            style={styles.drawerItem}
-            onPress={() => navigateToScreen('AllPatients')}>
-            <Ionicons name="people-outline" size={24} color="#007B8E" />
-            <Text style={styles.drawerItemText}>All Patients</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => navigateToScreen('DoctorDashboard')}>
+              <Ionicons name="grid-outline" size={24} color="#007B8E" />
+              <Text style={styles.drawerItemText}>Dashboard</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.drawerItem}
-            onPress={() => navigateToScreen('DoctorDashboard')}>
-            <Ionicons name="grid-outline" size={24} color="#007B8E" />
-            <Text style={styles.drawerItemText}>Dashboard</Text>
-          </TouchableOpacity>
-
-          {session.is_admin && (
-            <>
+            {session.is_admin && (
               <TouchableOpacity
                 style={styles.drawerItem}
                 onPress={() => navigateToScreen('Settings')}>
                 <Ionicons name="settings-outline" size={24} color="#007B8E" />
                 <Text style={styles.drawerItemText}>Settings</Text>
               </TouchableOpacity>
-            </>
-          )}
+            )}
 
-          <TouchableOpacity
-            style={styles.drawerItem}
-            onPress={() => navigateToScreen('AdminReport')}>
-            <Ionicons name="document-text-outline" size={24} color="#007B8E" />
-            <Text style={styles.drawerItemText}>Reports</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => navigateToScreen('AdminReport')}>
+              <Ionicons
+                name="document-text-outline"
+                size={24}
+                color="#007B8E"
+              />
+              <Text style={styles.drawerItemText}>Reports</Text>
+            </TouchableOpacity>
 
-          <View style={styles.drawerDivider} />
+            <View style={styles.drawerDivider} />
 
-          <TouchableOpacity
-            style={[styles.drawerItem, styles.logoutItem]}
-            onPress={() => navigateToScreen('Logout')}>
-            <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
-            <Text style={[styles.drawerItemText, styles.logoutText]}>
-              Logout
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+            <TouchableOpacity
+              style={[styles.drawerItem, styles.logoutItem]}
+              onPress={() => navigateToScreen('Logout')}>
+              <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
+              <Text style={[styles.drawerItemText, styles.logoutText]}>
+                Logout
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      </View>
     </View>
   );
 };

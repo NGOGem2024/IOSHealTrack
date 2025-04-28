@@ -43,6 +43,7 @@ interface Appointment {
   patient_name?: string;
   doctor_name?: string;
   status?: string;
+  therapy_reason?: string;
   is_consultation?: boolean;
 }
 
@@ -458,11 +459,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
     </TouchableOpacity>
   );
   const renderAppointment = ({item}: {item: Appointment}) => (
-    <Animated.View
-      style={[
-        styles.appointmentItem,
-        item.is_consultation && styles.consultationItem,
-      ]}>
+    <Animated.View style={[styles.appointmentItem]}>
       <View style={styles.appointmentContent}>
         {/* If it's a consultation, don't wrap in TouchableOpacity */}
         {item.is_consultation ? (
@@ -504,6 +501,15 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
               {item.doctor_name && (
                 <Text style={styles.doctorName} numberOfLines={1}>
                   Dr. {item.doctor_name}
+                </Text>
+              )}
+              {/* Add therapy reason here */}
+              {item.therapy_reason && (
+                <Text
+                  style={styles.therapyReason}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  Reason: {item.therapy_reason}
                 </Text>
               )}
               <View style={styles.appointmentActions}>
@@ -566,6 +572,12 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
               {item.doctor_name && (
                 <Text style={styles.doctorName} numberOfLines={1}>
                   Dr. {item.doctor_name}
+                </Text>
+              )}
+              {/* Add therapy reason here */}
+              {item.therapy_reason && (
+                <Text style={styles.therapyReason} numberOfLines={2}>
+                  Reason: {item.therapy_reason}
                 </Text>
               )}
               <View style={styles.appointmentActions}>
@@ -861,20 +873,6 @@ const getStyles = (
       borderWidth: 1,
       overflow: 'hidden', // Ensure no content spills outside
     },
-    consultationItem: {
-      marginHorizontal: 16,
-      marginBottom: 12,
-      borderRadius: 16,
-      backgroundColor: isDarkMode ? '#233436' : '#FFFFFF',
-      elevation: 4,
-      shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: isDarkMode ? 0.4 : 0.1,
-      shadowRadius: 4,
-      borderColor: isDarkMode ? '#b79501' : 'white',
-      borderWidth: 1,
-      overflow: 'hidden',
-    },
     startButtonText: {
       color: 'black',
       fontSize: 16,
@@ -1090,6 +1088,12 @@ const getStyles = (
       color: '#000',
       fontSize: 10,
       fontWeight: 'bold',
+    },
+    therapyReason: {
+      fontSize: 13,
+      color: isDarkMode ? '#A0A0A0' : '#555555',
+      marginBottom: 6,
+      fontStyle: 'italic',
     },
   });
 

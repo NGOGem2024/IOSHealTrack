@@ -1,5 +1,5 @@
 // LeaderReport.tsx
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,10 @@ import {
   Animated,
 } from 'react-native';
 import axiosinstance from '../utils/axiosConfig';
-import { useTheme } from './ThemeContext';
-import { getTheme } from './Theme';
+import {useTheme} from './ThemeContext';
+import {getTheme} from './Theme';
 
-// Get screen dimensions
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
 interface Doctor {
   doctor_id: string;
@@ -29,17 +28,15 @@ interface DoctorLeaderboardProps {
   year: number;
 }
 
-const DoctorLeaderboard: React.FC<DoctorLeaderboardProps> = ({ month, year }) => {
+const DoctorLeaderboard: React.FC<DoctorLeaderboardProps> = ({month, year}) => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const { theme } = useTheme();
-  const styles = getStyles(getTheme(theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark'));
-  
-  // Animation values
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const slideAnim = React.useRef(new Animated.Value(50)).current;
+  const {theme} = useTheme();
+  const styles = getStyles(getTheme(theme.name as any));
 
-  // Fetch data when month or year changes
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -48,10 +45,9 @@ const DoctorLeaderboard: React.FC<DoctorLeaderboardProps> = ({ month, year }) =>
           `/monthly/leaderboard?month=${month}&year=${year}`,
         );
 
-        if (response.data && response.data.success) {
+        if (response.data?.success) {
           setDoctors(response.data.data);
-          
-          // Start animations
+
           Animated.parallel([
             Animated.timing(fadeAnim, {
               toValue: 1,
@@ -62,7 +58,7 @@ const DoctorLeaderboard: React.FC<DoctorLeaderboardProps> = ({ month, year }) =>
               toValue: 0,
               duration: 800,
               useNativeDriver: true,
-            })
+            }),
           ]).start();
         }
       } catch (error) {
@@ -75,102 +71,109 @@ const DoctorLeaderboard: React.FC<DoctorLeaderboardProps> = ({ month, year }) =>
     fetchData();
   }, [month, year]);
 
-  // Function to get the arranged order for top 3 doctors
   const getTopThreeArranged = () => {
-    if (doctors.length < 3) return doctors;
-    
-    const topThree = [...doctors.slice(0, 3)];
-    topThree.sort((a, b) => b.therapy_count - a.therapy_count);
-    
-    if (topThree.length === 3) {
-      return [topThree[1], topThree[0], topThree[2]];
-    }
-    
+    const topThree = [...doctors.slice(0, 3)].sort(
+      (a, b) => b.therapy_count - a.therapy_count,
+    );
+    if (topThree.length === 3) return [topThree[1], topThree[0], topThree[2]];
     return topThree;
   };
 
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   const renderTopThreeItem = (doctor: Doctor, index: number) => {
     const isFirstPlace = index === 1;
     const rank = index === 1 ? 1 : index === 0 ? 2 : 3;
-    
+
     return (
-      <Animated.View 
+      <Animated.View
         key={`top-${doctor.doctor_id}`}
         style={[
           styles.card,
           isFirstPlace && styles.firstPlace,
           {
             opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }
-        ]}
-      >
+            transform: [{translateY: slideAnim}],
+            marginHorizontal: 5,
+          },
+        ]}>
         <View style={styles.rankBadge}>
           <Text style={styles.rankText}>{rank}</Text>
         </View>
         <View style={[styles.avatar, isFirstPlace && styles.firstPlaceAvatar]}>
           {doctor.doctor_photo ? (
-            <Image 
-              source={{ uri: doctor.doctor_photo }} 
-              style={styles.avatarImage} 
-              resizeMode="cover"
+            <Image
+              source={{uri: doctor.doctor_photo}}
+              style={styles.avatarImage}
             />
           ) : (
-            <Text style={styles.avatarText}>{doctor.doctor_name.charAt(0)}</Text>
+            <Text style={styles.avatarText}>
+              {doctor.doctor_name?.charAt(0) || 'D'}
+            </Text>
           )}
         </View>
         <Text style={[styles.name, isFirstPlace && styles.firstPlaceName]}>
-          {doctor.doctor_name.split(" ")[0]}
+          {doctor.doctor_name.split(' ')[0]}
         </Text>
-        <Text style={[styles.therapies, isFirstPlace && styles.firstPlaceTherapies]}>
+        <Text
+          style={[
+            styles.therapies,
+            isFirstPlace && styles.firstPlaceTherapies,
+          ]}>
           {doctor.therapy_count} therapies
         </Text>
       </Animated.View>
     );
   };
 
-  const renderTableRow = ({ item, index }: { item: Doctor; index: number }) => {
-    return (
-      <Animated.View 
-        key={`row-${item.doctor_id}`}
-        style={[
-          styles.tableRow,
-          { 
-            opacity: fadeAnim,
-            transform: [{ translateX: slideAnim }],
-          }
-        ]}
-      >
-        <View style={styles.rankCell}>
-          <Text style={styles.rankCellText}>{index + 1}</Text>
-        </View>
-        <View style={styles.doctorCell}>
-          <View style={styles.doctorInfo}>
-            <View style={styles.tableAvatar}>
-              {item.doctor_photo ? (
-                <Image 
-                  source={{ uri: item.doctor_photo }} 
-                  style={styles.avatarImage} 
-                  resizeMode="cover"
-                />
-              ) : (
-                <Text style={styles.tableAvatarText}>{item.doctor_name.charAt(0)}</Text>
-              )}
-            </View>
-            <Text style={styles.doctorName}>{item.doctor_name}</Text>
+  const renderTableRow = ({item, index}: {item: Doctor; index: number}) => (
+    <Animated.View
+      key={`row-${item.doctor_id}`}
+      style={[
+        styles.tableRow,
+        {
+          opacity: fadeAnim,
+          transform: [{translateX: slideAnim}],
+        },
+      ]}>
+      <View style={styles.rankCell}>
+        <Text style={styles.rankCellText}>{index + 1}</Text>
+      </View>
+      <View style={styles.doctorCell}>
+        <View style={styles.doctorInfo}>
+          <View style={styles.tableAvatar}>
+            {item.doctor_photo ? (
+              <Image
+                source={{uri: item.doctor_photo}}
+                style={styles.avatarImage}
+              />
+            ) : (
+              <Text style={styles.tableAvatarText}>
+                {item.doctor_name?.charAt(0) || 'D'}
+              </Text>
+            )}
           </View>
+          <Text style={styles.doctorName}>{item.doctor_name}</Text>
         </View>
-        <View style={styles.therapyCell}>
-          <Text style={styles.therapyCellText}>{item.therapy_count}</Text>
-        </View>
-      </Animated.View>
-    );
-  };
+      </View>
+      <View style={styles.therapyCell}>
+        <Text style={styles.therapyCellText}>{item.therapy_count}</Text>
+      </View>
+    </Animated.View>
+  );
 
   return (
     <View style={styles.leaderboardCard}>
@@ -178,7 +181,7 @@ const DoctorLeaderboard: React.FC<DoctorLeaderboardProps> = ({ month, year }) =>
       <Text style={styles.chartSubtitle}>
         {months[month - 1]} {year}
       </Text>
-      
+
       {loading ? (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color="#007b8e" />
@@ -187,8 +190,8 @@ const DoctorLeaderboard: React.FC<DoctorLeaderboardProps> = ({ month, year }) =>
       ) : (
         <>
           <View style={styles.topCards}>
-            {getTopThreeArranged().map((doctor, index) => 
-              renderTopThreeItem(doctor, index)
+            {getTopThreeArranged().map((doctor, index) =>
+              renderTopThreeItem(doctor, index),
             )}
           </View>
 
@@ -204,10 +207,10 @@ const DoctorLeaderboard: React.FC<DoctorLeaderboardProps> = ({ month, year }) =>
                 <Text style={styles.headerText}>Therapies</Text>
               </View>
             </View>
-            
+
             <FlatList
               data={doctors}
-              keyExtractor={(item) => `doctor-${item.doctor_id}`}
+              keyExtractor={item => item.doctor_id}
               renderItem={renderTableRow}
               scrollEnabled={false}
             />
@@ -227,7 +230,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       width: '100%',
       marginBottom: 20,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
+      shadowOffset: {width: 0, height: 4},
       shadowOpacity: 0.1,
       shadowRadius: 6,
       elevation: 5,
@@ -259,9 +262,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'flex-end',
-      gap: 15,
       marginBottom: 30,
-      width: '100%',
     },
     card: {
       backgroundColor: '#0b5e69',
@@ -271,10 +272,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       width: width * 0.22,
       position: 'relative',
       elevation: 4,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
     },
     firstPlace: {
       backgroundColor: '#007b8e',
@@ -292,11 +289,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
-      elevation: 2,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.2,
-      shadowRadius: 1,
     },
     rankText: {
       color: '#333',
@@ -378,10 +370,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       height: 60,
       alignItems: 'center',
       elevation: 2,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 2,
     },
     rankCell: {
       width: '15%',
@@ -402,30 +390,32 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: 'white',
       fontWeight: 'bold',
       fontSize: 16,
+      textAlign: 'center',
     },
     doctorInfo: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 10,
     },
+    doctorName: {
+      color: 'white',
+      fontWeight: 'bold',
+      fontSize: 14,
+    },
     tableAvatar: {
-      backgroundColor: 'lightgray',
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: '#eee',
       justifyContent: 'center',
       alignItems: 'center',
       overflow: 'hidden',
+      marginRight: 10,
     },
     tableAvatarText: {
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: 'bold',
-      color: '#0b5e69',
-    },
-    doctorName: {
-      fontWeight: 'bold',
-      color: 'white',
-      fontSize: 16,
+      color: '#007b8e',
     },
   });
 

@@ -186,6 +186,102 @@ const HomeStackNavigator = () => (
     />
   </Stack.Navigator>
 );
+const AllAppointmentsStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="AllAppointments"
+      component={AllAppointmentsPage}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="CreateConsultation"
+      component={CreateConsultationScreen}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="EditTherapyPlan"
+      component={EditTherapyPlan}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="UpdatePatient"
+      component={UpdatePatient}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="Patient"
+      component={PatientScreen}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="CreateTherapy"
+      component={CreateTherapy}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="CreateTherapyPlan"
+      component={CreateTherapyPlan}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="planDetails"
+      component={TherapyPlanDetails}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="TherapyHistory"
+      component={TherapyHistory}
+      options={{headerShown: false}}
+    />
+    {/* Add more screens here if you want to navigate deeper from AllAppointments */}
+  </Stack.Navigator>
+);
+
+const ProfileStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="Profile"
+      component={ProfileScreen}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="DoctorProfileEdit"
+      component={DoctorProfileEdit}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="CreateBlog"
+      component={CreateBlogScreen}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="BlogDetails"
+      component={BlogDetailsScreen}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="UpdateBlog"
+      component={UpdateBlogScreen}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="AdminReport"
+      component={AdminReport}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="OrganizationSettings"
+      component={OrganizationSettingsScreen}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="Settings"
+      component={SettingsScreen}
+      options={{headerShown: false}}
+    />
+    {/* Add more screens like EditProfile etc. if needed */}
+  </Stack.Navigator>
+);
 
 const TabNavigator = () => (
   <Tab.Navigator
@@ -231,8 +327,8 @@ const TabNavigator = () => (
       })}
     />
     <Tab.Screen
-      name="AllAppointments"
-      component={AllAppointmentsPage}
+      name="AllAppointmentsStack"
+      component={AllAppointmentsStack}
       options={{
         headerShown: false,
         tabBarIcon: ({color, size}) => (
@@ -261,8 +357,8 @@ const TabNavigator = () => (
       }}
     />
     <Tab.Screen
-      name="Profile"
-      component={ProfileScreen}
+      name="ProfileStack"
+      component={ProfileStack}
       options={{
         headerShown: false,
         tabBarIcon: ({color, size}) => (

@@ -44,10 +44,12 @@ export type RootStackParamList = {
   Main: undefined;
   planDetails: {planId: string};
   AdminReport: undefined;
-  CreateBlog: { blogId?: string; isEditing?: boolean } | undefined;
-  BlogDetails: { blogId: string };
-  UpdateBlog: { blogId: string };
-  CreateConsultation: {patientId: string, appointmentId: string};
+  CreateBlog: {blogId?: string; isEditing?: boolean} | undefined;
+  BlogDetails: {blogId: string};
+  UpdateBlog: {blogId: string};
+  CreateConsultation: {patientId: string; appointmentId: string};
+  AllAppointments: undefined;
+  Profile: undefined;
 };
 
 export type RootTabParamList = {
@@ -57,11 +59,14 @@ export type RootTabParamList = {
   Dashboard: undefined;
   AllPatients: undefined;
   MainStack: undefined;
-  SearchPatients: undefined;CreateBlog: { blogId?: string; isEditing?: boolean } | undefined;
-  BlogDetails: { blogId: string };
+  SearchPatients: undefined;
+  CreateBlog: {blogId?: string; isEditing?: boolean} | undefined;
+  BlogDetails: {blogId: string};
   Patient: {patientId: string};
   AllAppointments: undefined;
   Profile: undefined;
+  AllAppointmentsStack: undefined;
+  ProfileStack: undefined;
 };
 
 export type RootStackNavProps<T extends keyof RootStackParamList> = {

@@ -19,12 +19,13 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList, RootTabParamList} from '../types/types';
 import {useNavigation} from '@react-navigation/native';
 import BlogImageUploader from './blogimageupload';
+import YouTubeVideoManager, {YouTubeVideo} from './videomanager'; // Import the YouTubeVideoManager
 
 interface BlogFormData {
   title: string;
   description: string;
   image: any;
-  video: string | null;
+  videos: YouTubeVideo[]; // Changed from video: string | null to videos array
   genre: string;
   readTime: string;
   status: 'draft' | 'published';
@@ -60,7 +61,7 @@ const CreateBlogScreen: React.FC = () => {
     title: '',
     description: '',
     image: null,
-    video: null,
+    videos: [], // Initialize as empty array instead of null
     genre: '',
     readTime: '',
     status: 'draft',
@@ -74,7 +75,10 @@ const CreateBlogScreen: React.FC = () => {
   const isDarkMode = colorScheme === 'dark';
   const currentColors = themeColors[isDarkMode ? 'dark' : 'light'];
 
-  const handleInputChange = (field: keyof BlogFormData, value: string) => {
+  const handleInputChange = (
+    field: keyof BlogFormData,
+    value: string | YouTubeVideo[],
+  ) => {
     setFormData({
       ...formData,
       [field]: value,
@@ -102,10 +106,11 @@ const CreateBlogScreen: React.FC = () => {
     });
   };
 
-  const selectVideo = () => {
-    // Your existing video selection logic
-    setShowMediaOptions(false);
-    Alert.alert('Video Feature', 'Video selection would be handled here');
+  const handleVideosChange = (videos: YouTubeVideo[]) => {
+    setFormData({
+      ...formData,
+      videos: videos,
+    });
   };
 
   const handleSubmit = async () => {
@@ -147,11 +152,11 @@ const CreateBlogScreen: React.FC = () => {
         blogFormData.append('image', imageFile);
       }
 
-      // Add video if exists (would need similar handling to image)
-      if (formData.video) {
-        blogFormData.append('video', formData.video);
+      // Add videos if they exist
+      if (formData.videos && formData.videos.length > 0) {
+        // Convert videos array to JSON string
+        blogFormData.append('videos', JSON.stringify(formData.videos));
       }
-
       // Set proper headers for multipart/form-data
       const response = await axiosInstance.post('/create/blog', blogFormData, {
         headers: {
@@ -190,22 +195,6 @@ const CreateBlogScreen: React.FC = () => {
             />
             <Text style={[styles.modalOptionText, {color: currentColors.text}]}>
               Add Image
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.modalOption}
-            onPress={() => {
-              setShowMediaOptions(false);
-              selectVideo();
-            }}>
-            <Icon
-              name="videocam-outline"
-              size={24}
-              color={currentColors.primary}
-            />
-            <Text style={[styles.modalOptionText, {color: currentColors.text}]}>
-              Add Video
             </Text>
           </TouchableOpacity>
 
@@ -394,55 +383,17 @@ const CreateBlogScreen: React.FC = () => {
               />
             </View>
 
-            {formData.video ? (
-              <View style={styles.mediaPreviewContainer}>
-                <View style={styles.videoPreviewPlaceholder}>
-                  <Icon
-                    name="play-circle"
-                    size={50}
-                    color={currentColors.primary}
-                  />
-                  <Text
-                    style={[
-                      styles.videoPreviewText,
-                      {color: currentColors.text},
-                    ]}>
-                    Video Selected
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.deleteMediaButton}
-                  onPress={() => setFormData({...formData, video: null})}>
-                  <Icon name="close" size={20} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={styles.addVideoSection}>
-                <TouchableOpacity
-                  style={[
-                    styles.addVideoButton,
-                    {
-                      backgroundColor: currentColors.inputBox,
-                      borderColor: currentColors.border,
-                    },
-                  ]}
-                  onPress={() => setShowMediaOptions(true)}
-                  disabled={isSubmitting}>
-                  <Icon
-                    name="videocam-outline"
-                    size={24}
-                    color={currentColors.primary}
-                  />
-                  <Text
-                    style={[
-                      styles.addVideoButtonText,
-                      {color: currentColors.text},
-                    ]}>
-                    Add Video
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
+            {/* YouTube Video Manager Component */}
+            <View style={styles.videoManagerContainer}>
+              <Text style={[styles.label, {color: currentColors.text}]}>
+                YouTube Videos
+              </Text>
+              <YouTubeVideoManager
+                videos={formData.videos}
+                onChange={handleVideosChange}
+                themeColors={currentColors}
+              />
+            </View>
           </View>
 
           <View style={styles.sectionHeader}>
@@ -640,6 +591,12 @@ const styles = StyleSheet.create({
   },
   blogImageUploaderContainer: {
     marginBottom: 16,
+  },
+  videoManagerContainer: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    paddingTop: 16,
+    borderColor: '#E2E8F0',
   },
   mediaPreviewContainer: {
     position: 'relative',

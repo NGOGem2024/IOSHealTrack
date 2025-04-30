@@ -78,47 +78,87 @@ const SkeletonLoader: React.FC = () => {
           duration: 1000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
     animation.start();
     return () => animation.stop();
   }, [fadeAnim]);
 
   return (
-    <SafeAreaView style={[styles.container, {backgroundColor: currentColors.background}]}>
-      <StatusBar backgroundColor={currentColors.background} barStyle="light-content" />
+    <SafeAreaView
+      style={[styles.container, {backgroundColor: currentColors.background}]}>
+      <StatusBar
+        backgroundColor={currentColors.background}
+        barStyle="light-content"
+      />
       <BackTabTop screenName="Profile" />
       <ScrollView>
         {/* Profile Card Skeleton */}
-        <Animated.View 
+        <Animated.View
           style={[
-            styles.profileCard, 
-            {opacity: fadeAnim, backgroundColor: currentColors.card}
+            styles.profileCard,
+            {opacity: fadeAnim, backgroundColor: currentColors.card},
           ]}>
           <View style={styles.profileImageContainer}>
-            <View style={[styles.skeletonProfileImage, {backgroundColor: currentColors.skeleton}]} />
+            <View
+              style={[
+                styles.skeletonProfileImage,
+                {backgroundColor: currentColors.skeleton},
+              ]}
+            />
           </View>
           <View style={styles.profileInfoContainer}>
-            <View style={[styles.skeletonLine1, {backgroundColor: currentColors.skeleton}]} />
-            <View style={[styles.skeletonLine2, {backgroundColor: currentColors.skeleton}]} />
-            <View style={[styles.skeletonLine3, {backgroundColor: currentColors.skeleton}]} />
-            <View style={[styles.skeletonEditButton, {backgroundColor: currentColors.skeleton}]} />
+            <View
+              style={[
+                styles.skeletonLine1,
+                {backgroundColor: currentColors.skeleton},
+              ]}
+            />
+            <View
+              style={[
+                styles.skeletonLine2,
+                {backgroundColor: currentColors.skeleton},
+              ]}
+            />
+            <View
+              style={[
+                styles.skeletonLine3,
+                {backgroundColor: currentColors.skeleton},
+              ]}
+            />
+            <View
+              style={[
+                styles.skeletonEditButton,
+                {backgroundColor: currentColors.skeleton},
+              ]}
+            />
           </View>
         </Animated.View>
 
         {/* Tab Navigation Skeleton */}
         <View style={styles.tabContainer}>
-          <View style={[styles.skeletonTab, {backgroundColor: currentColors.skeleton}]} />
-          <View style={[styles.skeletonTab, {backgroundColor: currentColors.skeleton}]} />
+          <View
+            style={[
+              styles.skeletonTab,
+              {backgroundColor: currentColors.skeleton},
+            ]}
+          />
+          <View
+            style={[
+              styles.skeletonTab,
+              {backgroundColor: currentColors.skeleton},
+            ]}
+          />
         </View>
 
         {/* Content Skeleton */}
         <View style={styles.tabContent}>
-          <Animated.View 
+          <Animated.View
             style={[
-              styles.skeletonInfoCard, 
-              {opacity: fadeAnim, backgroundColor: currentColors.skeleton}
-            ]} />
+              styles.skeletonInfoCard,
+              {opacity: fadeAnim, backgroundColor: currentColors.skeleton},
+            ]}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -145,6 +185,7 @@ interface Blog {
   title: string;
   description: string;
   image?: string;
+  imageWithSas?: string;
   genre: string;
   readTime: number;
   status: string;
@@ -159,21 +200,24 @@ type DoctorProfileScreenProps = {
 // Function to format phone number with space after country code
 const formatPhoneNumber = (phone: string): string => {
   if (!phone) return '';
-  
+
   // Check if the phone number starts with '+' and has at least 3 characters
   if (phone.startsWith('+') && phone.length >= 3) {
     // Insert a space after the country code (first 2 digits after the '+')
     return `${phone.substring(0, 3)} ${phone.substring(3)}`;
   }
-  
+
   return phone;
 };
 
 // Function to format date to readable format
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  const options = { year: 'numeric', month: 'short', day: 'numeric' };
-  return date.toLocaleDateString('en-US', options as Intl.DateTimeFormatOptions);
+  const options = {year: 'numeric', month: 'short', day: 'numeric'};
+  return date.toLocaleDateString(
+    'en-US',
+    options as Intl.DateTimeFormatOptions,
+  );
 };
 
 const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
@@ -222,7 +266,7 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
 
   const fetchBlogs = async (page = 1, refresh = false) => {
     if (!session.idToken || !doctorInfo?._id) return;
-    
+
     setBlogsLoading(true);
     try {
       const response = await axiosInstance.get('/blogs', {
@@ -234,17 +278,19 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
           sortOrder: -1,
         },
       });
-      
+
       const newBlogs = response.data.data;
       //console.log('Fetched blogs:', newBlogs); // Add logging for debugging
-      
+
       if (refresh) {
         setBlogs(newBlogs);
       } else {
         setBlogs(prev => [...prev, ...newBlogs]);
       }
-      
-      setHasMoreBlogs(newBlogs.length > 0 && page < response.data.pagination.pages);
+
+      setHasMoreBlogs(
+        newBlogs.length > 0 && page < response.data.pagination.pages,
+      );
       setBlogsPage(page);
     } catch (error) {
       console.error('Error fetching blogs:', error);
@@ -253,7 +299,6 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
       setBlogsLoading(false);
     }
   };
-  
 
   useEffect(() => {
     fetchDoctorInfo();
@@ -285,49 +330,57 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
   };
 
   const navigateToBlogDetails = (blogId: string) => {
-    navigation.navigate('BlogDetails', { blogId });
+    navigation.navigate('BlogDetails', {blogId});
   };
 
   if (loading) {
     return <SkeletonLoader />;
   }
 
-  const renderBlogItem = ({ item }: { item: Blog }) => (
-    <TouchableOpacity 
-      style={[styles.blogCard, { backgroundColor: currentColors.card }]}
-      onPress={() => navigateToBlogDetails(item._id)}
-    >
+  const renderBlogItem = ({item}: {item: Blog}) => (
+    <TouchableOpacity
+      style={[styles.blogCard, {backgroundColor: currentColors.card}]}
+      onPress={() => navigateToBlogDetails(item._id)}>
       {item.image && (
-        <Image 
-          source={{ uri: item.image }} 
-          style={styles.blogImage} 
+        <Image
+          source={{uri: item.imageWithSas}}
+          style={styles.blogImage}
           resizeMode="cover"
         />
       )}
       <View style={styles.blogContent}>
-        <Text style={[styles.blogTitle, { color: currentColors.text }]}>{item.title}</Text>
-        <Text 
-          style={[styles.blogDescription, { color: currentColors.secondary }]}
-          numberOfLines={2}
-        >
+        <Text style={[styles.blogTitle, {color: currentColors.text}]}>
+          {item.title}
+        </Text>
+        <Text
+          style={[styles.blogDescription, {color: currentColors.secondary}]}
+          numberOfLines={2}>
           {item.description}
         </Text>
         <View style={styles.blogMeta}>
           <View style={styles.blogMetaItem}>
             <Icon name="book-outline" size={14} color={currentColors.primary} />
-            <Text style={[styles.blogMetaText, { color: currentColors.secondary }]}>
+            <Text
+              style={[styles.blogMetaText, {color: currentColors.secondary}]}>
               {item.readTime} min read
             </Text>
           </View>
           <View style={styles.blogMetaItem}>
             <Icon name="time-outline" size={14} color={currentColors.primary} />
-            <Text style={[styles.blogMetaText, { color: currentColors.secondary }]}>
+            <Text
+              style={[styles.blogMetaText, {color: currentColors.secondary}]}>
               {formatDate(item.createdAt)}
             </Text>
           </View>
         </View>
-        <View style={[styles.blogGenre, { backgroundColor: currentColors.background }]}>
-          <Text style={{ color: currentColors.primary, fontSize: 12 }}>{item.genre}</Text>
+        <View
+          style={[
+            styles.blogGenre,
+            {backgroundColor: currentColors.background},
+          ]}>
+          <Text style={{color: currentColors.primary, fontSize: 12}}>
+            {item.genre}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -338,10 +391,14 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
       case 'about':
         return (
           <View style={styles.tabContent}>
-            <View style={[styles.infoCard, {backgroundColor: currentColors.card}]}>
+            <View
+              style={[styles.infoCard, {backgroundColor: currentColors.card}]}>
               <View style={styles.infoHeader}>
                 <Icon name="call" size={20} color={currentColors.primary} />
-                <Text style={[styles.infoHeaderText, {color: currentColors.text}]}>Contact</Text>
+                <Text
+                  style={[styles.infoHeaderText, {color: currentColors.text}]}>
+                  Contact
+                </Text>
               </View>
               <Text style={[styles.infoText, {color: currentColors.secondary}]}>
                 {formatPhoneNumber(doctorInfo?.doctor_phone || '')}
@@ -350,41 +407,86 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
                 {doctorInfo?.doctor_email}
               </Text>
             </View>
-            
+
             {/* Statistics section moved to About tab */}
-            <View style={[styles.infoCard, {backgroundColor: currentColors.card}]}>
+            <View
+              style={[styles.infoCard, {backgroundColor: currentColors.card}]}>
               <View style={styles.infoHeader}>
-                <Icon name="stats-chart" size={20} color={currentColors.primary} />
-                <Text style={[styles.infoHeaderText, {color: currentColors.text}]}>Statistics</Text>
+                <Icon
+                  name="stats-chart"
+                  size={20}
+                  color={currentColors.primary}
+                />
+                <Text
+                  style={[styles.infoHeaderText, {color: currentColors.text}]}>
+                  Statistics
+                </Text>
               </View>
               <View style={styles.statsGrid}>
-                <View style={[styles.statItem, { borderRightColor: currentColors.border }]}>
-                  <Text style={[styles.statNumber, {color: currentColors.text}]}>
+                <View
+                  style={[
+                    styles.statItem,
+                    {borderRightColor: currentColors.border},
+                  ]}>
+                  <Text
+                    style={[styles.statNumber, {color: currentColors.text}]}>
                     {doctorInfo?.patients?.length || 0}
                   </Text>
-                  <Text style={[styles.statLabel, {color: currentColors.secondary}]}>
+                  <Text
+                    style={[
+                      styles.statLabel,
+                      {color: currentColors.secondary},
+                    ]}>
                     Patients
                   </Text>
                 </View>
                 <View style={styles.statItem}>
-                  <Text style={[styles.statNumber, {color: currentColors.text}]}>
+                  <Text
+                    style={[styles.statNumber, {color: currentColors.text}]}>
                     {appointments.length}
                   </Text>
-                  <Text style={[styles.statLabel, {color: currentColors.secondary}]}>
+                  <Text
+                    style={[
+                      styles.statLabel,
+                      {color: currentColors.secondary},
+                    ]}>
                     Appointments
                   </Text>
                 </View>
-                <View style={[styles.statItem, { borderRightColor: currentColors.border, borderTopColor: currentColors.border }]}>
-                  <Text style={[styles.statNumber, {color: currentColors.text}]}>
+                <View
+                  style={[
+                    styles.statItem,
+                    {
+                      borderRightColor: currentColors.border,
+                      borderTopColor: currentColors.border,
+                    },
+                  ]}>
+                  <Text
+                    style={[styles.statNumber, {color: currentColors.text}]}>
                     {doctorInfo?.blogs?.length || 0}
                   </Text>
-                  <Text style={[styles.statLabel, {color: currentColors.secondary}]}>
+                  <Text
+                    style={[
+                      styles.statLabel,
+                      {color: currentColors.secondary},
+                    ]}>
                     Blogs
                   </Text>
                 </View>
-                <View style={[styles.statItem, { borderTopColor: currentColors.border }]}>
-                  <Text style={[styles.statNumber, {color: currentColors.text}]}>0</Text>
-                  <Text style={[styles.statLabel, {color: currentColors.secondary}]}>
+                <View
+                  style={[
+                    styles.statItem,
+                    {borderTopColor: currentColors.border},
+                  ]}>
+                  <Text
+                    style={[styles.statNumber, {color: currentColors.text}]}>
+                    0
+                  </Text>
+                  <Text
+                    style={[
+                      styles.statLabel,
+                      {color: currentColors.secondary},
+                    ]}>
                     Reviews
                   </Text>
                 </View>
@@ -396,28 +498,43 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
         return (
           <View style={styles.tabContent}>
             {blogs.length === 0 && !blogsLoading ? (
-              <View style={[styles.emptyBlogsContainer, { backgroundColor: currentColors.card }]}>
-                <Icon name="document-text-outline" size={50} color={currentColors.primary} />
-                <Text style={[styles.emptyBlogsText, { color: currentColors.text }]}>
+              <View
+                style={[
+                  styles.emptyBlogsContainer,
+                  {backgroundColor: currentColors.card},
+                ]}>
+                <Icon
+                  name="document-text-outline"
+                  size={50}
+                  color={currentColors.primary}
+                />
+                <Text
+                  style={[styles.emptyBlogsText, {color: currentColors.text}]}>
                   You haven't created any blogs yet
                 </Text>
                 <TouchableOpacity
                   style={styles.createBlogButton}
                   onPress={navigateToCreateBlog}>
-                  <Text style={styles.createBlogButtonText}>Create Your First Blog</Text>
+                  <Text style={styles.createBlogButtonText}>
+                    Create Your First Blog
+                  </Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <FlatList
                 data={blogs}
                 renderItem={renderBlogItem}
-                keyExtractor={(item) => item._id}
+                keyExtractor={item => item._id}
                 contentContainerStyle={styles.blogsList}
                 onEndReached={loadMoreBlogs}
                 onEndReachedThreshold={0.5}
                 ListFooterComponent={
                   blogsLoading ? (
-                    <ActivityIndicator size="small" color={currentColors.primary} style={styles.loadingIndicator} />
+                    <ActivityIndicator
+                      size="small"
+                      color={currentColors.primary}
+                      style={styles.loadingIndicator}
+                    />
                   ) : null
                 }
                 showsVerticalScrollIndicator={false}
@@ -430,15 +547,20 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, {backgroundColor: currentColors.background}]}>
-      <StatusBar backgroundColor={currentColors.background} barStyle={isDarkMode ? "light-content" : "dark-content"} />
+    <SafeAreaView
+      style={[styles.container, {backgroundColor: currentColors.background}]}>
+      <StatusBar
+        backgroundColor={currentColors.background}
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+      />
       <BackTabTop screenName="Profile" />
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
         {/* Profile Card */}
-        <View style={[styles.profileCard, {backgroundColor: currentColors.card}]}>
+        <View
+          style={[styles.profileCard, {backgroundColor: currentColors.card}]}>
           <View style={styles.profileImageContainer}>
             <EnhancedProfilePhoto
               photoUri={doctorInfo?.doctors_photo}
@@ -448,13 +570,15 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
           </View>
           <View style={styles.profileInfoContainer}>
             <Text style={[styles.name, {color: currentColors.text}]}>
-               {doctorInfo?.doctor_first_name} {doctorInfo?.doctor_last_name}
+              {doctorInfo?.doctor_first_name} {doctorInfo?.doctor_last_name}
             </Text>
-            <Text style={[styles.specialization, {color: currentColors.secondary}]}>
+            <Text
+              style={[styles.specialization, {color: currentColors.secondary}]}>
               {doctorInfo?.qualification}
             </Text>
             {doctorInfo?.organization_name && (
-              <Text style={[styles.organization, {color: currentColors.primary}]}>
+              <Text
+                style={[styles.organization, {color: currentColors.primary}]}>
                 {doctorInfo.organization_name}
               </Text>
             )}
@@ -474,18 +598,27 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
         </View>
 
         {/* Tab Navigation */}
-        <View style={[styles.tabContainer, {backgroundColor: currentColors.card}]}>
+        <View
+          style={[styles.tabContainer, {backgroundColor: currentColors.card}]}>
           <TouchableOpacity
             style={[styles.tab, selectedTab === 'about' && styles.activeTab]}
             onPress={() => setSelectedTab('about')}>
-            <Text style={[styles.tabText, selectedTab === 'about' && styles.activeTabText]}>
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === 'about' && styles.activeTabText,
+              ]}>
               About
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, selectedTab === 'blogs' && styles.activeTab]}
             onPress={() => setSelectedTab('blogs')}>
-            <Text style={[styles.tabText, selectedTab === 'blogs' && styles.activeTabText]}>
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === 'blogs' && styles.activeTabText,
+              ]}>
               Your Blogs
             </Text>
           </TouchableOpacity>

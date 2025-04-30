@@ -54,6 +54,7 @@ type BlogDetailsScreenProps = {
 };
 
 interface Blog {
+  imageWithSas: string | undefined;
   _id: string;
   title: string;
   description: string;
@@ -189,9 +190,9 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
       />
       <BackTabTop screenName="Blog Details" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {blog.image && (
+        {blog.imageWithSas && (
           <Image
-            source={{uri: blog.image}}
+            source={{uri: blog.imageWithSas}}
             style={styles.blogImage}
             resizeMode="cover"
           />

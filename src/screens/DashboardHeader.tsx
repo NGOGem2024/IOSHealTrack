@@ -1,31 +1,28 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   Image,
-  StatusBar,
   useWindowDimensions,
+  StatusBar,
+  StyleSheet,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useNavigation, useRoute} from '@react-navigation/native';
 import Modal from 'react-native-modal';
+import {useNavigation} from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useSession} from '../context/SessionContext';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
-const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
-  const navigation = useNavigation();
+const DashboardHeader: React.FC = () => {
   const {theme} = useTheme();
   const insets = useSafeAreaInsets();
-  const route = useRoute();
+  const navigation = useNavigation();
   const {session} = useSession();
-  const [isDropdownVisible, setDropdownVisible] = useState(false);
-  const [storedPhoto, setStoredPhoto] = useState<string | null>(null);
   const {width} = useWindowDimensions();
+  const [isDropdownVisible, setDropdownVisible] = useState(false);
 
   const styles = getStyles(
     getTheme(
@@ -34,69 +31,36 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
     insets,
   );
 
-  const toggleDropdown = () => setDropdownVisible(!isDropdownVisible);
+  const toggleDropdown = () => {
+    setDropdownVisible(prev => !prev);
+  };
 
   const navigateToScreen = (screenName: string) => {
     navigation.navigate(screenName as never);
     setDropdownVisible(false);
   };
 
-  useEffect(() => {
-    const getStoredPhoto = async () => {
-      try {
-        const photo = await AsyncStorage.getItem('doctor_photo');
-        if (photo) {
-          setStoredPhoto(photo);
-        }
-      } catch (error) {
-        console.error('Error fetching stored photo:', error);
-      }
-    };
-    getStoredPhoto();
-  }, []);
-
   return (
     <View style={{zIndex: 1000}}>
-      {/* Black background for the status bar */}
       <View style={{backgroundColor: 'black', height: insets.top}} />
-
-      {/* Blue header */}
-      <View style={styles.header}>
+      <View style={styles.dashboardHeader}>
         <StatusBar
           barStyle="light-content"
           backgroundColor="black"
           translucent={false}
         />
-
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
+        <View>
           <Image
             source={require('../assets/healtrack_logo1.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />
           <Text style={styles.versionText}>v0.5</Text>
+        </View>
+        <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
+          <Ionicons name="menu" size={26} color="#FFFFFF" />
         </TouchableOpacity>
 
-        <View style={styles.rightSection}>
-          <Text style={styles.screenNameText}>{screenName}</Text>
-          <TouchableOpacity
-            style={styles.profileButton}
-            onPress={toggleDropdown}>
-            {storedPhoto ? (
-              <Image source={{uri: storedPhoto}} style={styles.profilePhoto} />
-            ) : (
-              <Image
-                source={require('../assets/profile.png')}
-                style={styles.profilePhoto}
-              />
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Dropdown Modal */}
         <Modal
           isVisible={isDropdownVisible}
           onBackdropPress={toggleDropdown}
@@ -134,24 +98,26 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
             </TouchableOpacity>
 
             {session.is_admin && (
-              <TouchableOpacity
-                style={styles.drawerItem}
-                onPress={() => navigateToScreen('Settings')}>
-                <Ionicons name="settings-outline" size={24} color="#007B8E" />
-                <Text style={styles.drawerItemText}>Settings</Text>
-              </TouchableOpacity>
-            )}
+              <>
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => navigateToScreen('Settings')}>
+                  <Ionicons name="settings-outline" size={24} color="#007B8E" />
+                  <Text style={styles.drawerItemText}>Settings</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.drawerItem}
-              onPress={() => navigateToScreen('AdminReport')}>
-              <Ionicons
-                name="document-text-outline"
-                size={24}
-                color="#007B8E"
-              />
-              <Text style={styles.drawerItemText}>Reports</Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => navigateToScreen('AdminReport')}>
+                  <Ionicons
+                    name="document-text-outline"
+                    size={24}
+                    color="#007B8E"
+                  />
+                  <Text style={styles.drawerItemText}>Reports</Text>
+                </TouchableOpacity>
+              </>
+            )}
 
             <View style={styles.drawerDivider} />
 
@@ -172,28 +138,17 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
 
 const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
   StyleSheet.create({
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 10,
-      paddingHorizontal: 15,
-      backgroundColor: '#007B8E',
-      borderBottomWidth: 1,
-      borderBottomColor: 'white',
-      borderTopColor: 'white',
-      borderTopWidth: 1,
+    modal: {
+      margin: 0,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-end',
     },
     dropdown: {
       backgroundColor: theme.colors.card,
-      maxHeight: 320,
-      minHeight: 50,
+      height: '40%',
       padding: 0,
       shadowColor: '#000',
-      shadowOffset: {
-        width: -2,
-        height: 0,
-      },
+      shadowOffset: {width: -2, height: 0},
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
       elevation: 5,
@@ -228,59 +183,40 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       marginLeft: 16,
     },
     logoutItem: {
-      marginTop: 5,
-      marginBottom: 2,
+      borderTopColor: '#E0E0E0',
+      paddingTop: 15,
     },
     logoutText: {
       color: '#FF3B30',
     },
-    backButton: {
+    dashboardHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginLeft: -5,
+      justifyContent: 'space-between',
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+      backgroundColor: '#007B8E',
+      borderBottomWidth: 1,
+      borderBottomColor: 'white',
+      borderTopColor: 'white',
+      borderTopWidth: 1,
     },
     logoImage: {
       width: 110,
       height: 35,
-      marginLeft: -5,
-    },
-    rightSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    profilePhoto: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
-      borderWidth: 1,
-      borderColor: '#c6eff5',
-    },
-    screenNameText: {
-      color: '#FFFFFF',
-      fontWeight: 'bold',
-      fontSize: 16,
-      marginRight: 10,
     },
     profileButton: {
       alignItems: 'flex-end',
     },
-    logoContainer: {
-      alignItems: 'center',
-    },
     versionText: {
       position: 'absolute',
       bottom: 1,
-      right: -11,
+      right: -12,
       color: '#FFFFFF',
       fontSize: 10,
       opacity: 0.8,
       fontWeight: 'bold',
     },
-    modal: {
-      margin: 0,
-      justifyContent: 'flex-start',
-      alignItems: 'flex-end',
-    },
   });
 
-export default BackTabTop;
+export default DashboardHeader;

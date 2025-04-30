@@ -386,11 +386,10 @@ const OrganizationSettingsScreen: React.FC = () => {
           Authorization: `Bearer ${session.idToken}`,
         },
       });
-
-      if (response.data.bannerUrl) {
+      if (response.data.imageUrl) {
         setOrganizationInfo(prev => ({
           ...prev,
-          organization_banner: response.data.bannerUrl,
+          organization_banner: response.data.imageUrl,
         }));
         Alert.alert('Success', 'Organization banner updated successfully');
       }
@@ -810,413 +809,416 @@ const OrganizationSettingsScreen: React.FC = () => {
             </View>
           </View>
 
-        <View style={styles.profileImageLine} />
-        <View style={styles.content1}>
+          <View style={styles.profileImageLine} />
+          <View style={styles.content1}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Basic Information</Text>
+            </View>
 
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Basic Information</Text>
-          </View>
-
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>Organization Name *</Text>
-            <TextInput
-              style={styles.input}
-              value={organizationInfo.organization_name}
-              onChangeText={text =>
-                setOrganizationInfo({
-                  ...organizationInfo,
-                  organization_name: text,
-                })
-              }
-              placeholder="Enter organization name"
-              placeholderTextColor="#999"
-            />
-          </View>
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>Email *</Text>
-            <TextInput
-              style={styles.input}
-              value={organizationInfo.organization_email}
-              onChangeText={text =>
-                setOrganizationInfo({
-                  ...organizationInfo,
-                  organization_email: text,
-                })
-              }
-              placeholder="Enter organization email"
-              placeholderTextColor="#999"
-              keyboardType="email-address"
-            />
-          </View>
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>Phone</Text>
-            <TextInput
-              style={styles.input}
-              value={organizationInfo.organization_phone}
-              onChangeText={text =>
-                setOrganizationInfo({
-                  ...organizationInfo,
-                  organization_phone: text,
-                })
-              }
-              placeholder="Enter phone number"
-              placeholderTextColor="#999"
-              keyboardType="phone-pad"
-            />
-          </View>
-
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>Employees</Text>
+            <View style={styles.inputSection}>
+              <Text style={styles.label}>Organization Name *</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.organization_employees}
+                value={organizationInfo.organization_name}
                 onChangeText={text =>
                   setOrganizationInfo({
                     ...organizationInfo,
-                    organization_employees: text,
+                    organization_name: text,
                   })
                 }
-                placeholder="Number of employees"
+                placeholder="Enter organization name"
                 placeholderTextColor="#999"
-                keyboardType="numeric"
               />
             </View>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>Founded Year</Text>
+            <View style={styles.inputSection}>
+              <Text style={styles.label}>Email *</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.organization_founded_year}
+                value={organizationInfo.organization_email}
                 onChangeText={text =>
                   setOrganizationInfo({
                     ...organizationInfo,
-                    organization_founded_year: text,
+                    organization_email: text,
                   })
                 }
-                placeholder="Founded year"
+                placeholder="Enter organization email"
                 placeholderTextColor="#999"
-                keyboardType="numeric"
+                keyboardType="email-address"
               />
             </View>
-          </View>
-
-          {/* Address Section */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Address</Text>
-          </View>
-
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>Street Address</Text>
-            <TextInput
-              style={styles.input}
-              value={organizationInfo.organization_address_street}
-              onChangeText={text =>
-                setOrganizationInfo({
-                  ...organizationInfo,
-                  organization_address_street: text,
-                })
-              }
-              placeholder="Enter street address"
-              placeholderTextColor="#999"
-            />
-          </View>
-
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>City</Text>
+            <View style={styles.inputSection}>
+              <Text style={styles.label}>Phone</Text>
               <TextInput
                 style={styles.input}
-                value={organizationInfo.organization_address_city}
+                value={organizationInfo.organization_phone}
                 onChangeText={text =>
                   setOrganizationInfo({
                     ...organizationInfo,
-                    organization_address_city: text,
+                    organization_phone: text,
                   })
                 }
-                placeholder="Enter city"
+                placeholder="Enter phone number"
                 placeholderTextColor="#999"
+                keyboardType="phone-pad"
               />
             </View>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>State</Text>
-              <TextInput
-                style={styles.input}
-                value={organizationInfo.organization_address_state}
-                onChangeText={text =>
-                  setOrganizationInfo({
-                    ...organizationInfo,
-                    organization_address_state: text,
-                  })
-                }
-                placeholder="Enter state"
-                placeholderTextColor="#999"
-              />
-            </View>
-          </View>
 
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>ZIP Code</Text>
-              <TextInput
-                style={styles.input}
-                value={organizationInfo.organization_address_zip}
-                onChangeText={text =>
-                  setOrganizationInfo({
-                    ...organizationInfo,
-                    organization_address_zip: text,
-                  })
-                }
-                placeholder="Enter ZIP code"
-                placeholderTextColor="#999"
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>Country</Text>
-              <TextInput
-                style={styles.input}
-                value={organizationInfo.organization_address_country}
-                onChangeText={text =>
-                  setOrganizationInfo({
-                    ...organizationInfo,
-                    organization_address_country: text,
-                  })
-                }
-                placeholder="Enter country"
-                placeholderTextColor="#999"
-              />
-            </View>
-          </View>
-
-          {/* Additional Information Section */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Additional Information</Text>
-          </View>
-
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>Website</Text>
-              <TextInput
-                style={styles.input}
-                value={organizationInfo.organization_website}
-                onChangeText={text =>
-                  setOrganizationInfo({
-                    ...organizationInfo,
-                    organization_website: text,
-                  })
-                }
-                placeholder="Enter website URL"
-                placeholderTextColor="#999"
-                keyboardType="url"
-              />
-            </View>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>Industry</Text>
-              <TextInput
-                style={styles.input}
-                value={organizationInfo.organization_industry}
-                onChangeText={text =>
-                  setOrganizationInfo({
-                    ...organizationInfo,
-                    organization_industry: text,
-                  })
-                }
-                placeholder="Enter industry"
-                placeholderTextColor="#999"
-              />
-            </View>
-          </View>
-
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>Tax ID</Text>
-              <TextInput
-                style={styles.input}
-                value={organizationInfo.organization_tax_id}
-                onChangeText={text =>
-                  setOrganizationInfo({
-                    ...organizationInfo,
-                    organization_tax_id: text,
-                  })
-                }
-                placeholder="Enter tax ID"
-                placeholderTextColor="#999"
-              />
-            </View>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>Timezone</Text>
-              <TextInput
-                style={styles.input}
-                value={organizationInfo.organization_timezone}
-                onChangeText={text =>
-                  setOrganizationInfo({
-                    ...organizationInfo,
-                    organization_timezone: text,
-                  })
-                }
-                placeholder="Enter timezone"
-                placeholderTextColor="#999"
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={[styles.input, styles.multilineInput]}
-              value={organizationInfo.organization_description}
-              onChangeText={text =>
-                setOrganizationInfo({
-                  ...organizationInfo,
-                  organization_description: text,
-                })
-              }
-              placeholder="Organization description"
-              placeholderTextColor="#999"
-              multiline
-              numberOfLines={3}
-            />
-          </View>
-
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>Operating Hours</Text>
-            <TextInput
-              style={styles.input}
-              value={organizationInfo.organization_operating_hours}
-              onChangeText={text =>
-                setOrganizationInfo({
-                  ...organizationInfo,
-                  organization_operating_hours: text,
-                })
-              }
-              placeholder="Enter operating hours"
-              placeholderTextColor="#999"
-            />
-          </View>
-
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Social Media</Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.socialMediaButton}
-            onPress={() => setShowSocialMediaDropdown(true)}>
-            <Text style={styles.socialMediaButtonText}>
-              Select Social Media Platforms
-            </Text>
-            <Icon name="chevron-down" size={20} color="#007B8E" />
-          </TouchableOpacity>
-
-          <SocialMediaInputs />
-          <SocialMediaDropdown />
-          <View style={styles.sectionHeader}>
-            <Icon1 name="videocam" size={22} color="#007B8E" />
-            <Text style={styles.sectionTitle}>YouTube Videos</Text>
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.videosDescription}>
-              Add YouTube videos to display on your profile. Patients will be
-              able to view these videos to learn more about your expertise.
-            </Text>
-
-            {organizationInfo.youtube_videos.length === 0 ? (
-              <View style={styles.noVideosContainer}>
-                <Icon1 name="videocam-outline" size={40} color="#CBD5E0" />
-                <Text style={styles.noVideosText}>No videos added yet</Text>
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>Employees</Text>
+                <TextInput
+                  style={styles.input}
+                  value={organizationInfo.organization_employees}
+                  onChangeText={text =>
+                    setOrganizationInfo({
+                      ...organizationInfo,
+                      organization_employees: text,
+                    })
+                  }
+                  placeholder="Number of employees"
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                />
               </View>
-            ) : (
-              <FlatList
-                data={organizationInfo.youtube_videos}
-                keyExtractor={item => item.id}
-                scrollEnabled={false}
-                renderItem={({item}) => (
-                  <View style={styles.videoItem}>
-                    <View style={styles.videoInfo}>
-                      <Icon1
-                        name="logo-youtube"
-                        size={24}
-                        color="#FF0000"
-                        style={styles.youtubeIcon}
-                      />
-                      <View style={styles.videoTextContainer}>
-                        <Text style={styles.videoTitle} numberOfLines={1}>
-                          {item.title}
-                        </Text>
-                        <Text style={styles.videoUrl} numberOfLines={1}>
-                          {item.url}
-                        </Text>
-                        {item.description ? (
-                          <Text
-                            style={styles.videoDescription}
-                            numberOfLines={2}>
-                            {item.description}
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>Founded Year</Text>
+                <TextInput
+                  style={styles.input}
+                  value={organizationInfo.organization_founded_year}
+                  onChangeText={text =>
+                    setOrganizationInfo({
+                      ...organizationInfo,
+                      organization_founded_year: text,
+                    })
+                  }
+                  placeholder="Founded year"
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                />
+              </View>
+            </View>
+
+            {/* Address Section */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Address</Text>
+            </View>
+
+            <View style={styles.inputSection}>
+              <Text style={styles.label}>Street Address</Text>
+              <TextInput
+                style={styles.input}
+                value={organizationInfo.organization_address_street}
+                onChangeText={text =>
+                  setOrganizationInfo({
+                    ...organizationInfo,
+                    organization_address_street: text,
+                  })
+                }
+                placeholder="Enter street address"
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>City</Text>
+                <TextInput
+                  style={styles.input}
+                  value={organizationInfo.organization_address_city}
+                  onChangeText={text =>
+                    setOrganizationInfo({
+                      ...organizationInfo,
+                      organization_address_city: text,
+                    })
+                  }
+                  placeholder="Enter city"
+                  placeholderTextColor="#999"
+                />
+              </View>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>State</Text>
+                <TextInput
+                  style={styles.input}
+                  value={organizationInfo.organization_address_state}
+                  onChangeText={text =>
+                    setOrganizationInfo({
+                      ...organizationInfo,
+                      organization_address_state: text,
+                    })
+                  }
+                  placeholder="Enter state"
+                  placeholderTextColor="#999"
+                />
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>ZIP Code</Text>
+                <TextInput
+                  style={styles.input}
+                  value={organizationInfo.organization_address_zip}
+                  onChangeText={text =>
+                    setOrganizationInfo({
+                      ...organizationInfo,
+                      organization_address_zip: text,
+                    })
+                  }
+                  placeholder="Enter ZIP code"
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>Country</Text>
+                <TextInput
+                  style={styles.input}
+                  value={organizationInfo.organization_address_country}
+                  onChangeText={text =>
+                    setOrganizationInfo({
+                      ...organizationInfo,
+                      organization_address_country: text,
+                    })
+                  }
+                  placeholder="Enter country"
+                  placeholderTextColor="#999"
+                />
+              </View>
+            </View>
+
+            {/* Additional Information Section */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Additional Information</Text>
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>Website</Text>
+                <TextInput
+                  style={styles.input}
+                  value={organizationInfo.organization_website}
+                  onChangeText={text =>
+                    setOrganizationInfo({
+                      ...organizationInfo,
+                      organization_website: text,
+                    })
+                  }
+                  placeholder="Enter website URL"
+                  placeholderTextColor="#999"
+                  keyboardType="url"
+                />
+              </View>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>Industry</Text>
+                <TextInput
+                  style={styles.input}
+                  value={organizationInfo.organization_industry}
+                  onChangeText={text =>
+                    setOrganizationInfo({
+                      ...organizationInfo,
+                      organization_industry: text,
+                    })
+                  }
+                  placeholder="Enter industry"
+                  placeholderTextColor="#999"
+                />
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>Tax ID</Text>
+                <TextInput
+                  style={styles.input}
+                  value={organizationInfo.organization_tax_id}
+                  onChangeText={text =>
+                    setOrganizationInfo({
+                      ...organizationInfo,
+                      organization_tax_id: text,
+                    })
+                  }
+                  placeholder="Enter tax ID"
+                  placeholderTextColor="#999"
+                />
+              </View>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>Timezone</Text>
+                <TextInput
+                  style={styles.input}
+                  value={organizationInfo.organization_timezone}
+                  onChangeText={text =>
+                    setOrganizationInfo({
+                      ...organizationInfo,
+                      organization_timezone: text,
+                    })
+                  }
+                  placeholder="Enter timezone"
+                  placeholderTextColor="#999"
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputSection}>
+              <Text style={styles.label}>Description</Text>
+              <TextInput
+                style={[styles.input, styles.multilineInput]}
+                value={organizationInfo.organization_description}
+                onChangeText={text =>
+                  setOrganizationInfo({
+                    ...organizationInfo,
+                    organization_description: text,
+                  })
+                }
+                placeholder="Organization description"
+                placeholderTextColor="#999"
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+
+            <View style={styles.inputSection}>
+              <Text style={styles.label}>Operating Hours</Text>
+              <TextInput
+                style={styles.input}
+                value={organizationInfo.organization_operating_hours}
+                onChangeText={text =>
+                  setOrganizationInfo({
+                    ...organizationInfo,
+                    organization_operating_hours: text,
+                  })
+                }
+                placeholder="Enter operating hours"
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Social Media</Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.socialMediaButton}
+              onPress={() => setShowSocialMediaDropdown(true)}>
+              <Text style={styles.socialMediaButtonText}>
+                Select Social Media Platforms
+              </Text>
+              <Icon name="chevron-down" size={20} color="#007B8E" />
+            </TouchableOpacity>
+
+            <SocialMediaInputs />
+            <SocialMediaDropdown />
+            <View style={styles.sectionHeader}>
+              <Icon1 name="videocam" size={22} color="#007B8E" />
+              <Text style={styles.sectionTitle}>YouTube Videos</Text>
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.videosDescription}>
+                Add YouTube videos to display on your profile. Patients will be
+                able to view these videos to learn more about your expertise.
+              </Text>
+
+              {organizationInfo.youtube_videos.length === 0 ? (
+                <View style={styles.noVideosContainer}>
+                  <Icon1 name="videocam-outline" size={40} color="#CBD5E0" />
+                  <Text style={styles.noVideosText}>No videos added yet</Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={organizationInfo.youtube_videos}
+                  keyExtractor={item => item.id}
+                  scrollEnabled={false}
+                  renderItem={({item}) => (
+                    <View style={styles.videoItem}>
+                      <View style={styles.videoInfo}>
+                        <Icon1
+                          name="logo-youtube"
+                          size={24}
+                          color="#FF0000"
+                          style={styles.youtubeIcon}
+                        />
+                        <View style={styles.videoTextContainer}>
+                          <Text style={styles.videoTitle} numberOfLines={1}>
+                            {item.title}
                           </Text>
-                        ) : null}
+                          <Text style={styles.videoUrl} numberOfLines={1}>
+                            {item.url}
+                          </Text>
+                          {item.description ? (
+                            <Text
+                              style={styles.videoDescription}
+                              numberOfLines={2}>
+                              {item.description}
+                            </Text>
+                          ) : null}
+                        </View>
+                      </View>
+                      <View style={styles.videoActions}>
+                        <TouchableOpacity
+                          style={styles.videoEditButton}
+                          onPress={() => handleEditVideo(item)}>
+                          <Icon1
+                            name="create-outline"
+                            size={20}
+                            color="#007B8E"
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.videoDeleteButton}
+                          onPress={() => handleDeleteVideo(item.id)}>
+                          <Icon1
+                            name="trash-outline"
+                            size={20}
+                            color="#DC2626"
+                          />
+                        </TouchableOpacity>
                       </View>
                     </View>
-                    <View style={styles.videoActions}>
-                      <TouchableOpacity
-                        style={styles.videoEditButton}
-                        onPress={() => handleEditVideo(item)}>
-                        <Icon1
-                          name="create-outline"
-                          size={20}
-                          color="#007B8E"
-                        />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.videoDeleteButton}
-                        onPress={() => handleDeleteVideo(item.id)}>
-                        <Icon1 name="trash-outline" size={20} color="#DC2626" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-                ItemSeparatorComponent={() => (
-                  <View style={styles.videoSeparator} />
-                )}
-              />
-            )}
-
-            <TouchableOpacity
-              style={styles.addVideoButton}
-              onPress={() => {
-                setNewVideoTitle('');
-                setNewVideoUrl('');
-                setEditingVideoId(null);
-                setShowVideoModal(true);
-              }}
-              disabled={isSaving}>
-              <Icon1 name="add-circle-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.addVideoButtonText}>Add YouTube Video</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.saveButton, saving && styles.disabledButton]}
-              onPress={handleSave}
-              disabled={saving}>
-              {saving ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Save Changes</Text>
+                  )}
+                  ItemSeparatorComponent={() => (
+                    <View style={styles.videoSeparator} />
+                  )}
+                />
               )}
-            </TouchableOpacity>
-          </View>
 
-          <View style={styles.infoCard}>
-            <Icon
-              name="information-outline"
-              size={20}
-              color="#6B7280"
-              style={styles.infoIcon}
-            />
-            <Text style={styles.infoText}>
-              This information will be used for all your organization's
-              documents and communications.
-            </Text>
-          </View>
+              <TouchableOpacity
+                style={styles.addVideoButton}
+                onPress={() => {
+                  setNewVideoTitle('');
+                  setNewVideoUrl('');
+                  setEditingVideoId(null);
+                  setShowVideoModal(true);
+                }}
+                disabled={isSaving}>
+                <Icon1 name="add-circle-outline" size={20} color="#FFFFFF" />
+                <Text style={styles.addVideoButtonText}>Add YouTube Video</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.saveButton, saving && styles.disabledButton]}
+                onPress={handleSave}
+                disabled={saving}>
+                {saving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Save Changes</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.infoCard}>
+              <Icon
+                name="information-outline"
+                size={20}
+                color="#6B7280"
+                style={styles.infoIcon}
+              />
+              <Text style={styles.infoText}>
+                This information will be used for all your organization's
+                documents and communications.
+              </Text>
+            </View>
           </View>
         </View>
       </ScrollView>

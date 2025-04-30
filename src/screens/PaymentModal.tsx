@@ -114,6 +114,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 ? 'Select Payment Method'
                 : paymentMethod === 'CASH'
                 ? 'Cash'
+                : paymentMethod === 'Counter'
+                ? 'At Counter'
                 : 'Online'}
             </Text>
           </TouchableOpacity>
@@ -134,6 +136,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   style={styles.iosPicker}>
                   <Picker.Item label="Cash" value="CASH" />
                   <Picker.Item label="Online" value="ONLINE" />
+                  <Picker.Item label="Counter" value="At Counter" />
                 </Picker>
               </View>
             </View>
@@ -156,6 +159,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           />
           <Picker.Item label="Cash" value="CASH" style={styles.item} />
           <Picker.Item label="Online" value="ONLINE" style={styles.item} />
+          <Picker.Item label="Counter" value="At Counter" style={styles.item} />
         </Picker>
       </View>
     );

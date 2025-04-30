@@ -46,6 +46,7 @@ const PickerModal: React.FC<PickerModalProps> = ({
   const options = [
     {label: 'Cash', value: 'CASH'},
     {label: 'Online', value: 'ONLINE'},
+    {label: 'Counter', value: 'At Counter'},
   ];
 
   return (

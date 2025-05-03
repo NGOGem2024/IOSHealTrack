@@ -24,6 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import LiveSwitchLoginButton from '../components/liveswitchb';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useTheme } from './ThemeContext';
+import AvailableSlots from './AvailableSlots';
 
 interface Therapy {
   _id: string;
@@ -81,6 +82,7 @@ const EditTherapy: React.FC<EditTherapyProps> = ({
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [showDoctorPicker, setShowDoctorPicker] = useState(false);
   const [error, setError] = useState('');
+    const [selectedSlotDuration, setSelectedSlotDuration] = useState(30);
   const {session} = useSession();
   const [doctors, setDoctors] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -377,6 +379,43 @@ const renderIOSPicker = (
 </Picker>
     );
   };
+
+  const generateAvailableSlots = (slotDuration: number = 30) => {
+      // This should match the implementation in your AvailableSlots component
+      // You could also consider moving this to a utility function that both components can import
+      const now = moment.tz('Asia/Kolkata');
+      const today = moment(now).startOf('day');
+  
+      const workingHours = {
+        start: moment(today).hour(9).minute(0),
+        end: moment(today).hour(21).minute(0),
+      };
+  
+      const slots = [];
+      let currentSlotTime = moment(workingHours.start);
+  
+      while (currentSlotTime.isBefore(workingHours.end)) {
+        const slotStart = moment(currentSlotTime);
+        const slotEnd = moment(currentSlotTime).add(slotDuration, 'minutes');
+  
+        if (slotEnd.isAfter(workingHours.end)) break;
+  
+        // Only add future slots
+        if (slotEnd.isAfter(now)) {
+          slots.push({
+            start: slotStart.format('HH:mm'),
+            end: slotEnd.format('HH:mm'),
+            duration: slotDuration,
+            status: 'free',
+          });
+        }
+  
+        currentSlotTime.add(slotDuration >= 60 ? 30 : slotDuration, 'minutes');
+      }
+  
+      return slots;
+    };
+  
   
   const handleLiveSwitchLoginSuccess = async () => {
     await checkLiveSwitchAccess();
@@ -526,7 +565,7 @@ const renderIOSPicker = (
             </View>
 
             {/* Available Slots */}
-            <View style={[styles.section, styles.slotsSection]}>
+            {/* <View style={[styles.section, styles.slotsSection]}>
               <Text style={styles.sectionTitle}>Available Time Slots</Text>
               {!selectedDoctor ? (
                 <Text style={styles.infoText}>
@@ -559,7 +598,22 @@ const renderIOSPicker = (
                   ))}
                 </View>
               )}
-            </View>
+            </View> */}
+            <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Available Slots</Text>
+            <AvailableSlots
+              slotDuration={selectedSlotDuration}
+              onSelectSlot={(slotIndex, slot) => {
+                setSelectedSlot(slotIndex);
+                // Store the selected slot data if you need it elsewhere
+                if (!availableSlots.length) {
+                  const generatedSlots =
+                    generateAvailableSlots(selectedSlotDuration);
+                  setAvailableSlots(generatedSlots);
+                }
+              }}
+            />
+          </View>
           </ScrollView>
 
           {/* Action Buttons */}

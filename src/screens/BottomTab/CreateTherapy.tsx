@@ -1,4 +1,4 @@
-import React, {useState, useEffect,useRef} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -30,7 +30,8 @@ import BackTabTop from '../BackTopTab';
 import NoPlanPopup from './noplan';
 //import LoadingScreen from '../../components/loadingScreen';
 import BookAppSkeletonLoader from '../../components/BookAppSkeletonLoader';
-import { Bold } from 'lucide-react-native';
+import {Bold} from 'lucide-react-native';
+import AvailableSlots from '../AvailableSlots';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateTherapy'>;
 interface PickerItem {
@@ -62,6 +63,8 @@ const CreateTherapy = ({route, navigation}: Props) => {
   const [selectedDoctor, setSelectedDoctor] = useState<any | null>(null);
   const [therapyPlans, setTherapyPlans] = useState<any[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
+  const [selectedSlotDuration, setSelectedSlotDuration] = useState(30);
+
   const [hasLiveSwitchAccess, setHasLiveSwitchAccess] =
     useState<boolean>(false);
   const [slotDuration, setSlotDuration] = useState<number>(30);
@@ -86,7 +89,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
   // Reset scroll position when picker opens
   const resetScrollPosition = () => {
     if (scrollViewRef.current) {
-      scrollViewRef.current.scrollTo({ y: 0, animated: false });
+      scrollViewRef.current.scrollTo({y: 0, animated: false});
     }
   };
 
@@ -96,10 +99,9 @@ const CreateTherapy = ({route, navigation}: Props) => {
     resetScrollPosition();
   };
 
-
   useEffect(() => {
     if (showDoctorPicker && pickerRef.current) {
-      pickerRef.current.scrollTo({ y: 0, animated: false });
+      pickerRef.current.scrollTo({y: 0, animated: false});
     }
   }, [showDoctorPicker]);
 
@@ -128,59 +130,59 @@ const CreateTherapy = ({route, navigation}: Props) => {
     setHasLiveSwitchAccess(!!liveTokens);
     setShowLiveSwitchLogin(appointmentType === 'Liveswitch' && !liveTokens);
   };
-  const renderSlotDurationPicker = () => {
-    if (Platform.OS === 'ios') {
-      return (
-        <>
-          {renderPickerField(
-            `${slotDuration} minutes`,
-            () => setShowSlotDurationPicker(true),
-            'Select slot duration',
-          )}
-          {renderIOSPicker(
-            showSlotDurationPicker,
-            () => setShowSlotDurationPicker(false),
-            (itemValue: string) => {
-              setSlotDuration(Number(itemValue));
-            },
-            slotDuration.toString(),
-            SLOT_DURATION_OPTIONS.map(option => ({
-              _id: option.value.toString(),
-              label: option.label,
-            })),
-            'Slot Duration',
-          )}
-        </>
-      );
-    }
+  // const renderSlotDurationPicker = () => {
+  //   if (Platform.OS === 'ios') {
+  //     return (
+  //       <>
+  //         {renderPickerField(
+  //           `${slotDuration} minutes`,
+  //           () => setShowSlotDurationPicker(true),
+  //           'Select slot duration',
+  //         )}
+  //         {renderIOSPicker(
+  //           showSlotDurationPicker,
+  //           () => setShowSlotDurationPicker(false),
+  //           (itemValue: string) => {
+  //             setSlotDuration(Number(itemValue));
+  //           },
+  //           slotDuration.toString(),
+  //           SLOT_DURATION_OPTIONS.map(option => ({
+  //             _id: option.value.toString(),
+  //             label: option.label,
+  //           })),
+  //           'Slot Duration',
+  //         )}
+  //       </>
+  //     );
+  //   }
 
-    return (
-      <Picker
-        selectedValue={slotDuration.toString()}
-        onValueChange={(itemValue: string) => {
-          setSlotDuration(Number(itemValue));
-        }}
-        style={styles.picker}>
-        {SLOT_DURATION_OPTIONS.map(option => (
-          <Picker.Item
-            key={option.value}
-            label={option.label}
-            value={option.value.toString()}
-          />
-        ))}
-      </Picker>
-    );
-  };
+  //   return (
+  //     <Picker
+  //       selectedValue={slotDuration.toString()}
+  //       onValueChange={(itemValue: string) => {
+  //         setSlotDuration(Number(itemValue));
+  //       }}
+  //       style={styles.picker}>
+  //       {SLOT_DURATION_OPTIONS.map(option => (
+  //         <Picker.Item
+  //           key={option.value}
+  //           label={option.label}
+  //           value={option.value.toString()}
+  //         />
+  //       ))}
+  //     </Picker>
+  //   );
+  // };
   const handleLiveSwitchLoginSuccess = async () => {
     await checkLiveSwitchAccess();
     showSuccessToast('Signed in with LiveSwitch successfully');
   };
 
-  useEffect(() => {
-    if (selectedDoctor && selectedDate) {
-      fetchAvailableSlots(selectedDate);
-    }
-  }, [selectedDoctor, selectedDate, slotDuration]);
+  // useEffect(() => {
+  //   if (selectedDoctor && selectedDate) {
+  //     fetchAvailableSlots(selectedDate);
+  //   }
+  // }, [selectedDoctor, selectedDate, slotDuration]);
 
   const handleAppointmentTypeChange = (type: string) => {
     setAppointmentType(type);
@@ -235,8 +237,8 @@ const CreateTherapy = ({route, navigation}: Props) => {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar 
-          backgroundColor={theme.colors.background} 
+        <StatusBar
+          backgroundColor={theme.colors.background}
           barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         />
         <BackTabTop screenName="Therapy" />
@@ -244,7 +246,6 @@ const CreateTherapy = ({route, navigation}: Props) => {
       </SafeAreaView>
     );
   }
-
 
   const formatDate = (date: Date) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -273,36 +274,36 @@ const CreateTherapy = ({route, navigation}: Props) => {
   };
 
   // Ensure the fetchAvailableSlots function is properly defined in the component scope
-const fetchAvailableSlots = async (date: Date) => {
-  if (!selectedDoctor) {
-    handleError(new Error('Please select a doctor first.'));
-    return;
-  }
+  // const fetchAvailableSlots = async (date: Date) => {
+  //   if (!selectedDoctor) {
+  //     handleError(new Error('Please select a doctor first.'));
+  //     return;
+  //   }
 
-  setIsLoadingSlots(true);
-  setError('');
-  try {
-    const response = await axiosinstance.post(
-      '/availability',
-      {
-        date: moment(date).format('YYYY-MM-DD'),
-        doctor_id: selectedDoctor._id,
-        slot_duration: slotDuration, // Add slot duration to the request
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.idToken}`,
-        },
-      },
-    );
-    setAvailableSlots(response.data);
-  } catch (error) {
-    handleError(error);
-  } finally {
-    setIsLoadingSlots(false);
-  }
-};
+  //   setIsLoadingSlots(true);
+  //   setError('');
+  //   try {
+  //     const response = await axiosinstance.post(
+  //       '/availability',
+  //       {
+  //         date: moment(date).format('YYYY-MM-DD'),
+  //         doctor_id: selectedDoctor._id,
+  //         slot_duration: slotDuration, // Add slot duration to the request
+  //       },
+  //       {
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           Authorization: `Bearer ${session.idToken}`,
+  //         },
+  //       },
+  //     );
+  //     setAvailableSlots(response.data);
+  //   } catch (error) {
+  //     handleError(error);
+  //   } finally {
+  //     setIsLoadingSlots(false);
+  //   }
+  // };
   const isSlotDisabled = (slot: any) => {
     const now = new Date();
     const slotDate = new Date(selectedDate);
@@ -354,6 +355,42 @@ const fetchAvailableSlots = async (date: Date) => {
     );
   };
 
+  const generateAvailableSlots = (slotDuration: number = 30) => {
+    // This should match the implementation in your AvailableSlots component
+    // You could also consider moving this to a utility function that both components can import
+    const now = moment.tz('Asia/Kolkata');
+    const today = moment(now).startOf('day');
+
+    const workingHours = {
+      start: moment(today).hour(9).minute(0),
+      end: moment(today).hour(21).minute(0),
+    };
+
+    const slots = [];
+    let currentSlotTime = moment(workingHours.start);
+
+    while (currentSlotTime.isBefore(workingHours.end)) {
+      const slotStart = moment(currentSlotTime);
+      const slotEnd = moment(currentSlotTime).add(slotDuration, 'minutes');
+
+      if (slotEnd.isAfter(workingHours.end)) break;
+
+      // Only add future slots
+      if (slotEnd.isAfter(now)) {
+        slots.push({
+          start: slotStart.format('HH:mm'),
+          end: slotEnd.format('HH:mm'),
+          duration: slotDuration,
+          status: 'free',
+        });
+      }
+
+      currentSlotTime.add(slotDuration >= 60 ? 30 : slotDuration, 'minutes');
+    }
+
+    return slots;
+  };
+
   const renderPickerField = (
     value: string | undefined,
     onPress: () => void,
@@ -370,7 +407,6 @@ const fetchAvailableSlots = async (date: Date) => {
     );
   };
 
-  
   const renderDoctorPicker = () => {
     const doctorName = selectedDoctor
       ? `${selectedDoctor.doctor_first_name} ${selectedDoctor.doctor_last_name}`
@@ -378,11 +414,7 @@ const fetchAvailableSlots = async (date: Date) => {
 
     return (
       <>
-        {renderPickerField(
-          doctorName,
-          openDoctorPicker,
-          'Select a doctor',
-        )}
+        {renderPickerField(doctorName, openDoctorPicker, 'Select a doctor')}
         <Modal
           visible={showDoctorPicker}
           transparent={true}
@@ -390,40 +422,39 @@ const fetchAvailableSlots = async (date: Date) => {
           onShow={resetScrollPosition} // Reset again when modal is fully shown
         >
           <View style={styles.modalContainer}>
-            
             <View style={styles.pickerContainer}>
               <View style={styles.pickerHeader}>
                 <Text style={styles.pickerTitle}>Select Doctor</Text>
                 <TouchableOpacity
                   onPress={() => setShowDoctorPicker(false)}
-                  style={styles.doneButton}
-                >
+                  style={styles.doneButton}>
                   <Text style={styles.doneButtonText}>Done</Text>
                 </TouchableOpacity>
               </View>
               <ScrollView
                 ref={scrollViewRef}
                 style={styles.iosPickerContainer}
-                contentContainerStyle={styles.scrollContentContainer}
-              >
+                contentContainerStyle={styles.scrollContentContainer}>
                 {doctors.map(doctor => (
                   <TouchableOpacity
                     key={doctor._id}
                     style={[
                       styles.doctorItem,
-                      selectedDoctor?._id === doctor._id && styles.selectedDoctorItem
+                      selectedDoctor?._id === doctor._id &&
+                        styles.selectedDoctorItem,
                     ]}
                     onPress={() => {
                       setSelectedDoctor(doctor);
                       setShowDoctorPicker(false);
                       setAvailableSlots([]);
                       setSelectedSlot(null);
-                    }}
-                  >
-                    <Text style={[
-                      styles.doctorItemText,
-                      selectedDoctor?._id === doctor._id && styles.selectedDoctorItemText
-                    ]}>
+                    }}>
+                    <Text
+                      style={[
+                        styles.doctorItemText,
+                        selectedDoctor?._id === doctor._id &&
+                          styles.selectedDoctorItemText,
+                      ]}>
                       {`${doctor.doctor_first_name} ${doctor.doctor_last_name}`}
                     </Text>
                   </TouchableOpacity>
@@ -435,7 +466,6 @@ const fetchAvailableSlots = async (date: Date) => {
       </>
     );
   };
-  
 
   const renderTherapyPicker = () => {
     return (
@@ -467,16 +497,19 @@ const fetchAvailableSlots = async (date: Date) => {
                     key={plan._id}
                     style={[
                       styles.doctorItem,
-                      selectedPlan?._id === plan._id && styles.selectedDoctorItem
+                      selectedPlan?._id === plan._id &&
+                        styles.selectedDoctorItem,
                     ]}
                     onPress={() => {
                       setSelectedPlan(plan);
                       setShowTherapyPicker(false);
                     }}>
-                    <Text style={[
-                      styles.doctorItemText,
-                      selectedPlan?._id === plan._id && styles.selectedDoctorItemText
-                    ]}>
+                    <Text
+                      style={[
+                        styles.doctorItemText,
+                        selectedPlan?._id === plan._id &&
+                          styles.selectedDoctorItemText,
+                      ]}>
                       {plan.therapy_name}
                     </Text>
                   </TouchableOpacity>
@@ -498,14 +531,23 @@ const fetchAvailableSlots = async (date: Date) => {
       if (selectedSlot === null || selectedSlot === undefined) {
         throw new Error('Select a time slot');
       }
+
       if (!selectedDoctor) {
         throw new Error('Please select a doctor for the appointment.');
       }
+
       if (!selectedPlan) {
         throw new Error('Please select a therapy plan for the appointment.');
       }
+
       setIsBooking(true);
       setError('');
+
+      // Make sure availableSlots has been populated
+      const slots = availableSlots.length
+        ? availableSlots
+        : generateAvailableSlots(selectedSlotDuration);
+
       const requestBody = {
         contactId: patientId,
         message: 'Please click the following LiveSwitch conversation link.',
@@ -514,13 +556,14 @@ const fetchAvailableSlots = async (date: Date) => {
         sendSmsNotification: true,
         therepy_type: appointmentType,
         therepy_date: selectedDate.toISOString().split('T')[0],
-        therepy_start_time: availableSlots[selectedSlot].start,
-        therepy_end_time: availableSlots[selectedSlot].end,
+        therepy_start_time: slots[selectedSlot].start,
+        therepy_end_time: slots[selectedSlot].end,
         doctor_id: selectedDoctor._id,
         doctor_name: `${selectedDoctor.doctor_first_name} ${selectedDoctor.doctor_last_name}`,
         plan_id: selectedPlan._id,
         doctor_email: selectedDoctor.doctor_email,
       };
+
       const response = await axiosinstance.post(
         '/therepy/create',
         requestBody,
@@ -625,42 +668,33 @@ const fetchAvailableSlots = async (date: Date) => {
             />
           )}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Slot Duration</Text>
-            {renderSlotDurationPicker()}
-          </View>
+            <Text style={styles.sectionTitle}>Select Slot Duration</Text>
+            <Picker
+              selectedValue={selectedSlotDuration}
+              onValueChange={value => setSelectedSlotDuration(value)}
+              style={styles.label}
+              dropdownIconColor="#007b8e" >
+              <Picker.Item label="30 minutes" value={30} />
+              <Picker.Item label="1 hour" value={60} />
+              <Picker.Item label="1.5 hours" value={90} />
+              <Picker.Item label="2 hours" value={120} />
+            </Picker>
+          </View> 
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Available Slots</Text>
-            {!selectedDoctor ? (
-              <Text style={styles.infoText}>
-                Please select a doctor to view available slots.
-              </Text>
-            ) : isLoadingSlots ? (
-              <ActivityIndicator size="small" color="#007B8E" />
-            ) : (
-              <View style={styles.slotsContainer}>
-                {availableSlots.map((slot, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.slotButton,
-                      isSlotDisabled(slot) && styles.slotButtonDisabled,
-                      selectedSlot === index && styles.slotButtonSelected,
-                    ]}
-                    onPress={() => setSelectedSlot(index)}
-                    disabled={isSlotDisabled(slot)}>
-                    <Text
-                      style={[
-                        styles.slotButtonText,
-                        isSlotDisabled(slot) && styles.slotButtonTextDisabled,
-                        selectedSlot === index && styles.slotButtonTextSelected,
-                      ]}>
-                      {slot.start} - {slot.end}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            <AvailableSlots
+              slotDuration={selectedSlotDuration}
+              onSelectSlot={(slotIndex, slot) => {
+                setSelectedSlot(slotIndex);
+                // Store the selected slot data if you need it elsewhere
+                if (!availableSlots.length) {
+                  const generatedSlots =
+                    generateAvailableSlots(selectedSlotDuration);
+                  setAvailableSlots(generatedSlots);
+                }
+              }}
+            />
           </View>
         </ScrollView>
 
@@ -722,6 +756,9 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       borderTopRightRadius: 20,
       paddingBottom: 20,
     },
+    label: {
+      color: colors.text,
+    },
     pickerWrapper: {
       backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
       borderRadius: 10,
@@ -749,7 +786,6 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       fontSize: 18,
       fontWeight: '600',
       color: colors.text,
-
     },
     doneButton: {
       padding: 8,
@@ -764,16 +800,16 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       height: 215,
     },
     pickerField: {
-  backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
-  borderRadius: 10,
-  padding: 16,
-  marginTop: 8,
-  borderWidth: 1,
-  borderColor: isDarkMode ? colors.border : '#E0E0E0',
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-},
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+      borderRadius: 10,
+      padding: 16,
+      marginTop: 8,
+      borderWidth: 1,
+      borderColor: isDarkMode ? colors.border : '#E0E0E0',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
     pickerFieldText: {
       fontSize: 16,
       color: colors.text,

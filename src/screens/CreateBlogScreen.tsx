@@ -19,19 +19,46 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList, RootTabParamList} from '../types/types';
 import {useNavigation} from '@react-navigation/native';
 import BlogImageUploader from './blogimageupload';
-import YouTubeVideoManager, {YouTubeVideo} from './videomanager'; // Import the YouTubeVideoManager
+import YouTubeVideoManager, {YouTubeVideo} from './videomanager';
+import {Picker} from '@react-native-picker/picker'; // Added Picker import
 
 interface BlogFormData {
   title: string;
   description: string;
   image: any;
-  videos: YouTubeVideo[]; // Changed from video: string | null to videos array
+  videos: YouTubeVideo[];
   genre: string;
   readTime: string;
   status: 'draft' | 'published';
 }
 
 type blogNavigationProp = NativeStackNavigationProp<RootTabParamList>;
+
+// Genres available for blogs - Added from UpdateBlogScreen
+const genres = [
+  'Mental Health',
+  'Physical Health',
+  'Nutrition',
+  'Wellness',
+  'Medical Research',
+  'Health Tips',
+  'Disease Prevention',
+  'Healthcare',
+  'Other',
+];
+
+// Read time options for dropdown - Added from UpdateBlogScreen
+const readTimeOptions = [
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '10',
+];
 
 const themeColors = {
   light: {
@@ -43,6 +70,8 @@ const themeColors = {
     skeleton: '#E1E9EE',
     border: '#E2E8F0',
     inputBox: '#F8FAFC',
+    placeholder: 'gray',
+    error: '#FF6B6B', // Added error color for light theme
   },
   dark: {
     background: '#161c24',
@@ -53,6 +82,8 @@ const themeColors = {
     skeleton: '#3B3B3B',
     border: '#3E4C59',
     inputBox: '#1E293B',
+    placeholder: 'gray',
+    error: '#FF6B6B', // Added error color for dark theme
   },
 };
 
@@ -61,14 +92,15 @@ const CreateBlogScreen: React.FC = () => {
     title: '',
     description: '',
     image: null,
-    videos: [], // Initialize as empty array instead of null
-    genre: '',
-    readTime: '',
+    videos: [],
+    genre: genres[0], // Set default value to first genre
+    readTime: readTimeOptions[3], // Default to 5 minutes (index 3)
     status: 'draft',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [showMediaOptions, setShowMediaOptions] = useState(false);
+  const [descriptionError, setDescriptionError] = useState('');
 
   const navigation = useNavigation<blogNavigationProp>();
   const colorScheme = useColorScheme();
@@ -113,6 +145,34 @@ const CreateBlogScreen: React.FC = () => {
     });
   };
 
+  const calculateReadTime = () => {
+    // Average reading speed: 200-250 words per minute
+    const wordCount = formData.description.trim().split(/\s+/).length;
+    const estimatedTime = Math.ceil(wordCount / 200);
+    
+    // Make sure the estimated time is within our dropdown options
+    if (estimatedTime < 2) {
+      handleInputChange('readTime', '2');
+    } else if (estimatedTime > 10) {
+      handleInputChange('readTime', '10');
+    } else {
+      handleInputChange('readTime', estimatedTime.toString());
+    }
+  };
+
+  const validateDescription = () => {
+    const wordCount = formData.description.trim().split(/\s+/).length;
+    if (wordCount < 50) {
+      setDescriptionError(
+        `Description is too short. Current: ${wordCount} words (minimum 50 words)`,
+      );
+      return false;
+    } else {
+      setDescriptionError('');
+      return true;
+    }
+  };
+
   const handleSubmit = async () => {
     if (!formData.title.trim()) {
       Alert.alert(
@@ -127,6 +187,10 @@ const CreateBlogScreen: React.FC = () => {
         'Validation Error',
         'Please enter a description for your blog post',
       );
+      return;
+    }
+
+    if (!validateDescription()) {
       return;
     }
 
@@ -240,18 +304,13 @@ const CreateBlogScreen: React.FC = () => {
               <View
                 style={[
                   styles.inputWrapper,
-                  {backgroundColor: currentColors.inputBox},
+                  {backgroundColor: currentColors.inputBox, borderColor: currentColors.border },
                 ]}>
-                <Icon
-                  name="text-outline"
-                  size={20}
-                  color={currentColors.primary}
-                  style={styles.inputIcon}
-                />
+              
                 <TextInput
                   style={[styles.input, {color: currentColors.text}]}
                   placeholder="Enter blog title"
-                  placeholderTextColor={currentColors.secondary}
+                  placeholderTextColor={currentColors.placeholder}
                   value={formData.title}
                   onChangeText={text => handleInputChange('title', text)}
                 />
@@ -265,7 +324,12 @@ const CreateBlogScreen: React.FC = () => {
               <View
                 style={[
                   styles.textAreaWrapper,
-                  {backgroundColor: currentColors.inputBox},
+                  {
+                    backgroundColor: currentColors.inputBox,
+                    borderColor: descriptionError 
+                      ? currentColors.error
+                      : currentColors.border,
+                  },
                 ]}>
                 <TextInput
                   style={[
@@ -276,13 +340,23 @@ const CreateBlogScreen: React.FC = () => {
                     },
                   ]}
                   placeholder="Write your blog content here..."
-                  placeholderTextColor={currentColors.secondary}
+                  placeholderTextColor={currentColors.placeholder}
                   multiline
                   numberOfLines={6}
                   value={formData.description}
                   onChangeText={text => handleInputChange('description', text)}
+                  onBlur={calculateReadTime}
                 />
               </View>
+              {descriptionError ? (
+                <Text
+                  style={[
+                    styles.errorText, 
+                    {color: currentColors.error}
+                  ]}>
+                  {descriptionError}
+                </Text>
+              ) : null}
             </View>
           </View>
 
@@ -302,50 +376,57 @@ const CreateBlogScreen: React.FC = () => {
               <Text style={[styles.label, {color: currentColors.text}]}>
                 Genre
               </Text>
+              {/* Replaced TextInput with Picker component */}
               <View
                 style={[
-                  styles.inputWrapper,
-                  {backgroundColor: currentColors.inputBox},
+                  styles.pickerContainer,
+                  {
+                    backgroundColor: currentColors.inputBox,
+                    borderColor: currentColors.border,
+                  },
                 ]}>
-                <Icon
-                  name="pricetag-outline"
-                  size={20}
-                  color={currentColors.primary}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={[styles.input, {color: currentColors.text}]}
-                  placeholder="e.g., Health, Technology, Lifestyle"
-                  placeholderTextColor={currentColors.secondary}
-                  value={formData.genre}
-                  onChangeText={text => handleInputChange('genre', text)}
-                />
+                <Picker
+                  selectedValue={formData.genre}
+                  onValueChange={itemValue => handleInputChange('genre', itemValue)}
+                  style={{color: currentColors.text}}
+                  dropdownIconColor={currentColors.text}>
+                  {genres.map(genreOption => (
+                    <Picker.Item
+                      key={genreOption}
+                      label={genreOption}
+                      value={genreOption}
+                    />
+                  ))}
+                </Picker>
               </View>
             </View>
 
             <View style={[styles.inputGroup, styles.inputBorder]}>
               <Text style={[styles.label, {color: currentColors.text}]}>
-                Read Time
+                Read Time (minutes)
               </Text>
+              {/* Replaced TextInput with Picker component */}
               <View
                 style={[
-                  styles.inputWrapper,
-                  {backgroundColor: currentColors.inputBox},
+                  styles.pickerContainer,
+                  {
+                    backgroundColor: currentColors.inputBox,
+                    borderColor: currentColors.border,
+                  },
                 ]}>
-                <Icon
-                  name="time-outline"
-                  size={20}
-                  color={currentColors.primary}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={[styles.input, {color: currentColors.text}]}
-                  placeholder="e.g., 5 min"
-                  placeholderTextColor={currentColors.secondary}
-                  value={formData.readTime}
-                  onChangeText={text => handleInputChange('readTime', text)}
-                  keyboardType="numeric"
-                />
+                <Picker
+                  selectedValue={formData.readTime}
+                  onValueChange={itemValue => handleInputChange('readTime', itemValue)}
+                  style={{color: currentColors.text}}
+                  dropdownIconColor={currentColors.text}>
+                  {readTimeOptions.map(option => (
+                    <Picker.Item
+                      key={option}
+                      label={`${option} min`}
+                      value={option}
+                    />
+                  ))}
+                </Picker>
               </View>
             </View>
           </View>
@@ -528,7 +609,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 5,
   },
   inputGroup: {
     marginBottom: 16,
@@ -569,6 +650,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlignVertical: 'top',
   },
+  // Added styles for picker from UpdateBlogScreen
+  pickerContainer: {
+    borderWidth: 1,
+    borderRadius: 12,
+    height: 50,
+    justifyContent: 'center',
+  },
+  helperText: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  errorText: {
+    fontSize: 12,
+    marginTop: 4,
+  },
   statusContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -596,53 +692,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderTopWidth: 1,
     paddingTop: 16,
-    borderColor: '#E2E8F0',
-  },
-  mediaPreviewContainer: {
-    position: 'relative',
-    marginBottom: 16,
-    borderRadius: 8,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 200,
-    backgroundColor: '#E2E8F0',
-  },
-  videoPreviewPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  videoPreviewText: {
-    marginTop: 10,
-    fontSize: 16,
-  },
-  deleteMediaButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addVideoSection: {
-    marginTop: 10,
-  },
-  addVideoButton: {
-    borderRadius: 10,
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addVideoButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 10,
   },
   videosDescription: {
     fontSize: 14,

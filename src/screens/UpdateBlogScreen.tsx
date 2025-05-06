@@ -56,6 +56,19 @@ const themeColors = {
   },
 };
 
+// Read time options for dropdown
+const readTimeOptions = [
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '10',
+];
+
 type UpdateBlogScreenProps = {
   route: RouteProp<RootStackParamList, 'UpdateBlog'>;
   navigation: StackNavigationProp<RootStackParamList, 'UpdateBlog'>;
@@ -267,7 +280,15 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
     // Average reading speed: 200-250 words per minute
     const wordCount = description.trim().split(/\s+/).length;
     const estimatedTime = Math.ceil(wordCount / 200);
-    setReadTime(estimatedTime.toString());
+    
+    // Make sure the estimated time is within our dropdown options
+    if (estimatedTime < 2) {
+      setReadTime('2');
+    } else if (estimatedTime > 10) {
+      setReadTime('10');
+    } else {
+      setReadTime(estimatedTime.toString());
+    }
   };
 
   if (loading) {
@@ -453,30 +474,29 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
 
               <View style={[styles.inputGroup, styles.inputBorder]}>
                 <Text style={[styles.label, {color: currentColors.text}]}>
-                  Read Time
+                  Read Time (minutes)
                 </Text>
                 <View
                   style={[
-                    styles.inputWrapper,
+                    styles.pickerContainer,
                     {
                       backgroundColor: currentColors.inputBox,
                       borderColor: currentColors.border,
                     },
                   ]}>
-                  <Icon
-                    name="time-outline"
-                    size={20}
-                    color={currentColors.primary}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={[styles.input, {color: currentColors.text}]}
-                    placeholder="e.g., 5 min"
-                    placeholderTextColor={currentColors.secondary}
-                    value={readTime}
-                    onChangeText={setReadTime}
-                    keyboardType="numeric"
-                  />
+                  <Picker
+                    selectedValue={readTime}
+                    onValueChange={itemValue => setReadTime(itemValue)}
+                    style={{color: currentColors.text}}
+                    dropdownIconColor={currentColors.text}>
+                    {readTimeOptions.map(option => (
+                      <Picker.Item
+                        key={option}
+                        label={`${option} min`}
+                        value={option}
+                      />
+                    ))}
+                  </Picker>
                 </View>
                 <Text
                   style={[styles.helperText, {color: currentColors.secondary}]}>

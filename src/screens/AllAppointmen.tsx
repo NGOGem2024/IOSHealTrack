@@ -611,19 +611,28 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
     </View>
   );
 
-  const renderDaySection = ({item}: {item: DayData}) => (
-    <View style={styles.daySection}>
-      <Text style={styles.daySectionHeader}>{formatDate(item.date)}</Text>
-      {item.appointments.length > 0
-        ? item.appointments.map(appointment => (
-            <View key={appointment._id}>
-              {renderAppointment({item: appointment})}
-            </View>
-          ))
-        : renderNoAppointments()}
-    </View>
-  );
-
+  const renderDaySection = ({item}: {item: DayData}) => {
+    const isToday = item.date.toDateString() === new Date().toDateString();
+    
+    return (
+      <View style={styles.daySection}>
+        <Text style={[
+          styles.daySectionHeader,
+          // No conditional styling for Today that could cause spacing issues
+        ]}>
+          {formatDate(item.date)}
+        </Text>
+        {item.appointments.length > 0
+          ? item.appointments.map(appointment => (
+              <View key={appointment._id}>
+                {renderAppointment({item: appointment})}
+              </View>
+            ))
+          : renderNoAppointments()}
+      </View>
+    );
+  };
+  
   const renderFooter = () => {
     if (!loadingMore) return null;
     return (
@@ -971,7 +980,7 @@ const getStyles = (
       paddingTop: 16,
     },
     daySection: {
-      marginBottom: 20,
+      marginBottom: 10,
     },
     daySectionHeader: {
       fontSize: 20,
@@ -1044,7 +1053,7 @@ const getStyles = (
       backgroundColor: isDarkMode ? '#233436' : '#FFFFFF',
       borderRadius: 16,
       padding: 24,
-      margin: 16,
+      marginBottom: 12,
       elevation: 2,
       shadowColor: '#000',
       shadowOffset: {width: 0, height: 2},
@@ -1053,6 +1062,9 @@ const getStyles = (
       borderColor: isDarkMode ? '#119FB3' : 'white',
       borderWidth: 1,
       minHeight: 150,
+
+      marginHorizontal: 16,
+      overflow: 'hidden', // Ensure no content spills outside
     },
     noAppointmentsText: {
       fontSize: 18,

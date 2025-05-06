@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Alert,
+  Text,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -76,9 +77,27 @@ const BlogImageUploader: React.FC<BlogImageUploaderProps> = ({
   };
 
   const handleRemoveImage = () => {
-    setLocalImage(null);
-    onImageRemoved();
+    Alert.alert(
+      'Delete Image',
+      'Are you sure you want to delete this image?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Yes',
+          onPress: () => {
+            setLocalImage(null);
+            onImageRemoved();
+          },
+          style: 'destructive',
+        },
+      ],
+      { cancelable: true }
+    );
   };
+  
 
   return (
     <View style={styles.container}>
@@ -100,11 +119,13 @@ const BlogImageUploader: React.FC<BlogImageUploaderProps> = ({
         </View>
       ) : (
         <TouchableOpacity
-          style={styles.uploadButton}
-          onPress={handleImagePick}
-          disabled={isUploading}>
-          <Icon name="camera-outline" size={32} color="#007B8E" />
-        </TouchableOpacity>
+        style={styles.uploadButton}
+        onPress={handleImagePick}
+        disabled={isUploading}
+      >
+        <Icon name="camera-outline" size={40} color="#007B8E" />
+        <Text style={styles.addImageText}>Add Image</Text>
+      </TouchableOpacity>
       )}
     </View>
   );
@@ -115,26 +136,33 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   uploadButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#007B8E',
+    
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
+    marginBottom: 5,
   },
+  
   imagePreviewContainer: {
     position: 'relative',
     borderRadius: 8,
     overflow: 'hidden',
     alignSelf: 'center',
   },
+  addImageText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#666',
+  },
+  
   imagePreview: {
     width: 200,
     height: 200,
-    borderRadius: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
+  
   removeButton: {
     position: 'absolute',
     top: 8,

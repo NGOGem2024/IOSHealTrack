@@ -946,6 +946,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: '#2c3e50',
       textAlign: 'center',
       marginTop: 20,
+      marginBottom: 30,
       fontWeight: '500',
     },
     // Custom legend styles

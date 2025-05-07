@@ -414,7 +414,7 @@ const DoctorDashboard: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <DashboardHeader />
       <ScrollView
         ref={scrollViewRef}
@@ -556,7 +556,7 @@ const DoctorDashboard: React.FC = () => {
           />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -111,17 +111,63 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
     return `${hours}:${minutes} ${ampm}`;
   };
 
+  // Check if the selected datetime is in the past with a buffer
+  // Add a 2-minute buffer to allow for current time bookings
+  const isDateTimeInPast = (date: Date, time: Date): boolean => {
+    const now = new Date();
+    
+    const selectedDateTime = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      time.getHours(),
+      time.getMinutes(),
+      time.getSeconds()
+    );
+    
+    // Add a 2-minute buffer to now
+    const bufferTime = new Date(now.getTime() - (2 * 60 * 1000));
+    
+    return selectedDateTime < bufferTime;
+  };
+
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
-      handleInputChange('consultationDate', selectedDate);
+      const newDate = selectedDate;
+      
+      // If the new date is today, check if the currently selected time is now in the past
+      const isToday = 
+        newDate.getDate() === now.getDate() &&
+        newDate.getMonth() === now.getMonth() &&
+        newDate.getFullYear() === now.getFullYear();
+      
+      if (isToday && isDateTimeInPast(newDate, formData.consultationTime)) {
+        // If the time is now in the past with the new date, update the time to current time
+        handleInputChange('consultationTime', new Date());
+      }
+      
+      handleInputChange('consultationDate', newDate);
     }
   };
 
   const handleTimeChange = (event: any, selectedTime?: Date) => {
     setShowTimePicker(false);
     if (selectedTime) {
-      handleInputChange('consultationTime', selectedTime);
+      // Check if selected time is in the past (if date is today)
+      const isToday = 
+        formData.consultationDate.getDate() === now.getDate() &&
+        formData.consultationDate.getMonth() === now.getMonth() &&
+        formData.consultationDate.getFullYear() === now.getFullYear();
+      
+      if (isToday && isDateTimeInPast(formData.consultationDate, selectedTime)) {
+        Alert.alert('Invalid Time', 'Please choose a current or future time for the consultation.');
+        // Set time to current time as a reasonable default
+        const currentTime = new Date();
+        handleInputChange('consultationTime', currentTime);
+      } else {
+        handleInputChange('consultationTime', selectedTime);
+      }
     }
   };
 
@@ -147,6 +193,41 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
         Alert.alert('Error', 'Results selection is required');
         return;
       }
+
+      // Update the check for past date/time with buffer for current time
+      if (isDateTimeInPast(formData.consultationDate, formData.consultationTime)) {
+        // Update consultation time to current time if it's in the past
+        const updatedTime = new Date();
+        handleInputChange('consultationTime', updatedTime);
+        
+        // Ask user if they want to proceed with current time instead
+        Alert.alert(
+          'Time Adjustment',
+          'The selected time is in the past. Would you like to proceed with the current time instead?',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Proceed with Current Time',
+              onPress: () => submitConsultation(),
+            },
+          ],
+        );
+        return;
+      }
+
+      // If all validations pass, submit the consultation
+      submitConsultation();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to process your request');
+      console.error(error);
+    }
+  };
+
+  const submitConsultation = async () => {
+    try {
       setIsSubmitting(true);
 
       if (!session.idToken) {
@@ -218,6 +299,18 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
     }
   };
 
+  // For time picker, set minimum time to current time if date is today
+  const getMinimumTime = (): Date | undefined => {
+    const isToday = 
+      formData.consultationDate.getDate() === now.getDate() &&
+      formData.consultationDate.getMonth() === now.getMonth() &&
+      formData.consultationDate.getFullYear() === now.getFullYear();
+    
+    // No need to return a minimum time - let users select any time
+    // The validation happens in handleTimeChange and handleSubmit
+    return undefined;
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -283,6 +376,7 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
               display="spinner"
               is24Hour={false}
               onChange={handleTimeChange}
+              minimumDate={getMinimumTime()}
             />
           )}
 

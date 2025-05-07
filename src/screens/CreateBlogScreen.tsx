@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import axiosInstance from '../utils/axiosConfig';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -19,19 +20,36 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList, RootTabParamList} from '../types/types';
 import {useNavigation} from '@react-navigation/native';
 import BlogImageUploader from './blogimageupload';
-import YouTubeVideoManager, {YouTubeVideo} from './videomanager'; // Import the YouTubeVideoManager
+import YouTubeVideoManager, {YouTubeVideo} from './videomanager';
+import {Picker} from '@react-native-picker/picker';
 
 interface BlogFormData {
   title: string;
   description: string;
   image: any;
-  videos: YouTubeVideo[]; // Changed from video: string | null to videos array
+  videos: YouTubeVideo[];
   genre: string;
   readTime: string;
   status: 'draft' | 'published';
 }
 
 type blogNavigationProp = NativeStackNavigationProp<RootTabParamList>;
+
+// Genres available for blogs
+const genres = [
+  'Mental Health',
+  'Physical Health',
+  'Nutrition',
+  'Wellness',
+  'Medical Research',
+  'Health Tips',
+  'Disease Prevention',
+  'Healthcare',
+  'Other',
+];
+
+// Read time options for dropdown
+const readTimeOptions = ['2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 const themeColors = {
   light: {
@@ -43,6 +61,10 @@ const themeColors = {
     skeleton: '#E1E9EE',
     border: '#E2E8F0',
     inputBox: '#F8FAFC',
+    placeholder: 'gray',
+    error: '#FF6B6B',
+    pickerText: '#333333', // Added specific text color for picker
+    pickerBackground: '#F8FAFC', // Added specific background for picker
   },
   dark: {
     background: '#161c24',
@@ -53,6 +75,10 @@ const themeColors = {
     skeleton: '#3B3B3B',
     border: '#3E4C59',
     inputBox: '#1E293B',
+    placeholder: 'gray',
+    error: '#FF6B6B',
+    pickerText: '#f3f4f6', // Added specific text color for picker in dark mode
+    pickerBackground: '#1E293B', // Added specific background for picker in dark mode
   },
 };
 
@@ -61,14 +87,18 @@ const CreateBlogScreen: React.FC = () => {
     title: '',
     description: '',
     image: null,
-    videos: [], // Initialize as empty array instead of null
-    genre: '',
-    readTime: '',
+    videos: [],
+    genre: genres[0],
+    readTime: readTimeOptions[3],
     status: 'draft',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [showMediaOptions, setShowMediaOptions] = useState(false);
+  const [descriptionError, setDescriptionError] = useState('');
+  // State for custom picker (iOS)
+  const [showGenrePicker, setShowGenrePicker] = useState(false);
+  const [showReadTimePicker, setShowReadTimePicker] = useState(false);
 
   const navigation = useNavigation<blogNavigationProp>();
   const colorScheme = useColorScheme();
@@ -86,17 +116,15 @@ const CreateBlogScreen: React.FC = () => {
   };
 
   const handleImageSelected = (imageData: any) => {
-    // Update the form data with the selected image
     setFormData({
       ...formData,
       image: imageData,
     });
 
-    // Show uploading indicator (will be handled during actual submission)
     setIsUploadingImage(true);
     setTimeout(() => {
       setIsUploadingImage(false);
-    }, 1000); // Just to show the indicator briefly for UX feedback
+    }, 1000);
   };
 
   const handleImageRemoved = () => {
@@ -111,6 +139,32 @@ const CreateBlogScreen: React.FC = () => {
       ...formData,
       videos: videos,
     });
+  };
+
+  const calculateReadTime = () => {
+    const wordCount = formData.description.trim().split(/\s+/).length;
+    const estimatedTime = Math.ceil(wordCount / 200);
+
+    if (estimatedTime < 2) {
+      handleInputChange('readTime', '2');
+    } else if (estimatedTime > 10) {
+      handleInputChange('readTime', '10');
+    } else {
+      handleInputChange('readTime', estimatedTime.toString());
+    }
+  };
+
+  const validateDescription = () => {
+    const wordCount = formData.description.trim().split(/\s+/).length;
+    if (wordCount < 50) {
+      setDescriptionError(
+        `Description is too short. Current: ${wordCount} words (minimum 50 words)`,
+      );
+      return false;
+    } else {
+      setDescriptionError('');
+      return true;
+    }
   };
 
   const handleSubmit = async () => {
@@ -130,19 +184,20 @@ const CreateBlogScreen: React.FC = () => {
       return;
     }
 
+    if (!validateDescription()) {
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Create a FormData object for multipart/form-data submission
       const blogFormData = new FormData();
 
-      // Add text fields
       blogFormData.append('title', formData.title);
       blogFormData.append('description', formData.description);
       blogFormData.append('genre', formData.genre);
       blogFormData.append('readTime', formData.readTime);
       blogFormData.append('status', formData.status);
 
-      // Add image if exists
       if (formData.image) {
         const imageFile = {
           uri: formData.image.uri,
@@ -152,12 +207,10 @@ const CreateBlogScreen: React.FC = () => {
         blogFormData.append('image', imageFile);
       }
 
-      // Add videos if they exist
       if (formData.videos && formData.videos.length > 0) {
-        // Convert videos array to JSON string
         blogFormData.append('videos', JSON.stringify(formData.videos));
       }
-      // Set proper headers for multipart/form-data
+
       const response = await axiosInstance.post('/create/blog', blogFormData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -173,6 +226,71 @@ const CreateBlogScreen: React.FC = () => {
     }
   };
 
+  // Custom picker display for iOS
+  const renderIOSPicker = (
+    options: string[],
+    selectedValue: string,
+    fieldName: 'genre' | 'readTime',
+    placeholder: string,
+    showPicker: boolean,
+    setShowPicker: React.Dispatch<React.SetStateAction<boolean>>,
+    formatLabel?: (value: string) => string,
+  ) => {
+    const displayValue = formatLabel
+      ? formatLabel(selectedValue)
+      : selectedValue;
+
+    return (
+      <>
+        <TouchableOpacity
+          style={[
+            styles.inputWrapper,
+            {
+              backgroundColor: currentColors.inputBox,
+              borderColor: currentColors.border,
+            },
+          ]}
+          onPress={() => setShowPicker(true)}>
+          <Text style={{color: currentColors.text}}>{displayValue}</Text>
+          <Icon name="chevron-down" size={16} color={currentColors.text} />
+        </TouchableOpacity>
+
+        {showPicker && (
+          <View style={styles.iosPickerOverlay}>
+            <View
+              style={[
+                styles.iosPickerContainer,
+                {backgroundColor: currentColors.card},
+              ]}>
+              <View style={styles.iosPickerHeader}>
+                <TouchableOpacity
+                  style={styles.iosPickerButton}
+                  onPress={() => setShowPicker(false)}>
+                  <Text style={{color: currentColors.primary}}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <Picker
+                selectedValue={selectedValue}
+                onValueChange={itemValue =>
+                  handleInputChange(fieldName, itemValue)
+                }
+                itemStyle={{color: currentColors.pickerText}}>
+                {options.map(option => (
+                  <Picker.Item
+                    key={option}
+                    label={formatLabel ? formatLabel(option) : option}
+                    value={option}
+                    color={isDarkMode ? '#ffffff' : undefined}
+                  />
+                ))}
+              </Picker>
+            </View>
+          </View>
+        )}
+      </>
+    );
+  };
+
   const renderMediaOptionsModal = () => {
     return (
       <View style={styles.modalOverlay}>
@@ -186,7 +304,6 @@ const CreateBlogScreen: React.FC = () => {
             style={styles.modalOption}
             onPress={() => {
               setShowMediaOptions(false);
-              // We'll handle image selection through the BlogImageUploader now
             }}>
             <Icon
               name="image-outline"
@@ -240,18 +357,15 @@ const CreateBlogScreen: React.FC = () => {
               <View
                 style={[
                   styles.inputWrapper,
-                  {backgroundColor: currentColors.inputBox},
+                  {
+                    backgroundColor: currentColors.inputBox,
+                    borderColor: currentColors.border,
+                  },
                 ]}>
-                <Icon
-                  name="text-outline"
-                  size={20}
-                  color={currentColors.primary}
-                  style={styles.inputIcon}
-                />
                 <TextInput
                   style={[styles.input, {color: currentColors.text}]}
                   placeholder="Enter blog title"
-                  placeholderTextColor={currentColors.secondary}
+                  placeholderTextColor={currentColors.placeholder}
                   value={formData.title}
                   onChangeText={text => handleInputChange('title', text)}
                 />
@@ -265,7 +379,12 @@ const CreateBlogScreen: React.FC = () => {
               <View
                 style={[
                   styles.textAreaWrapper,
-                  {backgroundColor: currentColors.inputBox},
+                  {
+                    backgroundColor: currentColors.inputBox,
+                    borderColor: descriptionError
+                      ? currentColors.error
+                      : currentColors.border,
+                  },
                 ]}>
                 <TextInput
                   style={[
@@ -276,13 +395,19 @@ const CreateBlogScreen: React.FC = () => {
                     },
                   ]}
                   placeholder="Write your blog content here..."
-                  placeholderTextColor={currentColors.secondary}
+                  placeholderTextColor={currentColors.placeholder}
                   multiline
                   numberOfLines={6}
                   value={formData.description}
                   onChangeText={text => handleInputChange('description', text)}
+                  onBlur={calculateReadTime}
                 />
               </View>
+              {descriptionError ? (
+                <Text style={[styles.errorText, {color: currentColors.error}]}>
+                  {descriptionError}
+                </Text>
+              ) : null}
             </View>
           </View>
 
@@ -302,51 +427,93 @@ const CreateBlogScreen: React.FC = () => {
               <Text style={[styles.label, {color: currentColors.text}]}>
                 Genre
               </Text>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  {backgroundColor: currentColors.inputBox},
-                ]}>
-                <Icon
-                  name="pricetag-outline"
-                  size={20}
-                  color={currentColors.primary}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={[styles.input, {color: currentColors.text}]}
-                  placeholder="e.g., Health, Technology, Lifestyle"
-                  placeholderTextColor={currentColors.secondary}
-                  value={formData.genre}
-                  onChangeText={text => handleInputChange('genre', text)}
-                />
-              </View>
+              {Platform.OS === 'ios' ? (
+                renderIOSPicker(
+                  genres,
+                  formData.genre,
+                  'genre',
+                  'Select genre',
+                  showGenrePicker,
+                  setShowGenrePicker,
+                )
+              ) : (
+                <View
+                  style={[
+                    styles.pickerContainer,
+                    {
+                      backgroundColor: currentColors.pickerBackground,
+                      borderColor: currentColors.border,
+                    },
+                  ]}>
+                  <Picker
+                    selectedValue={formData.genre}
+                    onValueChange={itemValue =>
+                      handleInputChange('genre', itemValue)
+                    }
+                    style={{color: currentColors.pickerText}}
+                    dropdownIconColor={currentColors.text}>
+                    {genres.map(genreOption => (
+                      <Picker.Item
+                        key={genreOption}
+                        label={genreOption}
+                        value={genreOption}
+                        color={
+                          isDarkMode && Platform.OS === 'android'
+                            ? '#ffffff'
+                            : undefined
+                        }
+                      />
+                    ))}
+                  </Picker>
+                </View>
+              )}
             </View>
 
             <View style={[styles.inputGroup, styles.inputBorder]}>
               <Text style={[styles.label, {color: currentColors.text}]}>
-                Read Time
+                Read Time (minutes)
               </Text>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  {backgroundColor: currentColors.inputBox},
-                ]}>
-                <Icon
-                  name="time-outline"
-                  size={20}
-                  color={currentColors.primary}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={[styles.input, {color: currentColors.text}]}
-                  placeholder="e.g., 5 min"
-                  placeholderTextColor={currentColors.secondary}
-                  value={formData.readTime}
-                  onChangeText={text => handleInputChange('readTime', text)}
-                  keyboardType="numeric"
-                />
-              </View>
+              {Platform.OS === 'ios' ? (
+                renderIOSPicker(
+                  readTimeOptions,
+                  formData.readTime,
+                  'readTime',
+                  'Select read time',
+                  showReadTimePicker,
+                  setShowReadTimePicker,
+                  value => `${value} min`,
+                )
+              ) : (
+                <View
+                  style={[
+                    styles.pickerContainer,
+                    {
+                      backgroundColor: currentColors.pickerBackground,
+                      borderColor: currentColors.border,
+                    },
+                  ]}>
+                  <Picker
+                    selectedValue={formData.readTime}
+                    onValueChange={itemValue =>
+                      handleInputChange('readTime', itemValue)
+                    }
+                    style={{color: currentColors.pickerText}}
+                    dropdownIconColor={currentColors.text}>
+                    {readTimeOptions.map(option => (
+                      <Picker.Item
+                        key={option}
+                        label={`${option} min`}
+                        value={option}
+                        color={
+                          isDarkMode && Platform.OS === 'android'
+                            ? '#ffffff'
+                            : undefined
+                        }
+                      />
+                    ))}
+                  </Picker>
+                </View>
+              )}
             </View>
           </View>
 
@@ -370,7 +537,6 @@ const CreateBlogScreen: React.FC = () => {
               Add images or videos to make your blog post more engaging.
             </Text>
 
-            {/* BlogImageUploader component for selecting and previewing images */}
             <View style={styles.blogImageUploaderContainer}>
               <Text style={[styles.label, {color: currentColors.text}]}>
                 Featured Image
@@ -383,7 +549,6 @@ const CreateBlogScreen: React.FC = () => {
               />
             </View>
 
-            {/* YouTube Video Manager Component */}
             <View style={styles.videoManagerContainer}>
               <Text style={[styles.label, {color: currentColors.text}]}>
                 YouTube Videos
@@ -528,7 +693,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 5,
   },
   inputGroup: {
     marginBottom: 16,
@@ -545,6 +710,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     borderRadius: 12,
     borderWidth: 1,
     height: 50,
@@ -568,6 +734,47 @@ const styles = StyleSheet.create({
     minHeight: 120,
     fontSize: 16,
     textAlignVertical: 'top',
+  },
+  // Updated picker styles
+  pickerContainer: {
+    borderWidth: 1,
+    borderRadius: 12,
+    height: 50,
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  // iOS specific picker styles
+  iosPickerOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 1000,
+    justifyContent: 'flex-end',
+  },
+  iosPickerContainer: {
+    width: '100%',
+    backgroundColor: 'white',
+  },
+  iosPickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+  iosPickerButton: {
+    paddingHorizontal: 12,
+  },
+  helperText: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  errorText: {
+    fontSize: 12,
+    marginTop: 4,
   },
   statusContainer: {
     flexDirection: 'row',
@@ -596,53 +803,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderTopWidth: 1,
     paddingTop: 16,
-    borderColor: '#E2E8F0',
-  },
-  mediaPreviewContainer: {
-    position: 'relative',
-    marginBottom: 16,
-    borderRadius: 8,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 200,
-    backgroundColor: '#E2E8F0',
-  },
-  videoPreviewPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  videoPreviewText: {
-    marginTop: 10,
-    fontSize: 16,
-  },
-  deleteMediaButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addVideoSection: {
-    marginTop: 10,
-  },
-  addVideoButton: {
-    borderRadius: 10,
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addVideoButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 10,
   },
   videosDescription: {
     fontSize: 14,

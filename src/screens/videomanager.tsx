@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { themeColors } from './Theme';
 
 export interface YouTubeVideo {
   id: string;
@@ -49,6 +50,16 @@ const YouTubeVideoManager: React.FC<Props> = ({
     setEditingId(null);
   };
 
+  const openAddModal = () => {
+    resetModal();
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    resetModal();
+    setModalVisible(false);
+  };
+
   const handleSaveVideo = () => {
     if (!videoTitle.trim() || !videoUrl.trim()) {
       Alert.alert('Validation Error', 'Please enter both title and URL.');
@@ -72,8 +83,7 @@ const YouTubeVideoManager: React.FC<Props> = ({
       : [...videos, newVideo];
 
     onChange(updated);
-    resetModal();
-    setModalVisible(false);
+    closeModal();
   };
 
   const handleDelete = (id: string) => {
@@ -88,10 +98,10 @@ const YouTubeVideoManager: React.FC<Props> = ({
   };
 
   const handleEdit = (video: YouTubeVideo) => {
+    setEditingId(video.id);
     setVideoTitle(video.title);
     setVideoUrl(video.url);
     setVideoDescription(video.description);
-    setEditingId(video.id);
     setModalVisible(true);
   };
 
@@ -102,7 +112,7 @@ const YouTubeVideoManager: React.FC<Props> = ({
           <Icon
             name="videocam-outline"
             size={40}
-            color={themeColors.secondary}
+            color="#007B8E"
           />
           <Text style={{color: themeColors.secondary}}>
             No videos added yet
@@ -159,10 +169,8 @@ const YouTubeVideoManager: React.FC<Props> = ({
 
       <TouchableOpacity
         style={[styles.addButton, {backgroundColor: themeColors.primary}]}
-        onPress={() => {
-          resetModal();
-          setModalVisible(true);
-        }}>
+        onPress={openAddModal}
+        activeOpacity={0.7}>
         <Icon name="add-circle-outline" size={20} color="#fff" />
         <Text style={styles.addButtonText}>Add YouTube Video</Text>
       </TouchableOpacity>
@@ -222,11 +230,9 @@ const YouTubeVideoManager: React.FC<Props> = ({
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.cancelButton}
-                onPress={() => {
-                  resetModal();
-                  setModalVisible(false);
-                }}>
-                <Text style={{color: themeColors.text}}>Cancel</Text>
+                onPress={closeModal}
+                activeOpacity={0.7}>
+                <Text style={{color: 'white'}}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -234,7 +240,8 @@ const YouTubeVideoManager: React.FC<Props> = ({
                   styles.saveButton,
                   {backgroundColor: themeColors.primary},
                 ]}
-                onPress={handleSaveVideo}>
+                onPress={handleSaveVideo}
+                activeOpacity={0.7}>
                 <Text style={{color: '#fff'}}>
                   {editingId ? 'Update' : 'Add'}
                 </Text>
@@ -328,7 +335,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'gray',
   },
   saveButton: {
     flex: 1,

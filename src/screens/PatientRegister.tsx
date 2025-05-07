@@ -158,8 +158,24 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
       newValue = value.toLowerCase();
     }
   
-    setPatientData(prev => ({...prev, [field]: newValue}));
-    setFieldStatus(prev => ({...prev, [field]: newValue.length > 0}));
+    // Clear referral_details when referral_source changes
+    if (field === 'referral_source') {
+      setPatientData(prev => ({
+        ...prev, 
+        [field]: newValue,
+        // Clear referral_details when source changes
+        referral_details: ''
+      }));
+      setFieldStatus(prev => ({
+        ...prev, 
+        [field]: newValue.length > 0,
+        // Reset referral_details field status
+        referral_details: false
+      }));
+    } else {
+      setPatientData(prev => ({...prev, [field]: newValue}));
+      setFieldStatus(prev => ({...prev, [field]: newValue.length > 0}));
+    }
   
     // Always validate phone number when it changes
     if (field === 'patient_phone') {
@@ -173,7 +189,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
       // Clear error if field is empty
       setErrors(prev => ({...prev, [field]: ''}));
     }
-  };
+  }
 
   const handlePatientRegister = async () => {
     const newErrors: {[key: string]: string} = {};

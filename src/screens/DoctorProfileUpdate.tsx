@@ -779,16 +779,6 @@ const DoctorProfileEdit: React.FC = () => {
                 field: 'organization_name',
                 disabled: true,
               },
-
-              {
-                label: 'Therapy Fee',
-                icon: 'wallet-outline',
-                value:
-                  profileInfo.therapy_fee != null
-                    ? String(profileInfo.therapy_fee)
-                    : '',
-                field: 'therapy_fee',
-              },
               {
                 label: 'Consultation Fee',
                 icon: 'wallet-outline',

@@ -514,7 +514,7 @@ const TherapyPlanDetails: React.FC = () => {
                 <Text style={styles.value}>
                   {
                     plan.therapy_sessions.filter(
-                      session => session.status === 'Completed',
+                      session => session.status === 'completed',
                     ).length
                   }
                 </Text>
@@ -771,7 +771,7 @@ const TherapyPlanDetails: React.FC = () => {
       {plan.notes.map((note, index) => (
         <View key={index} style={styles.noteItem}>
           <View style={styles.noteHeader}>
-            <Text style={styles.noteDoctor}>Dr. {note.doctor_name}</Text>
+            <Text style={styles.noteDoctor}>{note.doctor_name}</Text>
             <Text style={styles.noteDate}>
               {new Date(note.date).toLocaleDateString()}
             </Text>

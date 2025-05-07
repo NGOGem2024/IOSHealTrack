@@ -10,8 +10,6 @@ import {
   SafeAreaView,
   Dimensions,
   Animated,
-  KeyboardTypeOptions,
-  Platform,
   Appearance,
   useColorScheme,
 } from 'react-native';
@@ -123,20 +121,21 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
       setEmailError(false); // Make sure to clear any error state
       return true;
     }
-    
+
     // Otherwise, validate the email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValid = emailRegex.test(email);
     setEmailError(!isValid);
     return isValid;
   };
-  
+
   const validatePhone = (phone: string): boolean => {
     const isValid = phone.startsWith('+');
     setPhoneError(!isValid);
     return isValid;
   };
-  
+
+  // FIX: Updated handleTextChange to directly set the value rather than appending it
   const handleTextChange = useCallback(
     (field: keyof PatientData, value: string) => {
       if (field === 'patient_phone') {
@@ -230,10 +229,15 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
 
   const handlePatientUpdate = useCallback(async () => {
     // Email validation - only validate if a value is provided (not empty)
-    if (patientData.patient_email.trim() !== '' && !validateEmail(patientData.patient_email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address or leave it empty.', [
-        {text: 'OK'},
-      ]);
+    if (
+      patientData.patient_email.trim() !== '' &&
+      !validateEmail(patientData.patient_email)
+    ) {
+      Alert.alert(
+        'Invalid Email',
+        'Please enter a valid email address or leave it empty.',
+        [{text: 'OK'}],
+      );
       return;
     }
 
@@ -336,20 +340,30 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
                 style={[
                   styles.inputContainer,
                   {
-                    borderColor: emailError ? currentColors.error : currentColors.inputBorder,
+                    borderColor: emailError
+                      ? currentColors.error
+                      : currentColors.inputBorder,
                     backgroundColor: currentColors.inputBg,
                   },
                 ]}>
                 <View style={styles.iconContainer}>
-                  <Icon name="email" size={24} color={emailError ? currentColors.error : currentColors.primary} />
+                  <Icon
+                    name="email"
+                    size={24}
+                    color={
+                      emailError ? currentColors.error : currentColors.primary
+                    }
+                  />
                 </View>
                 <TextInput
-                  style={[styles.input, {color: currentColors.text}]}
-                  placeholder="Email Address (Optional)"
+                  style={styles.input}
+                  placeholder="Enter Email"
                   value={patientData.patient_email}
-                  onChangeText={text => handleTextChange('patient_email', text)}
+                  onChangeText={value =>
+                    handleTextChange('patient_email', value)
+                  }
+                  autoCapitalize="none"
                   keyboardType="email-address"
-                  placeholderTextColor={emailError ? currentColors.error : currentColors.placeholderText}
                 />
               </View>
               {emailError && (

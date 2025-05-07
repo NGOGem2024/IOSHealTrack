@@ -413,72 +413,87 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
                 {patientData.consultations
                   .slice()
                   .reverse()
-                  .map(consultation => (
-                    <View
-                      key={consultation._id}
-                      style={styles.consultationItemContainer}>
-                      <View style={styles.consultationItem}>
-                        <View style={styles.consultationHeader}>
-                          <View style={styles.consultationHeaderLeft}>
-                            <View style={styles.consultationIconContainer}>
-                              <MaterialIcons
-                                name="medical-services"
-                                size={20}
-                                color="#119FB3"
-                              />
+                  .map(
+                    (
+                      consultation, // Make sure 'consultation' is defined in this scope
+                    ) => (
+                      <View
+                        key={consultation._id}
+                        style={styles.consultationItemContainer}>
+                        <View style={styles.consultationItem}>
+                          <View style={styles.consultationHeader}>
+                            <View style={styles.consultationHeaderLeft}>
+                              <View style={styles.consultationIconContainer}>
+                                <MaterialIcons
+                                  name="medical-services"
+                                  size={20}
+                                  color="#119FB3"
+                                />
+                              </View>
+                              <View style={styles.causeContainer}>
+                                <Text
+                                  style={styles.consultationCause}
+                                  numberOfLines={20}
+                                  ellipsizeMode="tail">
+                                  {consultation.causes}
+                                </Text>
+                                <Text style={styles.consultationDatetime}>
+                                  {formatDate(consultation.consultationDate)} •{' '}
+                                  {consultation.consultationTime}
+                                </Text>
+                              </View>
                             </View>
-                            <View>
-                              <Text style={styles.consultationCause}>
-                                {consultation.causes}
+                          </View>
+
+                          <View style={styles.consultationDetails}>
+                            <View style={styles.consultationDetailRow}>
+                              <Text style={styles.consultationDetailLabel}>
+                                Doctor:
                               </Text>
-                              <Text style={styles.consultationDatetime}>
-                              {formatDate(consultation.consultationDate)} •{' '}
-                              {consultation.consultationTime}
+                              <Text
+                                style={styles.consultationDetailValue}
+                                numberOfLines={20}>
+                                {consultation.doctorName}
                               </Text>
                             </View>
-                          </View>
-                        </View>
 
-                        <View style={styles.consultationDetails}>
-                          <View style={styles.consultationDetailRow}>
-                            <Text style={styles.consultationDetailLabel}>
-                              Doctor:
-                            </Text>
-                            <Text style={styles.consultationDetailValue}>
-                              {consultation.doctorName}
-                            </Text>
-                          </View>
+                            <View style={styles.consultationDetailRow}>
+                              <Text style={styles.consultationDetailLabel}>
+                                Symptoms:
+                              </Text>
+                              <Text
+                                style={styles.consultationDetailValue}
+                                numberOfLines={20}>
+                                {consultation.patientSymptoms}
+                              </Text>
+                            </View>
 
-                          <View style={styles.consultationDetailRow}>
-                            <Text style={styles.consultationDetailLabel}>
-                              Symptoms:
-                            </Text>
-                            <Text style={styles.consultationDetailValue}>
-                              {consultation.patientSymptoms}
-                            </Text>
-                          </View>
+                            <View style={styles.consultationDetailRow}>
+                              <Text style={styles.consultationDetailLabel}>
+                                Notes:
+                              </Text>
+                              <Text
+                                style={styles.consultationDetailValue}
+                                numberOfLines={20}>
+                                {consultation.notes}
+                              </Text>
+                            </View>
 
-                          <View style={styles.consultationDetailRow}>
-                            <Text style={styles.consultationDetailLabel}>
-                              Notes:
-                            </Text>
-                            <Text style={styles.consultationDetailValue}>
-                              {consultation.notes}
-                            </Text>
-                          </View>
-
-                          <View style={styles.consultationDetailRow}>
-                            <Text style={styles.consultationDetailLabel}>
-                              Results:
-                            </Text>
-                            <Text style={styles.consultationDetailValue}>
-                              {consultation.results}
-                            </Text>
+                            <View style={styles.consultationDetailRow}>
+                              <Text style={styles.consultationDetailLabel}>
+                                Results:
+                              </Text>
+                              <Text
+                                style={styles.consultationDetailValue}
+                                numberOfLines={2}>
+                                {consultation.results}
+                              </Text>
+                            </View>
                           </View>
                         </View>
                       </View>
-                    </View>
-                  ))}
+                    ),
+                  )}
               </ScrollView>
 
               {/* Indicator dots */}
@@ -486,9 +501,9 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
                 {patientData.consultations
                   .slice()
                   .reverse()
-                  .map((consultation, index) => (
+                  .map((_, index) => (
                     <View
-                      key={`dot-${consultation._id}`}
+                      key={`dot-${index}`}
                       style={[
                         styles.dot,
                         currentConsultationIndex === index && styles.activeDot,
@@ -585,6 +600,28 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
+    causeContainer: {
+      flex: 1,
+      flexDirection: 'column',
+      maxWidth: '85%', // Ensure there's space and text doesn't overflow
+    },
+    consultationCause: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.text,
+      flexShrink: 1, // Allow text to shrink rather than overflow
+    },
+    consultationHeaderLeft: {
+      flexDirection: 'row',
+      alignItems: 'flex-start', // Changed from 'center' to better align with multi-line text
+      flex: 1,
+    },
+    consultationDetailValue: {
+      fontSize: 14,
+      color: theme.colors.text,
+      flex: 1,
+      flexWrap: 'wrap', // Ensure text wraps
+    },
     consultationButtonContainer: {
       paddingLeft: '35%',
       marginBottom: 8,
@@ -861,10 +898,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    consultationHeaderLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
     consultationIconContainer: {
       backgroundColor: 'rgba(17, 159, 179, 0.1)',
       width: 36,
@@ -873,11 +906,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: 12,
-    },
-    consultationCause: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.text,
     },
     consultationDatetime: {
       fontSize: 12,
@@ -899,11 +927,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontWeight: '600',
       color: theme.colors.text,
       width: 90,
-    },
-    consultationDetailValue: {
-      fontSize: 14,
-      color: theme.colors.text,
-      flex: 1,
     },
     // Skeleton styles
     skeletonNameLine: {

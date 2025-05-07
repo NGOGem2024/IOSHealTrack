@@ -15,6 +15,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
 import {RouteProp} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -55,6 +56,9 @@ const themeColors = {
     inputBox: '#1E293B',
   },
 };
+
+// Read time options for dropdown
+const readTimeOptions = ['2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 type UpdateBlogScreenProps = {
   route: RouteProp<RootStackParamList, 'UpdateBlog'>;
@@ -111,6 +115,12 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
   const [descriptionError, setDescriptionError] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false); // For image upload indicator
 
+  // States for iOS picker modals
+  const [showGenreModal, setShowGenreModal] = useState(false);
+  const [showReadTimeModal, setShowReadTimeModal] = useState(false);
+  const [tempGenre, setTempGenre] = useState('');
+  const [tempReadTime, setTempReadTime] = useState('');
+
   const colorScheme = useColorScheme();
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
   const currentColors = themeColors[isDarkMode ? 'dark' : 'light'];
@@ -143,6 +153,8 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
         setGenre(blogData.genre);
         setReadTime(blogData.readTime.toString());
         setStatus(blogData.status);
+        setTempGenre(blogData.genre); // Set temp value for picker
+        setTempReadTime(blogData.readTime.toString()); // Set temp value for picker
 
         // Handle image - set as object with uri to match CreateBlogScreen
         if (blogData.image) {
@@ -267,7 +279,81 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
     // Average reading speed: 200-250 words per minute
     const wordCount = description.trim().split(/\s+/).length;
     const estimatedTime = Math.ceil(wordCount / 200);
-    setReadTime(estimatedTime.toString());
+
+    // Make sure the estimated time is within our dropdown options
+    if (estimatedTime < 2) {
+      setReadTime('2');
+      setTempReadTime('2');
+    } else if (estimatedTime > 10) {
+      setReadTime('10');
+      setTempReadTime('10');
+    } else {
+      setReadTime(estimatedTime.toString());
+      setTempReadTime(estimatedTime.toString());
+    }
+  };
+
+  // Function to render the Picker component based on the platform
+  const renderPicker = (
+    type: 'genre' | 'readTime',
+    value: string,
+    onValueChange: (value: string) => void,
+    options: string[],
+    labelFormatter?: (value: string) => string,
+  ) => {
+    // For iOS, we'll show a custom touchable that opens a modal
+    if (Platform.OS === 'ios') {
+      const displayValue = type === 'readTime' ? `${value} min` : value;
+
+      return (
+        <TouchableOpacity
+          style={[
+            styles.iosPickerButton,
+            {
+              backgroundColor: currentColors.inputBox,
+              borderColor: currentColors.border,
+            },
+          ]}
+          onPress={() => {
+            if (type === 'genre') {
+              setShowGenreModal(true);
+              setTempGenre(value);
+            } else {
+              setShowReadTimeModal(true);
+              setTempReadTime(value);
+            }
+          }}>
+          <Text style={{color: currentColors.text}}>{displayValue}</Text>
+          <Icon name="chevron-down" size={20} color={currentColors.primary} />
+        </TouchableOpacity>
+      );
+    }
+
+    // For Android, use the regular Picker
+    return (
+      <View
+        style={[
+          styles.pickerContainer,
+          {
+            backgroundColor: currentColors.inputBox,
+            borderColor: currentColors.border,
+          },
+        ]}>
+        <Picker
+          selectedValue={value}
+          onValueChange={onValueChange}
+          style={{color: currentColors.text}}
+          dropdownIconColor={currentColors.text}>
+          {options.map(option => (
+            <Picker.Item
+              key={option}
+              label={labelFormatter ? labelFormatter(option) : option}
+              value={option}
+            />
+          ))}
+        </Picker>
+      </View>
+    );
   };
 
   if (loading) {
@@ -427,57 +513,20 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
                 <Text style={[styles.label, {color: currentColors.text}]}>
                   Genre
                 </Text>
-                <View
-                  style={[
-                    styles.pickerContainer,
-                    {
-                      backgroundColor: currentColors.inputBox,
-                      borderColor: currentColors.border,
-                    },
-                  ]}>
-                  <Picker
-                    selectedValue={genre}
-                    onValueChange={itemValue => setGenre(itemValue)}
-                    style={{color: currentColors.text}}
-                    dropdownIconColor={currentColors.text}>
-                    {genres.map(genreOption => (
-                      <Picker.Item
-                        key={genreOption}
-                        label={genreOption}
-                        value={genreOption}
-                      />
-                    ))}
-                  </Picker>
-                </View>
+                {renderPicker('genre', genre, setGenre, genres)}
               </View>
 
               <View style={[styles.inputGroup, styles.inputBorder]}>
                 <Text style={[styles.label, {color: currentColors.text}]}>
-                  Read Time
+                  Read Time (minutes)
                 </Text>
-                <View
-                  style={[
-                    styles.inputWrapper,
-                    {
-                      backgroundColor: currentColors.inputBox,
-                      borderColor: currentColors.border,
-                    },
-                  ]}>
-                  <Icon
-                    name="time-outline"
-                    size={20}
-                    color={currentColors.primary}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={[styles.input, {color: currentColors.text}]}
-                    placeholder="e.g., 5 min"
-                    placeholderTextColor={currentColors.secondary}
-                    value={readTime}
-                    onChangeText={setReadTime}
-                    keyboardType="numeric"
-                  />
-                </View>
+                {renderPicker(
+                  'readTime',
+                  readTime,
+                  setReadTime,
+                  readTimeOptions,
+                  option => `${option} min`,
+                )}
                 <Text
                   style={[styles.helperText, {color: currentColors.secondary}]}>
                   Auto-calculated based on word count, but you can adjust it
@@ -636,6 +685,94 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* iOS Genre Picker Modal */}
+      <Modal
+        visible={showGenreModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowGenreModal(false)}>
+        <View style={styles.modalContainer}>
+          <View
+            style={[
+              styles.modalContent,
+              {backgroundColor: currentColors.card},
+            ]}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setShowGenreModal(false)}>
+                <Text style={{color: currentColors.primary}}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={[styles.modalTitle, {color: currentColors.text}]}>
+                Select Genre
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setGenre(tempGenre);
+                  setShowGenreModal(false);
+                }}>
+                <Text style={{color: currentColors.primary}}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <Picker
+              selectedValue={tempGenre}
+              onValueChange={setTempGenre}
+              itemStyle={{color: currentColors.text, height: 150}}>
+              {genres.map(option => (
+                <Picker.Item
+                  key={option}
+                  label={option}
+                  value={option}
+                  color={isDarkMode ? '#fff' : '#000'}
+                />
+              ))}
+            </Picker>
+          </View>
+        </View>
+      </Modal>
+
+      {/* iOS Read Time Picker Modal */}
+      <Modal
+        visible={showReadTimeModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowReadTimeModal(false)}>
+        <View style={styles.modalContainer}>
+          <View
+            style={[
+              styles.modalContent,
+              {backgroundColor: currentColors.card},
+            ]}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setShowReadTimeModal(false)}>
+                <Text style={{color: currentColors.primary}}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={[styles.modalTitle, {color: currentColors.text}]}>
+                Select Read Time
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setReadTime(tempReadTime);
+                  setShowReadTimeModal(false);
+                }}>
+                <Text style={{color: currentColors.primary}}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <Picker
+              selectedValue={tempReadTime}
+              onValueChange={setTempReadTime}
+              itemStyle={{color: currentColors.text, height: 150}}>
+              {readTimeOptions.map(option => (
+                <Picker.Item
+                  key={option}
+                  label={`${option} min`}
+                  value={option}
+                  color={isDarkMode ? '#fff' : '#000'}
+                />
+              ))}
+            </Picker>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -721,6 +858,15 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center',
   },
+  iosPickerButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    height: 50,
+    paddingHorizontal: 12,
+  },
   textAreaWrapper: {
     borderRadius: 12,
     borderWidth: 1,
@@ -804,6 +950,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 10,
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

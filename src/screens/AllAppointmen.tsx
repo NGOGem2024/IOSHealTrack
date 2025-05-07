@@ -43,6 +43,7 @@ interface Appointment {
   patient_name?: string;
   doctor_name?: string;
   status?: string;
+  doctor_id: string;
   therapy_reason?: string;
   is_consultation?: boolean;
 }
@@ -193,7 +194,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
         startDate: formattedStartDate,
         endDate: formattedEndDate,
       });
-
+      console.log(response.data.appointments);
       // Convert the appointments object into an array of DayData
       const dayDataArray: DayData[] = [];
       const appointments = response.data.appointments;

@@ -41,7 +41,7 @@ const DashboardHeader: React.FC = () => {
   };
 
   return (
-    <View style={{zIndex: 1000}}>
+    <View style={{zIndex: 500}}>
       <View style={{backgroundColor: 'black', height: insets.top}} />
       <View style={styles.dashboardHeader}>
         <StatusBar

@@ -245,7 +245,8 @@ const DoctorProfileEdit: React.FC = () => {
       profileInfo.specialization !== originalProfileInfo.specialization ||
       profileInfo.consultation_fee !== originalProfileInfo.consultation_fee ||
       profileInfo.therapy_fee !== originalProfileInfo.therapy_fee ||
-      profileInfo.doctor_description !== originalProfileInfo.doctor_description ||
+      profileInfo.doctor_description !==
+        originalProfileInfo.doctor_description ||
       JSON.stringify(profileInfo.youtube_videos) !==
         JSON.stringify(originalProfileInfo.youtube_videos)
     );
@@ -275,8 +276,8 @@ const DoctorProfileEdit: React.FC = () => {
           doctor_phone: profileInfo.doctor_phone,
           specialization: profileInfo.specialization,
           therapy_fee: profileInfo.therapy_fee,
-          consultation_fee : profileInfo.consultation_fee,
-          doctor_description : profileInfo.doctor_description,
+          consultation_fee: profileInfo.consultation_fee,
+          doctor_description: profileInfo.doctor_description,
           youtube_videos: profileInfo.youtube_videos,
         },
         {
@@ -687,10 +688,10 @@ const DoctorProfileEdit: React.FC = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <BackTabTop screenName="Doctor Profile" />
         <DoctorProfileSkeleton />
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -709,7 +710,7 @@ const DoctorProfileEdit: React.FC = () => {
     : require('../assets/profile.png');
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTabTop screenName="Doctor Profile" />
       <ScrollView
         style={styles.scrollView}
@@ -977,7 +978,7 @@ const DoctorProfileEdit: React.FC = () => {
           placeholderText: '#999',
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

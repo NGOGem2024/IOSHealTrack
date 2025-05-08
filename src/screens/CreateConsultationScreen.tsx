@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  Modal,
 } from 'react-native';
 import {StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../types/types';
@@ -80,6 +81,7 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
+  const [showResultsPicker, setShowResultsPicker] = useState<boolean>(false);
   const [patientInfo, setPatientInfo] = useState<string>('');
 
   const handleInputChange = (
@@ -115,19 +117,19 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
   // Add a 2-minute buffer to allow for current time bookings
   const isDateTimeInPast = (date: Date, time: Date): boolean => {
     const now = new Date();
-    
+
     const selectedDateTime = new Date(
       date.getFullYear(),
       date.getMonth(),
       date.getDate(),
       time.getHours(),
       time.getMinutes(),
-      time.getSeconds()
+      time.getSeconds(),
     );
-    
+
     // Add a 2-minute buffer to now
-    const bufferTime = new Date(now.getTime() - (2 * 60 * 1000));
-    
+    const bufferTime = new Date(now.getTime() - 2 * 60 * 1000);
+
     return selectedDateTime < bufferTime;
   };
 
@@ -135,18 +137,18 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
     setShowDatePicker(false);
     if (selectedDate) {
       const newDate = selectedDate;
-      
+
       // If the new date is today, check if the currently selected time is now in the past
-      const isToday = 
+      const isToday =
         newDate.getDate() === now.getDate() &&
         newDate.getMonth() === now.getMonth() &&
         newDate.getFullYear() === now.getFullYear();
-      
+
       if (isToday && isDateTimeInPast(newDate, formData.consultationTime)) {
         // If the time is now in the past with the new date, update the time to current time
         handleInputChange('consultationTime', new Date());
       }
-      
+
       handleInputChange('consultationDate', newDate);
     }
   };
@@ -155,13 +157,19 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
     setShowTimePicker(false);
     if (selectedTime) {
       // Check if selected time is in the past (if date is today)
-      const isToday = 
+      const isToday =
         formData.consultationDate.getDate() === now.getDate() &&
         formData.consultationDate.getMonth() === now.getMonth() &&
         formData.consultationDate.getFullYear() === now.getFullYear();
-      
-      if (isToday && isDateTimeInPast(formData.consultationDate, selectedTime)) {
-        Alert.alert('Invalid Time', 'Please choose a current or future time for the consultation.');
+
+      if (
+        isToday &&
+        isDateTimeInPast(formData.consultationDate, selectedTime)
+      ) {
+        Alert.alert(
+          'Invalid Time',
+          'Please choose a current or future time for the consultation.',
+        );
         // Set time to current time as a reasonable default
         const currentTime = new Date();
         handleInputChange('consultationTime', currentTime);
@@ -195,11 +203,13 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
       }
 
       // Update the check for past date/time with buffer for current time
-      if (isDateTimeInPast(formData.consultationDate, formData.consultationTime)) {
+      if (
+        isDateTimeInPast(formData.consultationDate, formData.consultationTime)
+      ) {
         // Update consultation time to current time if it's in the past
         const updatedTime = new Date();
         handleInputChange('consultationTime', updatedTime);
-        
+
         // Ask user if they want to proceed with current time instead
         Alert.alert(
           'Time Adjustment',
@@ -301,14 +311,22 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
 
   // For time picker, set minimum time to current time if date is today
   const getMinimumTime = (): Date | undefined => {
-    const isToday = 
+    const isToday =
       formData.consultationDate.getDate() === now.getDate() &&
       formData.consultationDate.getMonth() === now.getMonth() &&
       formData.consultationDate.getFullYear() === now.getFullYear();
-    
+
     // No need to return a minimum time - let users select any time
     // The validation happens in handleTimeChange and handleSubmit
     return undefined;
+  };
+
+  // Helper function to get display text for results
+  const getResultsDisplayText = () => {
+    if (!formData.results) return 'Select Result';
+    if (formData.results === 'therapy_needed') return 'Therapy Needed';
+    if (formData.results === 'therapy_not_needed') return 'Therapy Not Needed';
+    return formData.results;
   };
 
   return (
@@ -422,32 +440,92 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
           <Text style={styles.label}>
             Results <Text style={styles.required}>*</Text>
           </Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={formData.results}
-              style={styles.picker}
-              onValueChange={itemValue => {
-                if (itemValue !== '') {
-                  handleInputChange('results', itemValue);
-                }
-              }}>
-              <Picker.Item
-                label="Select Result"
-                value=""
-                style={styles.picker1}
-              />
-              <Picker.Item
-                label="Therapy Needed"
-                value="therapy_needed"
-                style={styles.picker2}
-              />
-              <Picker.Item
-                label="Therapy Not Needed"
-                value="therapy_not_needed"
-                style={styles.picker2}
-              />
-            </Picker>
-          </View>
+
+          {Platform.OS === 'ios' ? (
+            // iOS specific picker implementation
+            <>
+              <TouchableOpacity
+                style={styles.pickerButtonIOS}
+                onPress={() => setShowResultsPicker(true)}>
+                <Text
+                  style={[
+                    styles.pickerTextIOS,
+                    !formData.results && styles.placeholderTextIOS,
+                  ]}>
+                  {getResultsDisplayText()}
+                </Text>
+                <MaterialIcons
+                  name="arrow-drop-down"
+                  size={24}
+                  color={theme.colors.mainColor}
+                />
+              </TouchableOpacity>
+
+              <Modal
+                visible={showResultsPicker}
+                animationType="slide"
+                transparent={true}>
+                <View style={styles.modalContainer}>
+                  <View style={styles.modalContent}>
+                    <View style={styles.modalHeader}>
+                      <Text style={styles.modalHeaderText}>Select Result</Text>
+                      <TouchableOpacity
+                        style={styles.doneButton}
+                        onPress={() => setShowResultsPicker(false)}>
+                        <Text style={styles.doneButtonText}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <Picker
+                      selectedValue={formData.results}
+                      onValueChange={itemValue => {
+                        if (itemValue !== '') {
+                          handleInputChange('results', itemValue);
+                        }
+                      }}
+                      itemStyle={styles.pickerItemIOS}>
+                      <Picker.Item label="Select Result" value="" />
+                      <Picker.Item
+                        label="Therapy Needed"
+                        value="therapy_needed"
+                      />
+                      <Picker.Item
+                        label="Therapy Not Needed"
+                        value="therapy_not_needed"
+                      />
+                    </Picker>
+                  </View>
+                </View>
+              </Modal>
+            </>
+          ) : (
+            // Android picker implementation (unchanged)
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={formData.results}
+                style={styles.picker}
+                onValueChange={itemValue => {
+                  if (itemValue !== '') {
+                    handleInputChange('results', itemValue);
+                  }
+                }}>
+                <Picker.Item
+                  label="Select Result"
+                  value=""
+                  style={styles.picker1}
+                />
+                <Picker.Item
+                  label="Therapy Needed"
+                  value="therapy_needed"
+                  style={styles.picker2}
+                />
+                <Picker.Item
+                  label="Therapy Not Needed"
+                  value="therapy_not_needed"
+                  style={styles.picker2}
+                />
+              </Picker>
+            </View>
+          )}
 
           <TouchableOpacity
             style={[styles.submitButton, isSubmitting && styles.disabledButton]}
@@ -563,6 +641,66 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     picker2: {
       color: theme.colors.text,
+    },
+    // iOS specific picker styles
+    pickerButtonIOS: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.colors.mainColor,
+      borderRadius: 8,
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgba(245, 250, 255, 0.5)'
+          : 'rgba(17, 159, 179, 0.05)',
+      padding: 12,
+      marginBottom: 16,
+    },
+    pickerTextIOS: {
+      fontSize: 16,
+      color: theme.colors.text,
+    },
+    placeholderTextIOS: {
+      color: theme.colors.mainColor,
+    },
+    pickerItemIOS: {
+      fontSize: 16,
+      height: 120,
+      color: theme.colors.text,
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+      backgroundColor: theme.colors.card,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingBottom: 20,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: '#EEEEEE',
+      paddingVertical: 15,
+      paddingHorizontal: 15,
+    },
+    modalHeaderText: {
+      fontSize: 17,
+      fontWeight: '600',
+      color: theme.colors.text,
+    },
+    doneButton: {
+      padding: 5,
+    },
+    doneButtonText: {
+      fontSize: 16,
+      color: theme.colors.mainColor,
+      fontWeight: '600',
     },
     submitButton: {
       backgroundColor: '#119FB3',

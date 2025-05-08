@@ -157,26 +157,26 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
     } else if (field === 'patient_email') {
       newValue = value.toLowerCase();
     }
-  
+
     // Clear referral_details when referral_source changes
     if (field === 'referral_source') {
       setPatientData(prev => ({
-        ...prev, 
+        ...prev,
         [field]: newValue,
         // Clear referral_details when source changes
-        referral_details: ''
+        referral_details: '',
       }));
       setFieldStatus(prev => ({
-        ...prev, 
+        ...prev,
         [field]: newValue.length > 0,
         // Reset referral_details field status
-        referral_details: false
+        referral_details: false,
       }));
     } else {
       setPatientData(prev => ({...prev, [field]: newValue}));
       setFieldStatus(prev => ({...prev, [field]: newValue.length > 0}));
     }
-  
+
     // Always validate phone number when it changes
     if (field === 'patient_phone') {
       const error = validateField(field, newValue);
@@ -189,7 +189,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
       // Clear error if field is empty
       setErrors(prev => ({...prev, [field]: ''}));
     }
-  }
+  };
 
   const handlePatientRegister = async () => {
     const newErrors: {[key: string]: string} = {};
@@ -317,7 +317,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
             +{selectedCountry.callingCode}
           </Text>
         </TouchableOpacity>
-  
+
         <TextInput
           style={[
             styles.phoneInput,
@@ -336,7 +336,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
           keyboardType="numeric"
           maxLength={10}
         />
-  
+
         <CustomCountryPicker
           selectedCountry={selectedCountry}
           onSelect={(country: Country) => {
@@ -355,7 +355,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
     </Animatable.View>
   );
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <View style={[styles.container, {backgroundColor: colors.background}]}>
         <BackTabTop screenName="Register Patient" />
         <KeyboardAwareScrollView
@@ -536,7 +536,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
           </Animatable.View>
         </KeyboardAwareScrollView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

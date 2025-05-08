@@ -56,8 +56,6 @@ interface Therapy {
   doctor_name?: string;
 }
 
-
-
 type Props = NativeStackScreenProps<RootStackParamList, 'TherapyHistory'>;
 
 const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
@@ -86,7 +84,6 @@ const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
     'all',
   );
 
-
   const selectTherapyType = (type: 'all' | 'past' | 'upcoming') => {
     setSelectedView(type);
     setIsDropdownOpen(false);
@@ -105,7 +102,6 @@ const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
     }
   };
 
-  
   useEffect(() => {
     if (!patientId) {
       setError('No patient ID provided.');
@@ -474,7 +470,7 @@ const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTabTop screenName="Appointments" />
       <View style={styles.container}>
         {error && <Text style={styles.error}>{error}</Text>}
@@ -546,7 +542,7 @@ const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
           </View>
         )}
 
-{isLoading ? (
+        {isLoading ? (
           // Replace loading text with skeleton loader
           <View style={{flex: 1}}>
             <UpdateTherapySkeleton />
@@ -686,7 +682,7 @@ const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
           />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

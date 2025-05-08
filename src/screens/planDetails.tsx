@@ -473,7 +473,7 @@ const TherapyPlanDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <BackTabTop screenName="Plan Details" />
         <StatusBar
           barStyle="light-content"
@@ -481,7 +481,7 @@ const TherapyPlanDetails: React.FC = () => {
           translucent={false}
         />
         {renderSkeletonLoader()}
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -542,10 +542,12 @@ const TherapyPlanDetails: React.FC = () => {
                         style={[
                           styles.statusBadge,
                           {
-                            backgroundColor: 
-                            session.status === 'Completed' ? '#4caf4f' : 
-                            session.status === 'Scheduled' ? '#f48c36' : 
-                            '#4caf4f',  // Fallback color for any other status
+                            backgroundColor:
+                              session.status === 'Completed'
+                                ? '#4caf4f'
+                                : session.status === 'Scheduled'
+                                ? '#f48c36'
+                                : '#4caf4f', // Fallback color for any other status
                           },
                         ]}>
                         <Text style={styles.statusText}>{session.status}</Text>
@@ -657,7 +659,7 @@ const TherapyPlanDetails: React.FC = () => {
   const progress = calculateTherapyProgress(plan);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTabTop screenName="Plan Details" />
       <StatusBar
         barStyle="light-content"
@@ -754,34 +756,34 @@ const TherapyPlanDetails: React.FC = () => {
         </View>
 
         <View style={styles.card}>
-        <View style={styles.notesContainer}>
-  <Text style={styles.notesText}>Notes</Text>
-  <TouchableOpacity onPress={() => setIsNoteModalVisible(true)}>
-    <MaterialCommunityIcons 
-      name="plus-circle" 
-      size={24} 
-      color='#007b8e' 
-      style={styles.plusIcon} 
-    />
-  </TouchableOpacity>
-</View>
-
-  {plan.notes && plan.notes.length > 0 && (
-    <>
-      {plan.notes.map((note, index) => (
-        <View key={index} style={styles.noteItem}>
-          <View style={styles.noteHeader}>
-            <Text style={styles.noteDoctor}>{note.doctor_name}</Text>
-            <Text style={styles.noteDate}>
-              {new Date(note.date).toLocaleDateString()}
-            </Text>
+          <View style={styles.notesContainer}>
+            <Text style={styles.notesText}>Notes</Text>
+            <TouchableOpacity onPress={() => setIsNoteModalVisible(true)}>
+              <MaterialCommunityIcons
+                name="plus-circle"
+                size={24}
+                color="#007b8e"
+                style={styles.plusIcon}
+              />
+            </TouchableOpacity>
           </View>
-          <Text style={styles.noteText}>{note.note}</Text>
+
+          {plan.notes && plan.notes.length > 0 && (
+            <>
+              {plan.notes.map((note, index) => (
+                <View key={index} style={styles.noteItem}>
+                  <View style={styles.noteHeader}>
+                    <Text style={styles.noteDoctor}>{note.doctor_name}</Text>
+                    <Text style={styles.noteDate}>
+                      {new Date(note.date).toLocaleDateString()}
+                    </Text>
+                  </View>
+                  <Text style={styles.noteText}>{note.note}</Text>
+                </View>
+              ))}
+            </>
+          )}
         </View>
-      ))}
-    </>
-  )}
-</View>   
 
         {renderSessionsCard()}
         <View style={styles.card}>
@@ -914,7 +916,7 @@ const TherapyPlanDetails: React.FC = () => {
         )}
       </ScrollView>
       {renderNoteModal()}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -1029,21 +1031,21 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       padding: 16,
       borderRadius: 8,
     },
-      notesContainer: {
-        flexDirection: 'row',  // Align items in a row
-        alignItems: 'center',  // Align vertically centered
-        justifyContent: 'space-between', // Ensure spacing is balanced
-        paddingHorizontal: 10,  // Adjust padding as needed
-        marginVertical: 8,  // Space out from other elements
-      },
-      notesText: {
-        fontSize: 16, 
-        fontWeight: 'bold',
-        color: theme.colors.text,
-      },
-      plusIcon: {
-        marginLeft: 10,  // Adjust spacing between text and icon
-      },
+    notesContainer: {
+      flexDirection: 'row', // Align items in a row
+      alignItems: 'center', // Align vertically centered
+      justifyContent: 'space-between', // Ensure spacing is balanced
+      paddingHorizontal: 10, // Adjust padding as needed
+      marginVertical: 8, // Space out from other elements
+    },
+    notesText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+    },
+    plusIcon: {
+      marginLeft: 10, // Adjust spacing between text and icon
+    },
     sessionListTitle: {
       fontSize: 16,
       marginTop: 16,

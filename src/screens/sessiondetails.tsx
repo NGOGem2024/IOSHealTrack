@@ -102,7 +102,7 @@ const TherapySessionsList: React.FC = () => {
     const isDarkTheme = theme.name === 'dark';
     const skeletonBaseColor = isDarkTheme ? '#2a2a2a' : '#e1e1e1';
     const skeletonHighlightColor = isDarkTheme ? '#3a3a3a' : '#f0f0f0';
-  
+
     const skeletonStyles = StyleSheet.create({
       container: {
         flex: 1,
@@ -144,7 +144,7 @@ const TherapySessionsList: React.FC = () => {
         marginTop: 16,
       },
     });
-  
+
     return (
       <View style={skeletonStyles.container}>
         {[...Array(3)].map((_, index) => (
@@ -182,19 +182,11 @@ const TherapySessionsList: React.FC = () => {
 
       <View style={styles.sessionInfo}>
         <View style={styles.infoRow}>
-          <FontAwesome 
-            name="user-md"
-            size={20}
-            color="#007b8e"
-          />
+          <FontAwesome name="user-md" size={20} color="#007b8e" />
           <Text style={styles.infoText}>{session.doctor_name}</Text>
         </View>
         <View style={styles.infoRow}>
-          <MaterialCommunityIcons
-            name="calendar"
-            size={20}
-            color="#007b8e"
-          />
+          <MaterialCommunityIcons name="calendar" size={20} color="#007b8e" />
           <Text style={styles.infoText}>{session.therepy_type}</Text>
         </View>
         {session.therepy_link && (
@@ -210,7 +202,7 @@ const TherapySessionsList: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTabTop screenName="Therapy Sessions" />
       <View style={styles.container}>
         {loading ? (
@@ -230,7 +222,7 @@ const TherapySessionsList: React.FC = () => {
           </View>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

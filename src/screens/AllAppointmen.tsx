@@ -614,13 +614,14 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
 
   const renderDaySection = ({item}: {item: DayData}) => {
     const isToday = item.date.toDateString() === new Date().toDateString();
-    
+
     return (
       <View style={styles.daySection}>
-        <Text style={[
-          styles.daySectionHeader,
-          // No conditional styling for Today that could cause spacing issues
-        ]}>
+        <Text
+          style={[
+            styles.daySectionHeader,
+            // No conditional styling for Today that could cause spacing issues
+          ]}>
           {formatDate(item.date)}
         </Text>
         {item.appointments.length > 0
@@ -633,7 +634,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
       </View>
     );
   };
-  
+
   const renderFooter = () => {
     if (!loadingMore) return null;
     return (
@@ -679,7 +680,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={isDarkMode ? '#121212' : 'white'}
@@ -729,7 +730,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
           />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

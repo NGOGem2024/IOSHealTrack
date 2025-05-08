@@ -40,7 +40,7 @@ interface Doctor {
 // Skeleton animation component
 const SkeletonAnimation = ({children}: {children: React.ReactNode}) => {
   const [opacity] = useState(new Animated.Value(0.3));
-  
+
   useEffect(() => {
     const animation = Animated.loop(
       Animated.sequence([
@@ -54,21 +54,17 @@ const SkeletonAnimation = ({children}: {children: React.ReactNode}) => {
           duration: 800,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
-    
+
     animation.start();
-    
+
     return () => {
       animation.stop();
     };
   }, [opacity]);
-  
-  return (
-    <Animated.View style={{opacity}}>
-      {children}
-    </Animated.View>
-  );
+
+  return <Animated.View style={{opacity}}>{children}</Animated.View>;
 };
 
 // Doctor card skeleton component
@@ -79,15 +75,30 @@ const DoctorCardSkeleton = () => {
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
     ),
   );
-  
+
   return (
     <View style={styles.doctorCard}>
       <View style={styles.doctorCardContent}>
         <View style={[styles.doctorImage, styles.skeletonBox]} />
         <View style={styles.doctorDetails}>
-          <View style={[styles.skeletonLine, {width: '70%', height: 16, marginBottom: 8}]} />
-          <View style={[styles.skeletonLine, {width: '50%', height: 12, marginBottom: 4}]} />
-          <View style={[styles.skeletonLine, {width: '80%', height: 12, marginBottom: 4}]} />
+          <View
+            style={[
+              styles.skeletonLine,
+              {width: '70%', height: 16, marginBottom: 8},
+            ]}
+          />
+          <View
+            style={[
+              styles.skeletonLine,
+              {width: '50%', height: 12, marginBottom: 4},
+            ]}
+          />
+          <View
+            style={[
+              styles.skeletonLine,
+              {width: '80%', height: 12, marginBottom: 4},
+            ]}
+          />
           <View style={[styles.skeletonLine, {width: '60%', height: 12}]} />
         </View>
       </View>
@@ -206,7 +217,7 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <ImageBackground
           source={require('../assets/bac2.jpg')}
           style={styles.backgroundImage}>
@@ -218,12 +229,12 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
             </SkeletonAnimation>
           </View>
         </ImageBackground>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <ImageBackground
         source={require('../assets/bac2.jpg')}
         style={styles.backgroundImage}>
@@ -287,7 +298,7 @@ const AllDoctors: React.FC<RootStackNavProps<'AllDoctors'>> = ({
           />
         </View>
       </ImageBackground>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -324,8 +335,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     container: {
       flex: 1,
-     paddingLeft: 16,
-     paddingRight: 16,
+      paddingLeft: 16,
+      paddingRight: 16,
       backgroundColor: '#007B8E',
     },
     backgroundImage: {
@@ -356,7 +367,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderRadius: 8,
       padding: 10,
       marginTop: 5,
-      marginBottom:5,
+      marginBottom: 5,
       elevation: 4,
       shadowColor: '#000000',
       shadowOffset: {

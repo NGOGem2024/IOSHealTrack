@@ -332,7 +332,7 @@ const CreateBlogScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, {backgroundColor: currentColors.background}]}>
       <BackTabTop screenName="Add blog" />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -649,7 +649,7 @@ const CreateBlogScreen: React.FC = () => {
       </ScrollView>
 
       {showMediaOptions && renderMediaOptionsModal()}
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -393,7 +393,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
   }, [therapyPlan.total_amount, therapyPlan.received_amount]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTabTop screenName="Plan" />
       <KeyboardAwareScrollView
         enableOnAndroid={true}
@@ -764,7 +764,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           </TouchableOpacity>
         </Animated.View>
       </KeyboardAwareScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

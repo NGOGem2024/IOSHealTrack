@@ -56,9 +56,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       setPaymentMethod('CASH');
       // Only set amount if balance is greater than 0
       setAmount(
-        paymentInfo.payment_summary.balance > 0 
-          ? paymentInfo.session_info.per_session_amount.toString() 
-          : '0'
+        paymentInfo.payment_summary.balance > 0
+          ? paymentInfo.session_info.per_session_amount.toString()
+          : '0',
       );
     } else {
       setAmount('');
@@ -307,10 +307,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: '#007b8e',
     },
     item: {
-      color: theme.colors.text, 
+      color: theme.colors.text,
     },
     placeholderItem: {
-      color: 'gray', 
+      color: 'gray',
     },
     modalOverlay: {
       flex: 1,
@@ -354,7 +354,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     pickerButton: {
       padding: 12,
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.border,
       borderWidth: 1,
       borderColor: theme.colors.border,
       borderRadius: 10,
@@ -376,11 +376,11 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderBottomWidth: 1,
       borderColor: theme.colors.primary,
       padding: 15,
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.border,
       alignItems: 'flex-end',
     },
     pickerDoneButtonText: {
-      color: theme.colors.secondary,
+      color: theme.colors.text,
       fontSize: 16,
       fontWeight: '600',
     },
@@ -390,7 +390,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     inputLabel: {
       fontSize: 16,
-      color: theme.colors.text,
+      color: theme.colors.mainColor,
       marginBottom: 8,
       fontWeight: '500',
     },

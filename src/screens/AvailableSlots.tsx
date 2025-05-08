@@ -13,13 +13,20 @@ type Slot = {
 type AvailableSlotsProps = {
   slotDuration: number;
   onSelectSlot?: (slotIndex: number, slot: Slot) => void;
+  selectedDate?: Date; // Add selectedDate prop to determine if it's today or a future date
 };
 
 const generateAvailableSlots = (
-  slotDuration: number = 30
+  slotDuration: number = 30,
+  selectedDate?: Date, // Add selectedDate parameter
 ): Slot[] => {
   const now = moment.tz('Asia/Kolkata');
   const today = moment(now).startOf('day');
+  
+  // Check if the selected date is today or a future date
+  const isToday = selectedDate ? 
+    moment(selectedDate).format('YYYY-MM-DD') === today.format('YYYY-MM-DD') : 
+    true;
 
   const workingHours = {
     start: moment(today).hour(9).minute(0),
@@ -35,8 +42,9 @@ const generateAvailableSlots = (
 
     if (slotEnd.isAfter(workingHours.end)) break;
 
-    // Only add future slots
-    if (slotEnd.isAfter(now)) {
+    // For today, only show future slots
+    // For future days, show all slots
+    if (!isToday || slotEnd.isAfter(now)) {
       slots.push({
         start: slotStart.format('HH:mm'),
         end: slotEnd.format('HH:mm'),
@@ -56,18 +64,20 @@ const generateAvailableSlots = (
 
 const AvailableSlots: React.FC<AvailableSlotsProps> = ({ 
   slotDuration,
-  onSelectSlot 
+  onSelectSlot,
+  selectedDate
 }) => {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
- const {theme, isDarkMode} = useTheme();
- const styles = createStyles(theme.colors, isDarkMode);
+  const {theme, isDarkMode} = useTheme();
+  const styles = createStyles(theme.colors, isDarkMode);
+  
   useEffect(() => {
-    const availableSlots = generateAvailableSlots(slotDuration);
+    const availableSlots = generateAvailableSlots(slotDuration, selectedDate);
     setSlots(availableSlots);
-    // Reset selection when slot duration changes
+    // Reset selection when slot duration or date changes
     setSelectedSlotIndex(null);
-  }, [slotDuration]);
+  }, [slotDuration, selectedDate]);
 
   const handleSlotSelect = (slotIndex: number, slot: Slot) => {
     setSelectedSlotIndex(slotIndex);

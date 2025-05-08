@@ -375,28 +375,32 @@ const CreateTherapy = ({route, navigation}: Props) => {
     );
   };
 
-  const generateAvailableSlots = (slotDuration: number = 30) => {
-    // This should match the implementation in your AvailableSlots component
-    // You could also consider moving this to a utility function that both components can import
+  const generateAvailableSlots = (slotDuration: number = 30, selectedDate?: Date) => {
     const now = moment.tz('Asia/Kolkata');
     const today = moment(now).startOf('day');
-
+    
+    // Check if the selected date is today or a future date
+    const isToday = selectedDate ? 
+      moment(selectedDate).format('YYYY-MM-DD') === today.format('YYYY-MM-DD') : 
+      true;
+  
     const workingHours = {
       start: moment(today).hour(9).minute(0),
       end: moment(today).hour(21).minute(0),
     };
-
+  
     const slots = [];
     let currentSlotTime = moment(workingHours.start);
-
+  
     while (currentSlotTime.isBefore(workingHours.end)) {
       const slotStart = moment(currentSlotTime);
       const slotEnd = moment(currentSlotTime).add(slotDuration, 'minutes');
-
+  
       if (slotEnd.isAfter(workingHours.end)) break;
-
-      // Only add future slots
-      if (slotEnd.isAfter(now)) {
+  
+      // For today, only show future slots
+      // For future days, show all slots
+      if (!isToday || slotEnd.isAfter(now)) {
         slots.push({
           start: slotStart.format('HH:mm'),
           end: slotEnd.format('HH:mm'),
@@ -404,10 +408,10 @@ const CreateTherapy = ({route, navigation}: Props) => {
           status: 'free',
         });
       }
-
+  
       currentSlotTime.add(slotDuration >= 60 ? 30 : slotDuration, 'minutes');
     }
-
+  
     return slots;
   };
 
@@ -696,12 +700,15 @@ const CreateTherapy = ({route, navigation}: Props) => {
             <Text style={styles.sectionTitle}>Available Slots</Text>
             <AvailableSlots
               slotDuration={selectedSlotDuration}
+              selectedDate={selectedDate} // Pass the selected date
               onSelectSlot={(slotIndex, slot) => {
                 setSelectedSlot(slotIndex);
                 // Store the selected slot data if you need it elsewhere
                 if (!availableSlots.length) {
-                  const generatedSlots =
-                    generateAvailableSlots(selectedSlotDuration);
+                  const generatedSlots = generateAvailableSlots(
+                    selectedSlotDuration,
+                    selectedDate,
+                  );
                   setAvailableSlots(generatedSlots);
                 }
               }}

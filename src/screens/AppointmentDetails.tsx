@@ -26,12 +26,14 @@ import {useNavigation} from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 interface AppointmentDetailsScreenProps {
   appointment: {
     plan_id: string;
     _id: string;
     patient_id: string;
+    patientUser?: string;
+    doctor_id: string;
     therepy_type: string;
     therepy_link?: string;
     therepy_start_time: string;
@@ -68,6 +70,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
   const [elapsedTime, setElapsedTime] = useState(0);
   const [previousRemarks, setPreviousRemarks] = useState('');
   const [postRemarks, setPostRemarks] = useState('');
+  const {session} = useSession();
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [rotation] = useState(new Animated.Value(0));
@@ -118,6 +121,42 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
     saveAppointmentState();
     onClose();
     return true;
+  };
+  const handleJoinSession = async () => {
+    if (!appointment.patientUser) {
+      Alert.alert('Error', 'No patientUser ID in this appointment.');
+      return;
+    }
+    if (!session.doctor_id) {
+      Alert.alert('Error', 'Doctor ID missing – please log in again.');
+      return;
+    }
+
+    const base = `https://doctor.healtrackai.com/videoCall/${appointment.patientUser}`;
+    const donorName = encodeURIComponent('Doctor');
+    const url = `${base}?donorId=${appointment.doctor_id}&donorName=${appointment.doctor_name}`;
+
+    try {
+      if (await InAppBrowser.isAvailable()) {
+        await InAppBrowser.open(url, {
+          // iOS
+          dismissButtonStyle: 'close',
+          preferredBarTintColor: '#453AA4',
+          preferredControlTintColor: 'white',
+          readerMode: false,
+          // Android
+          showTitle: true,
+          toolbarColor: '#6200EE',
+          enableUrlBarHiding: true,
+          enableDefaultShare: false,
+        });
+      } else {
+        Linking.openURL(url);
+      }
+    } catch (err) {
+      console.error('InAppBrowser error', err);
+      Alert.alert('Error', 'Could not open session.');
+    }
   };
 
   // Load saved state from AsyncStorage
@@ -192,25 +231,6 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
       rotation.setValue(0);
     };
   }, [isStarted, startTime, rotation]);
-
-  const handleJoinSession = async (joinUrl: string | undefined) => {
-    if (!joinUrl) {
-      Alert.alert('Error', 'No session URL provided');
-      return;
-    }
-
-    try {
-      const supported = await Linking.canOpenURL(joinUrl);
-      if (supported) {
-        await Linking.openURL(joinUrl);
-      } else {
-        Alert.alert('Error', 'Cannot open this URL');
-      }
-    } catch (error) {
-      console.error('Error opening URL:', error);
-      Alert.alert('Error', 'Failed to open session URL');
-    }
-  };
 
   const handleStart = useCallback(async () => {
     setLoading(true);
@@ -421,15 +441,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                   placeholderTextColor="#9DA3B4"
                 />
               </View>
-              {appointment.therepy_link && (
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    style={styles.uploadButton}
-                    onPress={() => handleJoinSession(appointment.therepy_link)}>
-                    <Text style={styles.uploadButtonText}>Upload Videos</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+
               <View style={styles.actionButtonsContainer}>
                 <TouchableOpacity
                   style={[styles.actionButton, styles.cancelButton]}
@@ -456,13 +468,14 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                   </Text>
                 </View>
               </Animated.View>
-              {appointment.therepy_link && (
-                <TouchableOpacity
-                  style={styles.joinButton}
-                  onPress={() => handleJoinSession(appointment.therepy_link)}>
-                  <Text style={styles.buttonText}>Join Session</Text>
-                </TouchableOpacity>
-              )}
+              {appointment.therepy_type === 'Online' &&
+                appointment.patientUser && (
+                  <TouchableOpacity
+                    style={styles.joinButton}
+                    onPress={handleJoinSession}>
+                    <Text style={styles.buttonText}>Join Session</Text>
+                  </TouchableOpacity>
+                )}
               <TouchableOpacity
                 style={styles.endButton}
                 onPress={handleShowEndModal}>
@@ -770,7 +783,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginBottom: 16,
       borderColor: theme.colors.border,
       borderWidth: 1,
-      backgroundColor:theme.colors.inputBox,
+      backgroundColor: theme.colors.inputBox,
     },
     remarksInput2: {
       borderRadius: 8,
@@ -781,7 +794,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginBottom: 16,
       borderColor: theme.colors.border,
       borderWidth: 1,
-      backgroundColor:theme.colors.inputBox,
+      backgroundColor: theme.colors.inputBox,
     },
     modalContainer: {
       flex: 1,

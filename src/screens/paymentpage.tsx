@@ -235,7 +235,7 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTabTop screenName="Payment Details" />
       <View style={styles.contentContainer}>
         <ScrollView
@@ -360,7 +360,9 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
               ))
             ) : (
               <View style={styles.noDataContainer}>
-                <Text style={styles.noDataText}>No Payment History Available</Text>
+                <Text style={styles.noDataText}>
+                  No Payment History Available
+                </Text>
               </View>
             )}
           </View>
@@ -447,7 +449,7 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
           </Modal>
         </ScrollView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

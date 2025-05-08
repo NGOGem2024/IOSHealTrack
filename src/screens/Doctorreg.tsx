@@ -324,7 +324,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <View style={[styles.container, {backgroundColor: colors.background}]}>
         <BackTabTop screenName="Register Doctor" />
         <KeyboardAwareScrollView
@@ -426,7 +426,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
           </Animatable.View>
         </KeyboardAwareScrollView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     borderRadius: 15,
     padding: 15,
-    marginBottom: 5, 
+    marginBottom: 5,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

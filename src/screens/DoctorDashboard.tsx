@@ -53,6 +53,8 @@ interface DoctorInfo {
 interface Appointment {
   plan_id: string;
   _id: string;
+  patientUser?: string;
+  doctor_id: string;
   patient_id: string;
   therepy_type: string;
   therepy_link?: string;

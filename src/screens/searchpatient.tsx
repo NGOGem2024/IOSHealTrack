@@ -19,8 +19,8 @@ import {useSession} from '../context/SessionContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
-import { useTheme } from './ThemeContext';
-import { getTheme } from './Theme';
+import {useTheme} from './ThemeContext';
+import {getTheme} from './Theme';
 
 interface Patient {
   _id: string;
@@ -42,11 +42,11 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
   const searchInputRef = useRef<TextInput>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const {theme} = useTheme();
-    const styles = getStyles(
-      getTheme(
-        theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
-      )
-    );
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
 
   const {session} = useSession();
 
@@ -112,21 +112,25 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
   };
 
   // For locally filtering results if backend search isn't customizable
-  const localFilterPatients = (patients: Patient[], query: string): Patient[] => {
+  const localFilterPatients = (
+    patients: Patient[],
+    query: string,
+  ): Patient[] => {
     if (!query.trim()) return patients;
-    
+
     const normalizedQuery = query.toLowerCase().trim();
-    
+
     return patients.filter(patient => {
-      const fullName = `${patient.patient_first_name} ${patient.patient_last_name}`.toLowerCase();
+      const fullName =
+        `${patient.patient_first_name} ${patient.patient_last_name}`.toLowerCase();
       const phone = patient.patient_phone;
-      
+
       // Check if query is part of name (anywhere in the name, not just start)
       const nameMatch = fullName.includes(normalizedQuery);
-      
+
       // Check if query is part of phone number (anywhere in the number)
       const phoneMatch = phone.includes(normalizedQuery);
-      
+
       return nameMatch || phoneMatch;
     });
   };
@@ -156,7 +160,7 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTabTop screenName="Search" />
       <View style={styles.container}>
         <View style={styles.searchContainer}>
@@ -193,72 +197,73 @@ const SearchPatients: React.FC<Props> = ({navigation}) => {
           />
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
-const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'black',
-  },
-  container: {
-    flex: 1,
-    padding: 10,
-    backgroundColor: '#007B8E',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderRadius: 20,
-    padding: 2,
-    marginBottom: 16,
-  },
-  searchBar: {
-    flex: 1,
-    fontSize: 16,
-    color: '#ffffff',
-    paddingLeft: 20,
-  },
-  searchIcon: {
-    marginLeft: 8,
-    marginRight: 8,
-  },
-  searchButton: {
-    padding: 10,
-  },
-  patientItem: {
-    backgroundColor: theme.colors.card,
-    padding: 15,
-    borderRadius: 5,
-    marginBottom: 10,
-    marginLeft:5,
-    marginRight: 5
-  },
-  patientName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: theme.colors.text,
-  },
-  patientDetails: {
-    fontSize: 14,
-    color: theme.colors.text,
-  },
-  noResultsContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    marginTop: 50,
-  },
-  noResultsText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginTop: 10,
-    textAlign: 'center',
-  }
-});
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: 'black',
+    },
+    container: {
+      flex: 1,
+      padding: 10,
+      backgroundColor: '#007B8E',
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(255, 255, 255, 0.5)',
+      borderRadius: 20,
+      padding: 2,
+      marginBottom: 16,
+    },
+    searchBar: {
+      flex: 1,
+      fontSize: 16,
+      color: '#ffffff',
+      paddingLeft: 20,
+    },
+    searchIcon: {
+      marginLeft: 8,
+      marginRight: 8,
+    },
+    searchButton: {
+      padding: 10,
+    },
+    patientItem: {
+      backgroundColor: theme.colors.card,
+      padding: 15,
+      borderRadius: 5,
+      marginBottom: 10,
+      marginLeft: 5,
+      marginRight: 5,
+    },
+    patientName: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+    },
+    patientDetails: {
+      fontSize: 14,
+      color: theme.colors.text,
+    },
+    noResultsContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+      marginTop: 50,
+    },
+    noResultsText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      marginTop: 10,
+      textAlign: 'center',
+    },
+  });
 
 export default SearchPatients;

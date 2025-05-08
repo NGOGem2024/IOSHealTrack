@@ -247,64 +247,64 @@ const DoctorPatients: React.FC<RootStackNavProps<'MyPatient'>> = ({
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar
         barStyle="light-content"
         backgroundColor="black"
         translucent={false}
       />
-        <BackTabTop screenName="My Patients" />
-        <View
-          style={[styles.container, {height: screenDimensions.height * 0.9}]}>
-          <TouchableOpacity
-            style={styles.searchContainer}
-            onPress={handleSearch}
-            activeOpacity={0.7}>
-            <View style={styles.searchInputWrapper}>
-              
-              <Text style={styles.searchPlaceholder}>Search by Name, Phone number</Text>
-              <Icon
-                name="search"
-                size={18}
-                color="#ffffff"
-                style={styles.searchIcon}
-              />
-            </View>
-          </TouchableOpacity>
-          <View style={styles.filtersContainer1}>
-            <View style={styles.filterContainer}>
-              <CustomPicker
-                selectedValue={filterOption}
-                onValueChange={value => setFilterOption(value)}
-                items={filterOptions}
-              />
-            </View>
-            <View style={styles.filterContainer}>
-              <CustomPicker
-                selectedValue={sortOption}
-                onValueChange={value => setSortOption(value)}
-                items={sortOptions}
-              />
-            </View>
+      <BackTabTop screenName="My Patients" />
+      <View style={[styles.container, {height: screenDimensions.height * 0.9}]}>
+        <TouchableOpacity
+          style={styles.searchContainer}
+          onPress={handleSearch}
+          activeOpacity={0.7}>
+          <View style={styles.searchInputWrapper}>
+            <Text style={styles.searchPlaceholder}>
+              Search by Name, Phone number
+            </Text>
+            <Icon
+              name="search"
+              size={18}
+              color="#ffffff"
+              style={styles.searchIcon}
+            />
           </View>
-          <FlatList
-            data={filteredPatients}
-            keyExtractor={item => item._id}
-            renderItem={renderPatientItem}
-            numColumns={2}
-            columnWrapperStyle={styles.row}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            ListFooterComponent={renderFooter}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.1}
-          />
-          <TouchableOpacity onPress={handleAddPatient} style={styles.addButton}>
-            <Icon name="plus" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+        </TouchableOpacity>
+        <View style={styles.filtersContainer1}>
+          <View style={styles.filterContainer}>
+            <CustomPicker
+              selectedValue={filterOption}
+              onValueChange={value => setFilterOption(value)}
+              items={filterOptions}
+            />
+          </View>
+          <View style={styles.filterContainer}>
+            <CustomPicker
+              selectedValue={sortOption}
+              onValueChange={value => setSortOption(value)}
+              items={sortOptions}
+            />
+          </View>
         </View>
-    </SafeAreaView>
+        <FlatList
+          data={filteredPatients}
+          keyExtractor={item => item._id}
+          renderItem={renderPatientItem}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListFooterComponent={renderFooter}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.1}
+        />
+        <TouchableOpacity onPress={handleAddPatient} style={styles.addButton}>
+          <Icon name="plus" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 

@@ -79,9 +79,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       setPaymentMethod('CASH');
       // Only set amount if balance is greater than 0
       setAmount(
-        paymentInfo.payment_summary.balance > 0 
-          ? paymentInfo.session_info.per_session_amount.toString() 
-          : '0'
+        paymentInfo.payment_summary.balance > 0
+          ? paymentInfo.session_info.per_session_amount.toString()
+          : '0',
       );
     } else {
       setAmount('');

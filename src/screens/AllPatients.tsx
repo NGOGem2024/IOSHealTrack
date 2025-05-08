@@ -43,7 +43,7 @@ interface Patient {
 // Skeleton animation component
 const SkeletonAnimation = ({children}: {children: React.ReactNode}) => {
   const [opacity] = useState(new Animated.Value(0.3));
-  
+
   useEffect(() => {
     const animation = Animated.loop(
       Animated.sequence([
@@ -57,39 +57,35 @@ const SkeletonAnimation = ({children}: {children: React.ReactNode}) => {
           duration: 800,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
-    
+
     animation.start();
-    
+
     return () => {
       animation.stop();
     };
   }, [opacity]);
-  
-  return (
-    <Animated.View style={{opacity}}>
-      {children}
-    </Animated.View>
-  );
+
+  return <Animated.View style={{opacity}}>{children}</Animated.View>;
 };
 
 // Patient card skeleton component
-const PatientCardSkeleton = ({ index }: { index: number }) => {
+const PatientCardSkeleton = ({index}: {index: number}) => {
   const {theme} = useTheme();
   const styles = getStyles(
     getTheme(
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
     ),
   );
-  
+
   return (
-    <View 
+    <View
       style={[
-        styles.patientCard, 
+        styles.patientCard,
         styles.skeletonCard,
         index % 2 === 0 ? styles.leftCard : styles.rightCard,
-      ]} 
+      ]}
     />
   );
 };
@@ -97,15 +93,36 @@ const PatientCardSkeleton = ({ index }: { index: number }) => {
 // Patient grid skeleton component - simplified version
 const PatientGridSkeleton = () => {
   const rows = 10; // 10 rows of 2 cards each = 20 skeleton items
-  
+
   return (
     <View>
-      
       {/* Existing skeleton rows */}
       {[...Array(rows)].map((_, rowIndex) => (
-        <View key={`row-${rowIndex}`} style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10}}>
-          <View style={{flex: 1, marginRight: 5, height: 40, backgroundColor: 'rgba(180, 180, 180, 0.5)', borderRadius: 8}} />
-          <View style={{flex: 1, marginLeft: 5, height: 40, backgroundColor: 'rgba(180, 180, 180, 0.5)', borderRadius: 8}} />
+        <View
+          key={`row-${rowIndex}`}
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 10,
+          }}>
+          <View
+            style={{
+              flex: 1,
+              marginRight: 5,
+              height: 40,
+              backgroundColor: 'rgba(180, 180, 180, 0.5)',
+              borderRadius: 8,
+            }}
+          />
+          <View
+            style={{
+              flex: 1,
+              marginLeft: 5,
+              height: 40,
+              backgroundColor: 'rgba(180, 180, 180, 0.5)',
+              borderRadius: 8,
+            }}
+          />
         </View>
       ))}
     </View>
@@ -295,7 +312,7 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
 
   if (isLoading && page === 1) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <StatusBar
           barStyle="light-content"
           backgroundColor="black"
@@ -310,8 +327,7 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
             <TouchableOpacity
               style={styles.searchContainer}
               onPress={handleSearch}
-              activeOpacity={0.7}>
-            </TouchableOpacity>
+              activeOpacity={0.7}></TouchableOpacity>
             <View style={styles.filtersContainer1}>
               <View style={styles.filterContainer}>
                 <View style={styles.skeletonPicker} />
@@ -323,12 +339,14 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
             <SkeletonAnimation>
               <PatientGridSkeleton />
             </SkeletonAnimation>
-            <TouchableOpacity onPress={handleAddPatient} style={styles.addButton}>
+            <TouchableOpacity
+              onPress={handleAddPatient}
+              style={styles.addButton}>
               <Icon name="plus" size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </ImageBackground>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -346,7 +364,7 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar
         barStyle="light-content"
         backgroundColor="black"
@@ -363,8 +381,9 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
             onPress={handleSearch}
             activeOpacity={0.7}>
             <View style={styles.searchInputWrapper}>
-              
-              <Text style={styles.searchPlaceholder}>Search by Name, Phone number</Text>
+              <Text style={styles.searchPlaceholder}>
+                Search by Name, Phone number
+              </Text>
               <Icon
                 name="search"
                 size={18}
@@ -407,7 +426,7 @@ const AllPatients: React.FC<Props> = ({navigation}) => {
           </TouchableOpacity>
         </View>
       </ImageBackground>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -130,49 +130,69 @@ const CreateTherapy = ({route, navigation}: Props) => {
     setHasLiveSwitchAccess(!!liveTokens);
     setShowLiveSwitchLogin(appointmentType === 'Liveswitch' && !liveTokens);
   };
-  // const renderSlotDurationPicker = () => {
-  //   if (Platform.OS === 'ios') {
-  //     return (
-  //       <>
-  //         {renderPickerField(
-  //           `${slotDuration} minutes`,
-  //           () => setShowSlotDurationPicker(true),
-  //           'Select slot duration',
-  //         )}
-  //         {renderIOSPicker(
-  //           showSlotDurationPicker,
-  //           () => setShowSlotDurationPicker(false),
-  //           (itemValue: string) => {
-  //             setSlotDuration(Number(itemValue));
-  //           },
-  //           slotDuration.toString(),
-  //           SLOT_DURATION_OPTIONS.map(option => ({
-  //             _id: option.value.toString(),
-  //             label: option.label,
-  //           })),
-  //           'Slot Duration',
-  //         )}
-  //       </>
-  //     );
-  //   }
+  const renderSlotDurationPicker = () => {
+    if (Platform.OS === 'ios') {
+      return (
+        <>
+          {renderPickerField(
+            `${selectedSlotDuration} minutes`,
+            () => setShowSlotDurationPicker(true),
+            'Select slot duration',
+          )}
+          <Modal
+            visible={showSlotDurationPicker}
+            transparent={true}
+            animationType="slide">
+            <View style={styles.modalContainer}>
+              <View style={styles.pickerContainer}>
+                <View style={styles.pickerHeader}>
+                  <Text style={styles.pickerTitle}>Select Duration</Text>
+                  <TouchableOpacity
+                    onPress={() => setShowSlotDurationPicker(false)}
+                    style={styles.doneButton}>
+                    <Text style={styles.doneButtonText}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <Picker
+                  selectedValue={selectedSlotDuration}
+                  onValueChange={itemValue => {
+                    setSelectedSlotDuration(itemValue);
+                  }}
+                  style={styles.iosPicker}>
+                  {SLOT_DURATION_OPTIONS.map(option => (
+                    <Picker.Item
+                      key={option.value}
+                      label={option.label}
+                      value={option.value}
+                      color={isDarkMode ? '#FFFFFF' : undefined}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+          </Modal>
+        </>
+      );
+    }
 
-  //   return (
-  //     <Picker
-  //       selectedValue={slotDuration.toString()}
-  //       onValueChange={(itemValue: string) => {
-  //         setSlotDuration(Number(itemValue));
-  //       }}
-  //       style={styles.picker}>
-  //       {SLOT_DURATION_OPTIONS.map(option => (
-  //         <Picker.Item
-  //           key={option.value}
-  //           label={option.label}
-  //           value={option.value.toString()}
-  //         />
-  //       ))}
-  //     </Picker>
-  //   );
-  // };
+    return (
+      <View style={styles.pickerWrapper}>
+        <Picker
+          selectedValue={selectedSlotDuration}
+          onValueChange={itemValue => setSelectedSlotDuration(itemValue)}
+          style={styles.picker}
+          dropdownIconColor="#007b8e">
+          {SLOT_DURATION_OPTIONS.map(option => (
+            <Picker.Item
+              key={option.value}
+              label={option.label}
+              value={option.value}
+            />
+          ))}
+        </Picker>
+      </View>
+    );
+  };
   const handleLiveSwitchLoginSuccess = async () => {
     await checkLiveSwitchAccess();
     showSuccessToast('Signed in with LiveSwitch successfully');
@@ -236,14 +256,14 @@ const CreateTherapy = ({route, navigation}: Props) => {
   };
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <StatusBar
           backgroundColor={theme.colors.background}
           barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         />
         <BackTabTop screenName="Therapy" />
         <BookAppSkeletonLoader theme={theme} isDarkMode={isDarkMode} />
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -589,7 +609,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <View style={styles.container}>
         <BackTabTop screenName="Therapy" />
         <ScrollView>
@@ -669,17 +689,8 @@ const CreateTherapy = ({route, navigation}: Props) => {
           )}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Select Slot Duration</Text>
-            <Picker
-              selectedValue={selectedSlotDuration}
-              onValueChange={value => setSelectedSlotDuration(value)}
-              style={styles.label}
-              dropdownIconColor="#007b8e" >
-              <Picker.Item label="30 minutes" value={30} />
-              <Picker.Item label="1 hour" value={60} />
-              <Picker.Item label="1.5 hours" value={90} />
-              <Picker.Item label="2 hours" value={120} />
-            </Picker>
-          </View> 
+            {renderSlotDurationPicker()}
+          </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Available Slots</Text>
@@ -736,7 +747,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
           onCreatePlan={handleCreatePlan}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 const createStyles = (colors: any, isDarkMode: boolean) =>

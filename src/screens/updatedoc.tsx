@@ -369,7 +369,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     : require('../assets/profile.png');
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTabTop screenName="Edit Doctor" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -523,7 +523,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 

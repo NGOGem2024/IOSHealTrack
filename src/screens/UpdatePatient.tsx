@@ -263,7 +263,7 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
   }, [patientData, patientId, navigation]);
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.safeArea, {backgroundColor: currentColors.background}]}>
       <BackTabTop screenName="Patient" />
       <KeyboardAwareScrollView
@@ -522,7 +522,7 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
           </View>
         </Animated.View>
       </KeyboardAwareScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

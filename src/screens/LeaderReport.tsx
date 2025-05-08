@@ -1,4 +1,4 @@
-// LeaderReport.tsx
+// ResponsiveLeaderReport.tsx
 import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
@@ -9,12 +9,31 @@ import {
   Dimensions,
   ActivityIndicator,
   Animated,
+  PixelRatio,
+  Platform,
 } from 'react-native';
 import axiosinstance from '../utils/axiosConfig';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
 
-const {width} = Dimensions.get('window');
+// Responsive utils
+const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
+const scale = SCREEN_WIDTH / 375; // Base width is 375
+
+// Normalize function for font sizes
+const normalize = (size: number) => {
+  const newSize = size * scale;
+  if (Platform.OS === 'ios') {
+    return Math.round(PixelRatio.roundToNearestPixel(newSize));
+  } else {
+    return Math.round(PixelRatio.roundToNearestPixel(newSize)) - 2;
+  }
+};
+
+// Function for responsive spacing
+const getResponsiveSize = (size: number) => {
+  return size * scale;
+};
 
 interface Doctor {
   doctor_id: string;
@@ -107,7 +126,7 @@ const DoctorLeaderboard: React.FC<DoctorLeaderboardProps> = ({month, year}) => {
           {
             opacity: fadeAnim,
             transform: [{translateY: slideAnim}],
-            marginHorizontal: 5,
+            marginHorizontal: getResponsiveSize(5),
           },
         ]}>
         <View style={styles.rankBadge}>
@@ -225,118 +244,118 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     leaderboardCard: {
       backgroundColor: theme.colors.card,
-      borderRadius: 15,
-      padding: 20,
+      borderRadius: getResponsiveSize(15),
+      padding: getResponsiveSize(20),
       width: '100%',
-      marginBottom: 20,
+      marginBottom: getResponsiveSize(20),
       shadowColor: '#000',
-      shadowOffset: {width: 0, height: 4},
+      shadowOffset: {width: 0, height: getResponsiveSize(4)},
       shadowOpacity: 0.1,
-      shadowRadius: 6,
+      shadowRadius: getResponsiveSize(6),
       elevation: 5,
     },
     chartTitle: {
-      fontSize: 20,
+      fontSize: normalize(20),
       fontWeight: '700',
       color: '#007b8e',
       textAlign: 'center',
-      marginBottom: 5,
+      marginBottom: getResponsiveSize(5),
     },
     chartSubtitle: {
-      fontSize: 14,
+      fontSize: normalize(14),
       color: '#7f8c8d',
       textAlign: 'center',
-      marginBottom: 15,
+      marginBottom: getResponsiveSize(15),
     },
     loading: {
       alignItems: 'center',
       justifyContent: 'center',
-      marginVertical: 50,
+      marginVertical: getResponsiveSize(50),
     },
     loadingText: {
-      marginTop: 10,
+      marginTop: getResponsiveSize(10),
       color: '#007b8e',
-      fontSize: 16,
+      fontSize: normalize(16),
     },
     topCards: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'flex-end',
-      marginBottom: 30,
+      marginBottom: getResponsiveSize(30),
     },
     card: {
       backgroundColor: '#0b5e69',
-      borderRadius: 15,
-      padding: 15,
+      borderRadius: getResponsiveSize(15),
+      padding: getResponsiveSize(15),
       alignItems: 'center',
-      width: width * 0.22,
+      width: SCREEN_WIDTH * 0.22,
       position: 'relative',
       elevation: 4,
     },
     firstPlace: {
       backgroundColor: '#007b8e',
-      width: width * 0.28,
-      minHeight: 160,
+      width: SCREEN_WIDTH * 0.28,
+      minHeight: getResponsiveSize(160),
       zIndex: 1,
-      padding: 20,
+      padding: getResponsiveSize(20),
     },
     rankBadge: {
       position: 'absolute',
-      top: -12,
+      top: getResponsiveSize(-12),
       backgroundColor: '#ffcc00',
-      width: 24,
-      height: 24,
-      borderRadius: 12,
+      width: getResponsiveSize(24),
+      height: getResponsiveSize(24),
+      borderRadius: getResponsiveSize(12),
       alignItems: 'center',
       justifyContent: 'center',
     },
     rankText: {
       color: '#333',
       fontWeight: 'bold',
-      fontSize: 14,
+      fontSize: normalize(14),
     },
     avatar: {
       backgroundColor: 'lightgray',
-      width: width * 0.12,
-      height: width * 0.12,
-      borderRadius: width * 0.06,
+      width: SCREEN_WIDTH * 0.12,
+      height: SCREEN_WIDTH * 0.12,
+      borderRadius: SCREEN_WIDTH * 0.06,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: 10,
-      borderWidth: 2,
+      marginBottom: getResponsiveSize(10),
+      borderWidth: getResponsiveSize(2),
       borderColor: 'white',
       overflow: 'hidden',
     },
     firstPlaceAvatar: {
-      width: width * 0.15,
-      height: width * 0.15,
-      borderRadius: width * 0.075,
+      width: SCREEN_WIDTH * 0.15,
+      height: SCREEN_WIDTH * 0.15,
+      borderRadius: SCREEN_WIDTH * 0.075,
     },
     avatarImage: {
       width: '100%',
       height: '100%',
     },
     avatarText: {
-      fontSize: 16,
+      fontSize: normalize(16),
       fontWeight: 'bold',
       color: '#0b5e69',
     },
     name: {
       fontWeight: 'bold',
-      fontSize: 12,
+      fontSize: normalize(12),
       color: 'white',
-      marginBottom: 3,
+      marginBottom: getResponsiveSize(3),
       textAlign: 'center',
     },
     firstPlaceName: {
-      fontSize: 14,
+      fontSize: normalize(14),
     },
     therapies: {
-      fontSize: 10,
+      fontSize: normalize(10),
       color: 'white',
     },
     firstPlaceTherapies: {
-      fontSize: 12,
+      fontSize: normalize(12),
       fontWeight: 'bold',
     },
     tableContainer: {
@@ -344,8 +363,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     tableHeader: {
       flexDirection: 'row',
-      paddingHorizontal: 15,
-      paddingVertical: 12,
+      paddingHorizontal: getResponsiveSize(15),
+      paddingVertical: getResponsiveSize(12),
     },
     rankHeaderCell: {
       width: '15%',
@@ -360,14 +379,14 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     headerText: {
       fontWeight: 'bold',
       color: '#007b8e',
-      fontSize: 16,
+      fontSize: normalize(16),
     },
     tableRow: {
       flexDirection: 'row',
       backgroundColor: '#007b8e',
-      borderRadius: 15,
-      marginBottom: 10,
-      height: 60,
+      borderRadius: getResponsiveSize(15),
+      marginBottom: getResponsiveSize(10),
+      height: getResponsiveSize(60),
       alignItems: 'center',
       elevation: 2,
     },
@@ -384,36 +403,36 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     rankCellText: {
       color: 'white',
       fontWeight: 'bold',
-      fontSize: 16,
+      fontSize: normalize(16),
     },
     therapyCellText: {
       color: 'white',
       fontWeight: 'bold',
-      fontSize: 16,
+      fontSize: normalize(16),
       textAlign: 'center',
     },
     doctorInfo: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
+      gap: getResponsiveSize(10),
     },
     doctorName: {
       color: 'white',
       fontWeight: 'bold',
-      fontSize: 14,
+      fontSize: normalize(14),
     },
     tableAvatar: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
+      width: getResponsiveSize(30),
+      height: getResponsiveSize(30),
+      borderRadius: getResponsiveSize(15),
       backgroundColor: '#eee',
       justifyContent: 'center',
       alignItems: 'center',
       overflow: 'hidden',
-      marginRight: 10,
+      marginRight: getResponsiveSize(10),
     },
     tableAvatarText: {
-      fontSize: 14,
+      fontSize: normalize(14),
       fontWeight: 'bold',
       color: '#007b8e',
     },

@@ -358,7 +358,7 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
 
   if (loading) {
     return (
-      <SafeAreaView
+      <View
         style={[styles.container, {backgroundColor: currentColors.background}]}>
         <StatusBar
           backgroundColor={currentColors.background}
@@ -368,13 +368,13 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={currentColors.primary} />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!blog || isPermissionError) {
     return (
-      <SafeAreaView
+      <View
         style={[styles.container, {backgroundColor: currentColors.background}]}>
         <StatusBar
           backgroundColor={currentColors.background}
@@ -393,12 +393,12 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
               : 'Blog not found or unable to load blog details'}
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, {backgroundColor: currentColors.background}]}>
       <StatusBar
         backgroundColor={currentColors.background}
@@ -773,7 +773,7 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -679,7 +679,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={isDarkMode ? '#121212' : 'white'}
@@ -729,7 +729,7 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
           />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

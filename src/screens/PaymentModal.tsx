@@ -9,12 +9,35 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  useColorScheme,
+  Dimensions,
+  PixelRatio,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
+
+// Get screen dimensions
+const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
+// Base scale factor - assume design is for 375px width
+const scale = SCREEN_WIDTH / 375;
+
+// Normalize function for font sizes
+const normalize = (size: number) => {
+  const newSize = size * scale;
+  if (Platform.OS === 'ios') {
+    return Math.round(PixelRatio.roundToNearestPixel(newSize));
+  } else {
+    return Math.round(PixelRatio.roundToNearestPixel(newSize)) - 2;
+  }
+};
+
+// Function for responsive spacing
+const getResponsiveSize = (size: number) => {
+  return size * scale;
+};
 
 interface Addon {
   name: string;
@@ -56,9 +79,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       setPaymentMethod('CASH');
       // Only set amount if balance is greater than 0
       setAmount(
-        paymentInfo.payment_summary.balance > 0 
-          ? paymentInfo.session_info.per_session_amount.toString() 
-          : '0'
+        paymentInfo.payment_summary.balance > 0
+          ? paymentInfo.session_info.per_session_amount.toString()
+          : '0',
       );
     } else {
       setAmount('');
@@ -86,6 +109,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         }
         setAddonInput('');
         setAddonAmount('');
+        // Dismiss keyboard after adding
+        Keyboard.dismiss();
       }
     }
   };
@@ -154,7 +179,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           <Picker.Item
             label="Payment Method"
             value=""
-            style={styles.item1}
+            style={styles.placeholderItem}
             enabled={false}
           />
           <Picker.Item label="Cash" value="CASH" style={styles.item} />
@@ -171,146 +196,154 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       animationType="slide"
       transparent={true}
       onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.modalOverlay}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-              keyboardShouldPersistTaps="handled">
-              {/* Modal Header */}
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Record Payment</Text>
-                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                  <Text style={styles.closeButtonText}>✕</Text>
-                </TouchableOpacity>
-              </View>
-
-              {paymentInfo.payment_structure.next_payment_number && (
-                <View style={styles.paymentNumberBadge}>
-                  <Text style={styles.paymentNumberBadgeText}>
-                    Payment #{paymentInfo.payment_structure.next_payment_number}
-                  </Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled">
+                {/* Modal Header */}
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Record Payment</Text>
+                  <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                    <Text style={styles.closeButtonText}>✕</Text>
+                  </TouchableOpacity>
                 </View>
-              )}
 
-              {/* Payment Amount Section */}
-              <View style={styles.inputSection}>
-                <Text style={styles.inputLabel}>Base Session Payment</Text>
-                <View style={styles.currencyInputContainer}>
-                  <Text style={styles.currencySymbol}>₹</Text>
-                  <TextInput
-                    style={styles.currencyInput}
-                    placeholder="Enter amount"
-                    keyboardType="numeric"
-                    value={amount}
-                    onChangeText={setAmount}
-                  />
-                </View>
-              </View>
-
-              {/* Payment Method Section */}
-              <View style={styles.inputSection}>
-                <Text style={styles.inputLabel}>Payment Method</Text>
-                {renderPaymentMethodSelector()}
-              </View>
-
-              {/* Rest of your JSX remains the same */}
-              {/* Additional Services Section */}
-              <View style={styles.servicesSection}>
-                <TouchableOpacity
-                  style={styles.servicesHeader}
-                  onPress={() =>
-                    setIsAdditionalServicesOpen(!isAdditionalServicesOpen)
-                  }>
-                  <Icon
-                    name={isAdditionalServicesOpen ? 'minus' : 'plus'}
-                    size={20}
-                    color="#007B8E"
-                  />
-                  <Text style={styles.servicesHeaderText}>
-                    Additional Services
-                  </Text>
-                </TouchableOpacity>
-
-                {isAdditionalServicesOpen && (
-                  <View style={styles.addonInputContainer}>
-                    <TextInput
-                      style={styles.addonNameInput}
-                      placeholder="Service Name"
-                      value={addonInput}
-                      onChangeText={setAddonInput}
-                    />
-                    <View style={styles.addonAmountWrapper}>
-                      <Text style={styles.currencySymbol}>₹</Text>
-                      <TextInput
-                        style={styles.addonAmountInput}
-                        placeholder="Amount"
-                        keyboardType="numeric"
-                        value={addonAmount}
-                        onChangeText={handleAddonAmountChange}
-                        onSubmitEditing={handleAddonSubmit}
-                        returnKeyType="done"
-                      />
-                    </View>
+                {paymentInfo.payment_structure.next_payment_number && (
+                  <View style={styles.paymentNumberBadge}>
+                    <Text style={styles.paymentNumberBadgeText}>
+                      Payment #{paymentInfo.payment_structure.next_payment_number}
+                    </Text>
                   </View>
                 )}
 
-                {/* Added Services List */}
-                {addons.map((addon, index) => (
-                  <View key={index} style={styles.addonItem}>
-                    <Text style={styles.addonName}>{addon.name}</Text>
-                    <Text style={styles.addonAmount}>₹{addon.amount}</Text>
-                    <TouchableOpacity
-                      onPress={() => {
-                        const newAddons = addons.filter((_, i) => i !== index);
-                        setAddons(newAddons);
-                      }}>
-                      <Icon name="times" size={20} color="#e74c3c" />
-                    </TouchableOpacity>
+                {/* Payment Amount Section */}
+                <View style={styles.inputSection}>
+                  <Text style={styles.inputLabel}>Base Session Payment</Text>
+                  <View style={styles.currencyInputContainer}>
+                    <Text style={styles.currencySymbol}>₹</Text>
+                    <TextInput
+                      style={styles.currencyInput}
+                      placeholder="Enter amount"
+                      keyboardType="numeric"
+                      value={amount}
+                      onChangeText={setAmount}
+                    />
                   </View>
-                ))}
-              </View>
+                </View>
 
-              {/* Total Amount */}
-              <View style={styles.totalContainer}>
-                <Text style={styles.totalLabel}>Total Payment</Text>
-                <Text style={styles.totalAmount}>
-                  ₹{calculateTotalAmount().toLocaleString()}
-                </Text>
-              </View>
+                {/* Payment Method Section */}
+                <View style={styles.inputSection}>
+                  <Text style={styles.inputLabel}>Payment Method</Text>
+                  {renderPaymentMethodSelector()}
+                </View>
 
-              {/* Footer Buttons */}
-              <View style={styles.footer}>
-                <TouchableOpacity
-                  style={styles.confirmButton}
-                  onPress={() => {
-                    onSubmit(calculateBaseAmount(), paymentMethod, addons);
-                    onClose();
-                  }}>
-                  <Text style={styles.buttonText}>Confirm Payment</Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
+                {/* Additional Services Section */}
+                <View style={styles.servicesSection}>
+                  <TouchableOpacity
+                    style={styles.servicesHeader}
+                    onPress={() =>
+                      setIsAdditionalServicesOpen(!isAdditionalServicesOpen)
+                    }>
+                    <Icon
+                      name={isAdditionalServicesOpen ? 'minus' : 'plus'}
+                      size={normalize(18)}
+                      color="#007B8E"
+                    />
+                    <Text style={styles.servicesHeaderText}>
+                      Additional Services
+                    </Text>
+                  </TouchableOpacity>
+
+                  {isAdditionalServicesOpen && (
+                    <View style={styles.addonInputContainer}>
+                      <TextInput
+                        style={styles.addonNameInput}
+                        placeholder="Service Name"
+                        value={addonInput}
+                        onChangeText={setAddonInput}
+                      />
+                      <View style={styles.addonAmountWrapper}>
+                        <Text style={styles.currencySymbol}>₹</Text>
+                        <TextInput
+                          style={styles.addonAmountInput}
+                          placeholder="Amount"
+                          keyboardType="numeric"
+                          value={addonAmount}
+                          onChangeText={handleAddonAmountChange}
+                          onSubmitEditing={handleAddonSubmit}
+                          returnKeyType="done"
+                        />
+                      </View>
+                      <TouchableOpacity 
+                        style={styles.addButton}
+                        activeOpacity={0.7}
+                        onPress={handleAddonSubmit}>
+                        <Text style={styles.addButtonText}>Add</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+
+                  {/* Added Services List */}
+                  {addons.map((addon, index) => (
+                    <View key={index} style={styles.addonItem}>
+                      <Text style={styles.addonName}>{addon.name}</Text>
+                      <Text style={styles.addonAmount}>₹{addon.amount}</Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          const newAddons = addons.filter((_, i) => i !== index);
+                          setAddons(newAddons);
+                        }}
+                        style={styles.removeButton}>
+                        <Icon name="times" size={normalize(16)} color="#e74c3c" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Total Amount */}
+                <View style={styles.totalContainer}>
+                  <Text style={styles.totalLabel}>Total Payment</Text>
+                  <Text style={styles.totalAmount}>
+                    ₹{calculateTotalAmount().toLocaleString()}
+                  </Text>
+                </View>
+
+                {/* Footer Buttons */}
+                <View style={styles.footer}>
+                  <TouchableOpacity
+                    style={styles.confirmButton}
+                    onPress={() => {
+                      onSubmit(calculateBaseAmount(), paymentMethod, addons);
+                      onClose();
+                    }}>
+                    <Text style={styles.buttonText}>Confirm Payment</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
-    item1: {
-      color: '#007b8e',
-    },
     item: {
-      color: theme.colors.text, 
+      color: theme.colors.text,
+      fontSize: normalize(16),
     },
     placeholderItem: {
-      color: 'gray', 
+      color: 'gray',
+      fontSize: normalize(16),
     },
     modalOverlay: {
       flex: 1,
@@ -320,47 +353,50 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignItems: 'center',
     },
     modalContainer: {
-      width: '90%',
+      width: SCREEN_WIDTH * 0.9,
       maxWidth: 600,
       backgroundColor: theme.colors.secondary,
-      borderRadius: 16,
+      borderRadius: getResponsiveSize(16),
       borderColor: '#007B8E',
       borderWidth: 1,
-      padding: 30,
+      padding: getResponsiveSize(25),
+      maxHeight: SCREEN_HEIGHT * 0.85,
     },
     scrollContent: {
       backgroundColor: theme.colors.secondary,
+      paddingBottom: getResponsiveSize(10),
     },
     modalHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      marginBottom: getResponsiveSize(15),
     },
     modalTitle: {
-      fontSize: 24,
+      fontSize: normalize(24),
       fontWeight: 'bold',
       color: '#007b8e',
     },
     closeButton: {
-      padding: 8,
+      padding: getResponsiveSize(8),
     },
     closeButtonText: {
-      fontSize: 24,
+      fontSize: normalize(22),
       color: '#119FB3',
       fontWeight: '700',
     },
     inputSection: {
-      marginBottom: 20,
+      marginBottom: getResponsiveSize(18),
     },
     pickerButton: {
-      padding: 12,
+      padding: getResponsiveSize(12),
       backgroundColor: theme.colors.background,
       borderWidth: 1,
       borderColor: theme.colors.border,
-      borderRadius: 10,
+      borderRadius: getResponsiveSize(10),
     },
     pickerButtonText: {
-      fontSize: 16,
+      fontSize: normalize(17),
       color: theme.colors.text,
     },
     pickerModalOverlay: {
@@ -370,86 +406,88 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     pickerModalContainer: {
       backgroundColor: 'white',
-      paddingBottom: Platform.OS === 'ios' ? 20 : 0,
+      paddingBottom: Platform.OS === 'ios' ? getResponsiveSize(20) : 0,
     },
     pickerHeader: {
       borderBottomWidth: 1,
       borderColor: theme.colors.primary,
-      padding: 15,
+      padding: getResponsiveSize(15),
       backgroundColor: theme.colors.background,
       alignItems: 'flex-end',
     },
     pickerDoneButtonText: {
       color: theme.colors.secondary,
-      fontSize: 16,
+      fontSize: normalize(17),
       fontWeight: '600',
     },
     iosPicker: {
       backgroundColor: 'white',
-      height: 215,
+      height: getResponsiveSize(215),
     },
     inputLabel: {
-      fontSize: 16,
+      fontSize: normalize(17),
       color: theme.colors.text,
-      marginBottom: 8,
+      marginBottom: getResponsiveSize(8),
       fontWeight: '500',
     },
     currencyInputContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      borderRadius: 10,
+      borderRadius: getResponsiveSize(10),
       backgroundColor: theme.colors.border,
-      paddingHorizontal: 12,
+      paddingHorizontal: getResponsiveSize(12),
     },
     currencySymbol: {
-      fontSize: 16,
+      fontSize: normalize(17),
       color: theme.colors.text,
-      marginRight: 3,
+      marginRight: getResponsiveSize(3),
     },
     currencyInput: {
       flex: 1,
-      fontSize: 14,
+      fontSize: normalize(16),
       color: theme.colors.text,
-      padding: 12,
+      padding: getResponsiveSize(12),
     },
     pickerWrapper: {
-      borderRadius: 10,
+      borderRadius: getResponsiveSize(10),
       backgroundColor: theme.colors.border,
       overflow: 'hidden',
+      height: getResponsiveSize(50),
     },
     picker: {
-      height: 50,
+      height: getResponsiveSize(50),
       color: theme.colors.text,
+      fontSize: normalize(16),
     },
     servicesSection: {
-      marginBottom: 20,
+      marginBottom: getResponsiveSize(20),
     },
     servicesHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 12,
+      marginBottom: getResponsiveSize(12),
     },
     servicesHeaderText: {
-      fontSize: 16,
+      fontSize: normalize(17),
       fontWeight: '500',
       color: theme.colors.text,
-      marginLeft: 8,
+      marginLeft: getResponsiveSize(8),
     },
     addonInputContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 12,
+      marginBottom: getResponsiveSize(12),
     },
     addonNameInput: {
       flex: 3,
       borderWidth: 1,
       borderColor: '#ced4da',
-      borderRadius: 10,
-      padding: 12,
+      borderRadius: getResponsiveSize(10),
+      padding: getResponsiveSize(10),
       backgroundColor: theme.colors.border,
       color: theme.colors.text,
-      marginRight: 8,
-      fontSize: 14,
+      marginRight: getResponsiveSize(8),
+      fontSize: normalize(14),
     },
     addonAmountWrapper: {
       flex: 2,
@@ -458,63 +496,71 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderWidth: 1,
       backgroundColor: theme.colors.border,
       borderColor: '#ced4da',
-      borderRadius: 10,
-      paddingHorizontal: 12,
-      marginRight: 8,
+      borderRadius: getResponsiveSize(10),
+      paddingHorizontal: getResponsiveSize(10),
+      marginRight: getResponsiveSize(8),
     },
     addonAmountInput: {
       flex: 1,
-      padding: 12,
-      fontSize: 14,
+      padding: getResponsiveSize(8),
+      fontSize: normalize(14),
+      color: theme.colors.text,
     },
     addButton: {
       backgroundColor: '#119FB3',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderRadius: 10,
+      paddingVertical: getResponsiveSize(10),
+      paddingHorizontal: getResponsiveSize(12),
+      borderRadius: getResponsiveSize(10),
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10, // Ensure it's above other elements
     },
     addButtonText: {
       color: 'white',
       fontWeight: 'bold',
+      fontSize: normalize(14),
     },
     addonItem: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      backgroundColor: '#f8f9fa',
-      padding: 12,
-      borderRadius: 10,
-      marginBottom: 8,
+      backgroundColor: theme.colors.border,
+      padding: getResponsiveSize(12),
+      borderRadius: getResponsiveSize(10),
+      marginBottom: getResponsiveSize(8),
     },
     addonName: {
       flex: 2,
-      fontSize: 16,
-      color: '#2c3e50',
+      fontSize: normalize(14),
+      color: theme.colors.text,
     },
     addonAmount: {
       flex: 1,
-      fontSize: 16,
+      fontSize: normalize(14),
       color: '#119FB3',
       fontWeight: '500',
       textAlign: 'right',
-      marginRight: 12,
+      marginRight: getResponsiveSize(10),
+    },
+    removeButton: {
+      padding: getResponsiveSize(5),
     },
     totalContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       backgroundColor: theme.colors.border,
-      padding: 16,
-      borderRadius: 10,
-      marginBottom: 20,
+      padding: getResponsiveSize(16),
+      borderRadius: getResponsiveSize(10),
+      marginBottom: getResponsiveSize(20),
     },
     totalLabel: {
-      fontSize: 18,
+      fontSize: normalize(16),
       color: theme.colors.text,
       fontWeight: '500',
     },
     totalAmount: {
-      fontSize: 20,
+      fontSize: normalize(18),
       color: '#007B8E',
       fontWeight: 'bold',
     },
@@ -522,39 +568,31 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flexDirection: 'row',
       justifyContent: 'center',
     },
-    cancelButton: {
-      flex: 1,
-      backgroundColor: '#6c757d',
-      padding: 15,
-      borderRadius: 10,
-      marginRight: 8,
-      alignItems: 'center',
-    },
     confirmButton: {
       width: '50%',
       backgroundColor: '#007B8E',
-      paddingVertical: 12,
-      borderRadius: 10,
+      paddingVertical: getResponsiveSize(12),
+      borderRadius: getResponsiveSize(10),
       alignItems: 'center',
       justifyContent: 'center',
-      marginLeft: 8,
     },
     buttonText: {
       color: 'white',
-      fontSize: 16,
+      fontSize: normalize(15),
       fontWeight: 'bold',
     },
     paymentNumberBadge: {
       backgroundColor: '#007B8E',
-      paddingVertical: 5,
-      paddingHorizontal: 10,
-      marginVertical: 5,
+      paddingVertical: getResponsiveSize(5),
+      paddingHorizontal: getResponsiveSize(10),
+      marginVertical: getResponsiveSize(5),
       alignSelf: 'flex-start',
-      borderRadius: 5,
+      borderRadius: getResponsiveSize(5),
+      marginBottom: getResponsiveSize(15),
     },
     paymentNumberBadgeText: {
       color: 'white',
-      fontSize: 14,
+      fontSize: normalize(14),
       fontWeight: '600',
     },
   });

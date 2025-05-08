@@ -85,7 +85,7 @@ const SkeletonLoader: React.FC = () => {
   }, [fadeAnim]);
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, {backgroundColor: currentColors.background}]}>
       <StatusBar
         backgroundColor={currentColors.background}
@@ -161,7 +161,7 @@ const SkeletonLoader: React.FC = () => {
           />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -547,7 +547,7 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, {backgroundColor: currentColors.background}]}>
       <StatusBar
         backgroundColor={currentColors.background}
@@ -626,7 +626,7 @@ const ProfileScreen: React.FC<DoctorProfileScreenProps> = ({navigation}) => {
 
         {renderTabContent()}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

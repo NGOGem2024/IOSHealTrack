@@ -943,7 +943,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontWeight: '500',
     },
     noDataText: {
-      color: '#2c3e50',
+      color: 'gray',
       textAlign: 'center',
       marginTop: 20,
       marginBottom: 30,

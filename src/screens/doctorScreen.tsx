@@ -112,7 +112,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   // Use the new skeleton loader when loading
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <BackTabTop screenName="Doctor Profile" />
         <StatusBar
           barStyle="light-content"
@@ -120,12 +120,12 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           translucent={false}
         />
         <DoctorScreenSkeleton theme={{name: theme?.name || 'blue'}} />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTabTop screenName="Doctor Profile" />
       <StatusBar
         barStyle="light-content"
@@ -204,9 +204,11 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                 color="#007B8E"
               />
               <Text style={styles.infoText}>
-               Status: {doctorData?.status ? 
-               doctorData.status.charAt(0).toUpperCase() + doctorData.status.slice(1) : 
-              ''}
+                Status:{' '}
+                {doctorData?.status
+                  ? doctorData.status.charAt(0).toUpperCase() +
+                    doctorData.status.slice(1)
+                  : ''}
               </Text>
             </View>
           </View>
@@ -275,7 +277,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
             </View>
           )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

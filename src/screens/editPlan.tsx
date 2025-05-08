@@ -470,7 +470,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <BackTabTop screenName="Edit Plan" />
         <EditPlanSkeleton
           isDarkMode={isDarkMode}
@@ -479,11 +479,11 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
             skeleton: isDarkMode ? '#333333' : '#E0E0E0',
           }}
         />
-      </SafeAreaView>
+      </View>
     );
   }
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTabTop screenName="Edit Plan" />
       <KeyboardAwareScrollView
         enableOnAndroid={true}
@@ -712,7 +712,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
           {renderButtons()}
         </Animated.View>
       </KeyboardAwareScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

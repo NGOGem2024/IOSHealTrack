@@ -759,7 +759,7 @@ const OrganizationSettingsScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTabTop screenName="Update Organization" />
       <ScrollView style={styles.container}>
         <View style={styles.content}>
@@ -1225,7 +1225,7 @@ const OrganizationSettingsScreen: React.FC = () => {
       {renderBannerOptionsModal()}
       {renderPhotoOptionsModal()}
       {renderVideoModal()}
-    </SafeAreaView>
+    </View>
   );
 };
 

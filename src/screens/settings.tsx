@@ -46,7 +46,7 @@ interface ServerResponse {
 const GOOGLE_WEB_CLIENT_ID =
   '1038698506388-eegihlhipbg4d1cubdjk4p44gv74sv5i.apps.googleusercontent.com';
 
-const SettingsScreen: React.FC = () => { 
+const SettingsScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const {theme} = useTheme();
   const styles = getStyles(
@@ -157,14 +157,14 @@ const SettingsScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <BackTabTop screenName="Settings" />
         <SettingSkeleton />
-      </SafeAreaView>  
-     );
+      </View>
+    );
   }
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <ScrollView style={styles.container}>
         <BackTabTop screenName="Settings" />
         <View style={styles.content}>
@@ -174,7 +174,11 @@ const SettingsScreen: React.FC = () => {
               style={styles.organizationCard}
               onPress={navigateToOrganizationSettings}>
               <View style={styles.orgCardContent}>
-                <Icon name="office-building" size={24} color={theme.colors.primary} />
+                <Icon
+                  name="office-building"
+                  size={24}
+                  color={theme.colors.primary}
+                />
                 <View style={styles.orgCardText}>
                   <Text style={styles.orgCardTitle}>Update Organization</Text>
                   <Text style={styles.orgCardDescription}>
@@ -238,7 +242,7 @@ const SettingsScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

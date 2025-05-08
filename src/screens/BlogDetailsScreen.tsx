@@ -123,14 +123,16 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
 
   const handleShare = async () => {
     if (!blog) return;
-  
+
     try {
       const blogLink = `https://healtrackai.com/blog/${blog._id}`;
-      
+
       await Share.share({
-        message: `Check out this blog: ${blog.title}\n\n${blog.description.substring(0, 150)}...\n\n${blogLink}`,
+        message: `Check out this blog: ${
+          blog.title
+        }\n\n${blog.description.substring(0, 150)}...\n\n${blogLink}`,
         title: blog.title,
-        url: blogLink // This is used by some platforms that support URL sharing
+        url: blogLink, // This is used by some platforms that support URL sharing
       });
     } catch (error) {
       console.error('Error sharing blog:', error);
@@ -145,7 +147,7 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
 
   if (loading) {
     return (
-      <SafeAreaView
+      <View
         style={[styles.container, {backgroundColor: currentColors.background}]}>
         <StatusBar
           backgroundColor={currentColors.background}
@@ -155,13 +157,13 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={currentColors.primary} />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!blog) {
     return (
-      <SafeAreaView
+      <View
         style={[styles.container, {backgroundColor: currentColors.background}]}>
         <StatusBar
           backgroundColor={currentColors.background}
@@ -178,12 +180,12 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
             Blog not found or unable to load blog details
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, {backgroundColor: currentColors.background}]}>
       <StatusBar
         backgroundColor={currentColors.background}
@@ -304,7 +306,7 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

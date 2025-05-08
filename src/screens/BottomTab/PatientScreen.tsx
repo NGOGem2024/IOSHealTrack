@@ -99,7 +99,7 @@ const PatientScreenSkeleton: React.FC<{theme: any}> = ({theme}) => {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTopTab screenName="Patient" />
       <ScrollView style={styles.container}>
         {/* Main Card Skeleton */}
@@ -139,7 +139,7 @@ const PatientScreenSkeleton: React.FC<{theme: any}> = ({theme}) => {
           <View style={styles.skeletonTherapyPlan} />
         </Animated.View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -274,7 +274,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <BackTopTab screenName="Patient" />
 
       <ScrollView
@@ -594,7 +594,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

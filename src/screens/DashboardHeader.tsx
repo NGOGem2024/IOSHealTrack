@@ -7,6 +7,7 @@ import {
   useWindowDimensions,
   StatusBar,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import {useNavigation} from '@react-navigation/native';
@@ -41,7 +42,7 @@ const DashboardHeader: React.FC = () => {
   };
 
   return (
-    <View style={{zIndex: 500}}>
+    <View style={{zIndex: 1000}}>
       <View style={{backgroundColor: 'black', height: insets.top}} />
       <View style={styles.dashboardHeader}>
         <StatusBar
@@ -142,6 +143,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       margin: 0,
       justifyContent: 'flex-start',
       alignItems: 'flex-end',
+      paddingTop: Platform.OS === 'ios' ? insets.top : 0,
     },
     dropdown: {
       backgroundColor: theme.colors.card,

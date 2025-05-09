@@ -14,6 +14,7 @@ import {
   useWindowDimensions,
   TouchableWithoutFeedback,
   StatusBar,
+  Platform,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import axios from 'axios';

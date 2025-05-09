@@ -603,10 +603,24 @@ const TherapyPlanDetails: React.FC = () => {
       }
 
       if (Platform.OS === 'ios') {
+        // For iOS, write to temp directory and use share sheet
         const filePath = `${ReactNativeBlobUtil.fs.dirs.DocumentDir}/${fileName}`;
         await ReactNativeBlobUtil.fs.writeFile(filePath, base64PDF, 'base64');
-        await Linking.openURL(`file://${filePath}`);
-        Alert.alert('Success', 'PDF downloaded and opened successfully');
+
+        // Share the file using ReactNativeBlobUtil's iOS-specific sharing
+        await ReactNativeBlobUtil.ios.openDocument(filePath);
+
+        // Alternative approach using react-native-share if openDocument doesn't work
+        // If you're using react-native-share, import it and use:
+        // import Share from 'react-native-share';
+        // const shareOptions = {
+        //   title: 'View PDF',
+        //   url: `file://${filePath}`,
+        //   type: 'application/pdf',
+        // };
+        // await Share.open(shareOptions);
+
+        Alert.alert('Success', 'PDF opened successfully');
       } else {
         let downloadPath = '';
         if (Number(Platform.Version) >= 30) {

@@ -69,5 +69,19 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>We need access to your documents to save and share therapy plan PDFs</string>
+	<key>NSFileProviderDomainUsageDescription</key>
+	<string>We need access to file providers to save therapy plan PDFs</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>itms-apps</string>
+		<string>mailto</string>
+		<string>message</string>
+	</array>
 </dict>
 </plist>

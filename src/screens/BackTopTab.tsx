@@ -7,6 +7,7 @@ import {
   Image,
   StatusBar,
   useWindowDimensions,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -57,7 +58,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
 
   return (
     <View style={{zIndex: 1000}}>
-      {/* Black background for the status bar */}
+      {/* Status bar area */}
       <View style={{backgroundColor: 'black', height: insets.top}} />
 
       {/* Blue header */}
@@ -65,7 +66,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
         <StatusBar
           barStyle="light-content"
           backgroundColor="black"
-          translucent={false}
+          translucent={Platform.OS === 'android'}
         />
 
         <TouchableOpacity
@@ -280,6 +281,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       margin: 0,
       justifyContent: 'flex-start',
       alignItems: 'flex-end',
+      // Ensure we respect the safe area insets for the modal
+      paddingTop: Platform.OS === 'ios' ? insets.top : 0,
     },
   });
 

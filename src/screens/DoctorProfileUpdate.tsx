@@ -799,7 +799,7 @@ const DoctorProfileEdit: React.FC = () => {
             ].map((item, index) => (
               <View
                 key={item.field}
-                style={[styles.inputGroup, index !== 0 && styles.inputBorder]}>
+                style={[styles.inputGroup]}>
                 <Text style={styles.label}>{item.label}</Text>
                 <View
                   style={[
@@ -827,7 +827,7 @@ const DoctorProfileEdit: React.FC = () => {
                 </View>
               </View>
             ))}
-            <View style={[styles.inputGroup, styles.inputBorder]}>
+            <View style={[styles.inputGroup]}>
               <Text style={styles.label}>Phone Number</Text>
               <View style={styles.phoneInputContainer}>
                 {/* Country Selector */}

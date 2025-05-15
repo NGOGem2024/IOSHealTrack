@@ -48,7 +48,7 @@ const DashboardHeader: React.FC = () => {
         <StatusBar
           barStyle="light-content"
           backgroundColor="black"
-          translucent={false}
+          translucent={Platform.OS === 'android'}
         />
         <View>
           <Image
@@ -147,7 +147,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     dropdown: {
       backgroundColor: theme.colors.card,
-      height: '40%',
+      maxHeight: 320,
+      minHeight: 50,
       padding: 0,
       shadowColor: '#000',
       shadowOffset: {width: -2, height: 0},
@@ -185,8 +186,8 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
       marginLeft: 16,
     },
     logoutItem: {
-      borderTopColor: '#E0E0E0',
-      paddingTop: 15,
+      marginTop: 5,
+      marginBottom: 2,
     },
     logoutText: {
       color: '#FF3B30',

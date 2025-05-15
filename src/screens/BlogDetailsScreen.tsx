@@ -13,6 +13,7 @@ import {
   Appearance,
   Share,
   Dimensions,
+  RefreshControl,
 } from 'react-native';
 import {RouteProp} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -86,6 +87,7 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
   const {session} = useSession();
   const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const colorScheme = useColorScheme();
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
@@ -101,6 +103,16 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
   useEffect(() => {
     fetchBlogDetails();
   }, [blogId]);
+
+  // Effect to refresh blog data when navigating back to this screen
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Refresh data when the screen is focused again
+      fetchBlogDetails();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const fetchBlogDetails = async () => {
     if (!session.idToken || !blogId) return;
@@ -118,6 +130,15 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
       handleError(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchBlogDetails();
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -179,6 +200,12 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
           <Text style={[styles.errorText, {color: currentColors.text}]}>
             Blog not found or unable to load blog details
           </Text>
+          <TouchableOpacity
+            style={[styles.refreshButton, {backgroundColor: currentColors.primary}]}
+            onPress={fetchBlogDetails}>
+            <Icon name="refresh" size={20} color="#FFFFFF" />
+            <Text style={styles.refreshButtonText}>Refresh</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -192,7 +219,17 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
       />
       <BackTabTop screenName="Blog Details" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[currentColors.primary]}
+            tintColor={currentColors.primary}
+            progressBackgroundColor={currentColors.card}
+          />
+        }>
         {blog.imageWithSas && (
           <Image
             source={{uri: blog.imageWithSas}}
@@ -332,6 +369,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginTop: 20,
+    marginBottom: 20,
+  },
+  refreshButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  refreshButtonText: {
+    color: '#FFFFFF',
+    marginLeft: 6,
+    fontWeight: '600',
   },
   blogImage: {
     width: '100%',

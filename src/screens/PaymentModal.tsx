@@ -375,7 +375,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     modalTitle: {
       fontSize: normalize(24),
       fontWeight: 'bold',
-      color: '#007b8e',
+      color: theme.colors.mainColor,
     },
     closeButton: {
       padding: getResponsiveSize(8),

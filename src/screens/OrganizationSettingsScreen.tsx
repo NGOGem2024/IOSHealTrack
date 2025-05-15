@@ -13,6 +13,7 @@ import {
   Modal,
   FlatList,
   Dimensions,
+  Keyboard,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import axiosInstance from '../utils/axiosConfig';
@@ -729,6 +730,7 @@ const OrganizationSettingsScreen: React.FC = () => {
     );
   };
   const handleSave = async () => {
+      Keyboard.dismiss();
     if (
       !organizationInfo.organization_name ||
       !organizationInfo.organization_email
@@ -761,7 +763,8 @@ const OrganizationSettingsScreen: React.FC = () => {
   return (
     <View style={styles.safeArea}>
       <BackTabTop screenName="Update Organization" />
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container}
+      keyboardShouldPersistTaps={'handled'}>
         <View style={styles.content}>
           <View style={styles.profileSection}>
             <View style={styles.bannerContainer}>
@@ -1458,7 +1461,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 12,
-      backgroundColor: '#F8FAFC',
+      backgroundColor: theme.colors.secondary,
       borderRadius: 10,
     },
     videoInfo: {
@@ -1475,7 +1478,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     videoTitle: {
       fontSize: 15,
       fontWeight: '600',
-      color: '#2C3E50',
+      color: theme.colors.text,
     },
     videoUrl: {
       fontSize: 13,

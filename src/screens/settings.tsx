@@ -273,7 +273,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: theme.colors.text,
     },
     section: {
-      backgroundColor: '#fff',
+      backgroundColor: theme.colors.inputBox,
       padding: 15,
       borderRadius: 10,
       marginBottom: 20,
@@ -287,7 +287,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 18,
       fontWeight: '600',
       marginBottom: 15,
-      color: '#333',
+      color: theme.colors.text,
     },
     infoRow: {
       flexDirection: 'row',
@@ -299,12 +299,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     label: {
       fontSize: 14,
-      color: '#666',
+      color: theme.colors.text,
       flex: 1,
     },
     value: {
       fontSize: 14,
-      color: '#333',
+      color: theme.colors.text,
       flex: 2,
       textAlign: 'right',
     },
@@ -341,7 +341,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     // New styles for organization card
     organizationCard: {
-      backgroundColor: '#F9FAFB',
+      backgroundColor: theme.colors.secondary,
       borderRadius: 8,
       overflow: 'hidden',
       borderWidth: 1,
@@ -359,12 +359,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     orgCardTitle: {
       fontSize: 16,
       fontWeight: '600',
-      color: '#374151',
+      color: theme.colors.mainColor,
       marginBottom: 4,
     },
     orgCardDescription: {
       fontSize: 14,
-      color: '#6B7280',
+      color: theme.colors.text,
     },
   });
 

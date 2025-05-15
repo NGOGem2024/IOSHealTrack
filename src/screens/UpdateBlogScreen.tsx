@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
+  Keyboard,
 } from 'react-native';
 import {RouteProp} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -99,21 +100,29 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
 }) => {
   const {blogId} = route.params;
   const {session} = useSession();
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const [blog, setBlog] = useState<Blog | null>(null);
   const [title, setTitle] = useState('');
+  const [titleError, setTitleError] = useState('');
   const [description, setDescription] = useState('');
   const [genre, setGenre] = useState('');
+  const [genreError, setGenreError] = useState('');
   const [readTime, setReadTime] = useState('');
   const [status, setStatus] = useState('draft');
   const [image, setImage] = useState<any>(null); // Changed to any to match CreateBlogScreen
   const [videos, setVideos] = useState<YouTubeVideo[]>([]); // New state for YouTube videos
-
+  const [imageRemoved, setImageRemoved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [isPermissionError, setIsPermissionError] = useState(false);
   const [descriptionError, setDescriptionError] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false); // For image upload indicator
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  // Error notification states
+  const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorFields, setErrorFields] = useState<string[]>([]);
 
   // States for iOS picker modals
   const [showGenreModal, setShowGenreModal] = useState(false);
@@ -133,8 +142,62 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
   }, []);
 
   useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      },
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      },
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     fetchBlogDetails();
   }, [blogId]);
+
+  // Clear errors when inputs change
+  useEffect(() => {
+    if (title.trim()) setTitleError('');
+    if (genre) setGenreError('');
+
+    // Check description length on change
+    const wordCount = description.trim().split(/\s+/).length;
+    if (wordCount >= 50) setDescriptionError('');
+
+    // If any validation errors were fixed, clear the error banner
+    if (title.trim() && genre && wordCount >= 50) {
+      setHasError(false);
+      setErrorMessage('');
+      setErrorFields([]);
+    }
+  }, [title, description, genre]);
+
+  const scrollToField = (fieldName: string) => {
+    // Use measurements to scroll to the appropriate position
+    switch (fieldName) {
+      case 'title':
+        scrollViewRef.current?.scrollTo({y: 0, animated: true});
+        break;
+      case 'description':
+        scrollViewRef.current?.scrollTo({y: 100, animated: true});
+        break;
+      case 'genre':
+        scrollViewRef.current?.scrollTo({y: 300, animated: true});
+        break;
+      default:
+        scrollViewRef.current?.scrollToEnd({animated: true});
+    }
+  };
 
   const fetchBlogDetails = async () => {
     if (!session.idToken || !blogId) return;
@@ -171,28 +234,62 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
         }
       }
     } catch (error) {
+      setHasError(true);
+      setErrorMessage('Failed to load blog details. Please try again.');
       handleError(error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateBlog = async () => {
-    // Validate inputs
+  const validateForm = () => {
+    let isValid = true;
+    const errorList: string[] = [];
+
+    // Validate title
     if (!title.trim()) {
-      Alert.alert('Error', 'Title is required');
-      return;
+      setTitleError('Title is required');
+      isValid = false;
+      errorList.push('title');
+    }
+
+    // Validate genre
+    if (!genre) {
+      setGenreError('Please select a genre');
+      isValid = false;
+      errorList.push('genre');
     }
 
     // Validate description length
     const wordCount = description.trim().split(/\s+/).length;
     if (wordCount < 50) {
       setDescriptionError(
-        `Description is too short. Current: ${wordCount} words`,
+        `Description is too short. Current: ${wordCount} words, minimum required: 50 words`,
       );
+      isValid = false;
+      errorList.push('description');
+    }
+
+    // Set error fields for scrolling
+    setErrorFields(errorList);
+
+    // If validation failed, show error banner
+    if (!isValid) {
+      // Scroll to the first error
+      if (errorList.length > 0) {
+        setTimeout(() => {
+          scrollToField(errorList[0]);
+        }, 100);
+      }
+    }
+
+    return isValid;
+  };
+
+  const handleUpdateBlog = async () => {
+    // Validate form first
+    if (!validateForm()) {
       return;
-    } else {
-      setDescriptionError('');
     }
 
     setUpdating(true);
@@ -207,8 +304,13 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
       blogFormData.append('readTime', readTime);
       blogFormData.append('status', status);
 
-      // Add image if exists
-      if (image) {
+      // Add removeImage flag if the image was removed
+      if (imageRemoved) {
+        blogFormData.append('removeImage', 'true');
+      }
+
+      // Add image if exists and was not removed
+      if (image && !imageRemoved) {
         const imageFile = {
           uri: image.uri,
           type: image.type || 'image/jpeg',
@@ -222,6 +324,14 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
         // Convert videos array to JSON string
         blogFormData.append('videos', JSON.stringify(videos));
       }
+
+      console.log(
+        'Form data being sent:',
+        JSON.stringify({
+          removeImage: imageRemoved ? 'true' : 'false',
+          hasImage: image ? 'yes' : 'no',
+        }),
+      );
 
       const response = await axiosInstance.put(
         `/update/blog/${blogId}`,
@@ -241,14 +351,19 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
     } catch (error: any) {
       if (error.response && error.response.status === 403) {
         setIsPermissionError(true);
-        Alert.alert(
-          'Permission Denied',
-          "You don't have permission to update this blog",
-        );
+        setHasError(true);
+        setErrorMessage("You don't have permission to update this blog");
       } else {
+        setHasError(true);
+        setErrorMessage(
+          error.response?.data?.message ||
+            'Failed to update blog. Please check your connection and try again.',
+        );
         handleError(error);
-        Alert.alert('Error', 'Failed to update blog');
       }
+
+      // Scroll to top to show error banner
+      scrollViewRef.current?.scrollTo({y: 0, animated: true});
     } finally {
       setUpdating(false);
     }
@@ -268,6 +383,7 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
 
   const handleImageRemoved = () => {
     setImage(null);
+    setImageRemoved(true);
   };
 
   // YouTube videos handling
@@ -293,6 +409,11 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
     }
   };
 
+  const dismissErrorBanner = () => {
+    setHasError(false);
+    setErrorMessage('');
+  };
+
   // Function to render the Picker component based on the platform
   const renderPicker = (
     type: 'genre' | 'readTime',
@@ -311,7 +432,10 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
             styles.iosPickerButton,
             {
               backgroundColor: currentColors.inputBox,
-              borderColor: currentColors.border,
+              borderColor:
+                type === 'genre' && genreError
+                  ? currentColors.error
+                  : currentColors.border,
             },
           ]}
           onPress={() => {
@@ -336,7 +460,10 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
           styles.pickerContainer,
           {
             backgroundColor: currentColors.inputBox,
-            borderColor: currentColors.border,
+            borderColor:
+              type === 'genre' && genreError
+                ? currentColors.error
+                : currentColors.border,
           },
         ]}>
         <Picker
@@ -406,10 +533,26 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
       />
       <BackTabTop screenName="Update Blog" />
 
+      {/* Error Banner */}
+      {hasError && (
+        <View
+          style={[styles.errorBanner, {backgroundColor: currentColors.error}]}>
+          <Text style={styles.errorBannerText}>{errorMessage}</Text>
+          <TouchableOpacity onPress={dismissErrorBanner}>
+            <Icon name="close" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      )}
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         style={{flex: 1}}>
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
+         <View style={{flex: 1}}>
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={{paddingBottom: 0}} // Add extra padding at bottom
+          keyboardShouldPersistTaps="handled">
           <View
             style={[
               styles.formContainer,
@@ -430,20 +573,27 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
             <View style={[styles.card, {backgroundColor: currentColors.card}]}>
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, {color: currentColors.text}]}>
-                  Title
+                  Title{' '}
+                  {titleError && (
+                    <Text style={{color: currentColors.error}}>*</Text>
+                  )}
                 </Text>
                 <View
                   style={[
                     styles.inputWrapper,
                     {
                       backgroundColor: currentColors.inputBox,
-                      borderColor: currentColors.border,
+                      borderColor: titleError
+                        ? currentColors.error
+                        : currentColors.border,
                     },
                   ]}>
                   <Icon
                     name="text-outline"
                     size={20}
-                    color={currentColors.primary}
+                    color={
+                      titleError ? currentColors.error : currentColors.primary
+                    }
                     style={styles.inputIcon}
                   />
                   <TextInput
@@ -454,11 +604,23 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
                     onChangeText={setTitle}
                   />
                 </View>
+                {titleError ? (
+                  <Text
+                    style={[
+                      styles.fieldErrorText,
+                      {color: currentColors.error},
+                    ]}>
+                    {titleError}
+                  </Text>
+                ) : null}
               </View>
 
               <View style={[styles.inputGroup, styles.inputBorder]}>
                 <Text style={[styles.label, {color: currentColors.text}]}>
-                  Description
+                  Description{' '}
+                  {descriptionError && (
+                    <Text style={{color: currentColors.error}}>*</Text>
+                  )}
                 </Text>
                 <View
                   style={[
@@ -489,7 +651,10 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
                 </View>
                 {descriptionError ? (
                   <Text
-                    style={[styles.errorText, {color: currentColors.error}]}>
+                    style={[
+                      styles.fieldErrorText,
+                      {color: currentColors.error},
+                    ]}>
                     {descriptionError}
                   </Text>
                 ) : null}
@@ -511,9 +676,21 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
             <View style={[styles.card, {backgroundColor: currentColors.card}]}>
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, {color: currentColors.text}]}>
-                  Genre
+                  Genre{' '}
+                  {genreError && (
+                    <Text style={{color: currentColors.error}}>*</Text>
+                  )}
                 </Text>
                 {renderPicker('genre', genre, setGenre, genres)}
+                {genreError ? (
+                  <Text
+                    style={[
+                      styles.fieldErrorText,
+                      {color: currentColors.error},
+                    ]}>
+                    {genreError}
+                  </Text>
+                ) : null}
               </View>
 
               <View style={[styles.inputGroup, styles.inputBorder]}>
@@ -684,6 +861,7 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
             </View>
           </View>
         </ScrollView>
+        </View>
       </KeyboardAvoidingView>
 
       {/* iOS Genre Picker Modal */}
@@ -776,19 +954,17 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContainer: {
-    paddingBottom: 20,
+  errorBannerText: {
+    color: 'gray',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  errorBannerClose: {
+    color: 'gray',
   },
+
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -800,8 +976,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
+  // New error banner styles
+  errorBanner: {
+    backgroundColor: '#FF4848',
+    padding: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 3,
+  },
+  fieldErrorText: {
+    color: 'gray',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   formContainer: {
     paddingHorizontal: 15,
+  },
+  fixedActionButtons: {
+    alignItems: 'center',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -920,6 +1116,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 20,
+    marginBottom: 40,
   },
   cancelButton: {
     paddingVertical: 12,

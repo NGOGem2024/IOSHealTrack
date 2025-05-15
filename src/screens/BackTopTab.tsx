@@ -135,25 +135,26 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
             </TouchableOpacity>
 
             {session.is_admin && (
-              <TouchableOpacity
-                style={styles.drawerItem}
-                onPress={() => navigateToScreen('Settings')}>
-                <Ionicons name="settings-outline" size={24} color="#007B8E" />
-                <Text style={styles.drawerItemText}>Settings</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => navigateToScreen('Settings')}>
+                  <Ionicons name="settings-outline" size={24} color="#007B8E" />
+                  <Text style={styles.drawerItemText}>Settings</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => navigateToScreen('AdminReport')}>
+                  <Ionicons
+                    name="document-text-outline"
+                    size={24}
+                    color="#007B8E"
+                  />
+                  <Text style={styles.drawerItemText}>Reports</Text>
+                </TouchableOpacity>
+              </>
             )}
-
-            <TouchableOpacity
-              style={styles.drawerItem}
-              onPress={() => navigateToScreen('AdminReport')}>
-              <Ionicons
-                name="document-text-outline"
-                size={24}
-                color="#007B8E"
-              />
-              <Text style={styles.drawerItemText}>Reports</Text>
-            </TouchableOpacity>
-
             <View style={styles.drawerDivider} />
 
             <TouchableOpacity

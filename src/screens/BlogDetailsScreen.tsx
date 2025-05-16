@@ -24,6 +24,7 @@ import {handleError} from '../utils/errorHandler';
 import Icon from 'react-native-vector-icons/Ionicons';
 import BackTabTop from './BackTopTab';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import LoadingScreen from '../components/loadingScreen';
 
 // Define theme colors (same as in ProfileScreen for consistency)
 const themeColors = {
@@ -168,19 +169,17 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
 
   if (loading) {
     return (
-      <View
-        style={[styles.container, {backgroundColor: currentColors.background}]}>
+      <View style={styles.loadingContainer}>
         <StatusBar
-          backgroundColor={currentColors.background}
-          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+          barStyle="light-content"
+          translucent={false}
+          backgroundColor="black"
         />
-        <BackTabTop screenName="Blog Details" />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={currentColors.primary} />
-        </View>
+        <LoadingScreen />
       </View>
     );
   }
+
 
   if (!blog) {
     return (

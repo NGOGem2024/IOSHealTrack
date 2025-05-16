@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,11 @@ interface BlogFormData {
   genre: string;
   readTime: string;
   status: 'draft' | 'published';
+}
+
+interface ValidationErrors {
+  title: string;
+  description: string;
 }
 
 type blogNavigationProp = NativeStackNavigationProp<RootTabParamList>;
@@ -83,6 +88,11 @@ const themeColors = {
 };
 
 const CreateBlogScreen: React.FC = () => {
+  // Create refs for ScrollView and input fields for scrolling to errors
+  const scrollViewRef = useRef<ScrollView>(null);
+  const titleInputRef = useRef<View>(null);
+  const descriptionInputRef = useRef<View>(null);
+
   const [formData, setFormData] = useState<BlogFormData>({
     title: '',
     description: '',
@@ -92,10 +102,21 @@ const CreateBlogScreen: React.FC = () => {
     readTime: readTimeOptions[3],
     status: 'draft',
   });
+
+  const [errors, setErrors] = useState<ValidationErrors>({
+    title: '',
+    description: '',
+  });
+
+  const [touched, setTouched] = useState({
+    title: false,
+    description: false,
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [showMediaOptions, setShowMediaOptions] = useState(false);
-  const [descriptionError, setDescriptionError] = useState('');
+  
   // State for custom picker (iOS)
   const [showGenrePicker, setShowGenrePicker] = useState(false);
   const [showReadTimePicker, setShowReadTimePicker] = useState(false);
@@ -113,6 +134,92 @@ const CreateBlogScreen: React.FC = () => {
       ...formData,
       [field]: value,
     });
+    
+    // Mark field as touched
+    if (field === 'title' || field === 'description') {
+      setTouched({
+        ...touched,
+        [field]: true,
+      });
+      
+      // Validate on change
+      validateField(field, value as string);
+    }
+  };
+
+const validateField = (field: 'title' | 'description', value: string) => {
+    let newErrors = {...errors};
+    
+    switch (field) {
+      case 'title':
+        if (!value.trim()) {
+          // Only set error if field is empty
+          newErrors.title = '';
+        } else if (value.trim().length > 100) {
+          newErrors.title = 'Title must be less than 100 characters';
+        } else {
+          newErrors.title = '';
+        }
+        break;
+        
+      case 'description':
+        if (!value.trim()) {
+          // Only set error if field is empty
+          newErrors.description = '';
+        } else {
+          const wordCount = value.trim().split(/\s+/).length;
+          if (wordCount < 50) {
+            newErrors.description = `Content is too short. Current: ${wordCount} words (minimum 50 words)`;
+          } else {
+            newErrors.description = '';
+          }
+        }
+        break;
+    }
+    
+    setErrors(newErrors);
+    return !newErrors[field]; // Return true if valid
+  };
+
+  const handleBlur = (field: 'title' | 'description') => {
+    setTouched({
+      ...touched,
+      [field]: true,
+    });
+    
+    validateField(field, formData[field] as string);
+    
+    // If it's the description field, calculate read time
+    if (field === 'description') {
+      calculateReadTime();
+    }
+  };
+
+  const validateForm = () => {
+    // Validate all fields
+    const titleIsValid = validateField('title', formData.title);
+    const descriptionIsValid = validateField('description', formData.description);
+    
+    // Mark all fields as touched
+    setTouched({
+      title: true,
+      description: true,
+    });
+    
+    return titleIsValid && descriptionIsValid;
+  };
+
+  const scrollToFirstError = () => {
+    // Determine the first field with an error
+    if (errors.title) {
+      titleInputRef.current?.measure((x, y, width, height, pageX, pageY) => {
+        scrollViewRef.current?.scrollTo({y: pageY - 100, animated: true});
+      });
+    } else if (errors.description) {
+      descriptionInputRef.current?.measure((x, y, width, height, pageX, pageY) => {
+        scrollViewRef.current?.scrollTo({y: pageY - 100, animated: true});
+      });
+    }
   };
 
   const handleImageSelected = (imageData: any) => {
@@ -154,37 +261,9 @@ const CreateBlogScreen: React.FC = () => {
     }
   };
 
-  const validateDescription = () => {
-    const wordCount = formData.description.trim().split(/\s+/).length;
-    if (wordCount < 50) {
-      setDescriptionError(
-        `Description is too short. Current: ${wordCount} words (minimum 50 words)`,
-      );
-      return false;
-    } else {
-      setDescriptionError('');
-      return true;
-    }
-  };
-
   const handleSubmit = async () => {
-    if (!formData.title.trim()) {
-      Alert.alert(
-        'Validation Error',
-        'Please enter a title for your blog post',
-      );
-      return;
-    }
-
-    if (!formData.description.trim()) {
-      Alert.alert(
-        'Validation Error',
-        'Please enter a description for your blog post',
-      );
-      return;
-    }
-
-    if (!validateDescription()) {
+    if (!validateForm()) {
+      scrollToFirstError();
       return;
     }
 
@@ -335,7 +414,10 @@ const CreateBlogScreen: React.FC = () => {
     <View
       style={[styles.container, {backgroundColor: currentColors.background}]}>
       <BackTabTop screenName="Add blog" />
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView 
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled">
         <View
           style={[styles.formContainer, {backgroundColor: currentColors.card}]}>
           <View style={styles.sectionHeader}>
@@ -350,16 +432,18 @@ const CreateBlogScreen: React.FC = () => {
           </View>
 
           <View style={[styles.card, {backgroundColor: currentColors.card}]}>
-            <View style={styles.inputGroup}>
+            <View 
+              style={styles.inputGroup}
+              ref={titleInputRef}>
               <Text style={[styles.label, {color: currentColors.text}]}>
-                Title
+                Title <Text style={{color: currentColors.error}}>*</Text>
               </Text>
               <View
                 style={[
                   styles.inputWrapper,
                   {
                     backgroundColor: currentColors.inputBox,
-                    borderColor: currentColors.border,
+                    borderColor: touched.title && errors.title ? currentColors.error : currentColors.border,
                   },
                 ]}>
                 <TextInput
@@ -368,21 +452,29 @@ const CreateBlogScreen: React.FC = () => {
                   placeholderTextColor={currentColors.placeholder}
                   value={formData.title}
                   onChangeText={text => handleInputChange('title', text)}
+                  onBlur={() => handleBlur('title')}
                 />
               </View>
+              {touched.title && errors.title ? (
+                <Text style={[styles.errorText, {color: currentColors.error}]}>
+                  {errors.title}
+                </Text>
+              ) : null}
             </View>
 
-            <View style={[styles.inputGroup, styles.inputBorder]}>
+            <View 
+              style={[styles.inputGroup, styles.inputBorder]}
+              ref={descriptionInputRef}>
               <Text style={[styles.label, {color: currentColors.text}]}>
-                Description
+                Description <Text style={{color: currentColors.error}}>*</Text>
               </Text>
               <View
                 style={[
                   styles.textAreaWrapper,
                   {
                     backgroundColor: currentColors.inputBox,
-                    borderColor: descriptionError
-                      ? currentColors.error
+                    borderColor: touched.description && errors.description 
+                      ? currentColors.error 
                       : currentColors.border,
                   },
                 ]}>
@@ -400,12 +492,12 @@ const CreateBlogScreen: React.FC = () => {
                   numberOfLines={6}
                   value={formData.description}
                   onChangeText={text => handleInputChange('description', text)}
-                  onBlur={calculateReadTime}
+                  onBlur={() => handleBlur('description')}
                 />
               </View>
-              {descriptionError ? (
+              {touched.description && errors.description ? (
                 <Text style={[styles.errorText, {color: currentColors.error}]}>
-                  {descriptionError}
+                  {errors.description}
                 </Text>
               ) : null}
             </View>

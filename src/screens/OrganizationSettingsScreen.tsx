@@ -509,51 +509,61 @@ const OrganizationSettingsScreen: React.FC = () => {
     );
   };
 
-  const SocialMediaDropdown = () => {
-    return (
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showSocialMediaDropdown}
-        onRequestClose={() => setShowSocialMediaDropdown(false)}>
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowSocialMediaDropdown(false)}>
-          <View style={styles.dropdownContainer}>
-            {socialMediaPlatforms.map(platform => (
-              <TouchableOpacity
-                key={platform.id}
-                style={styles.dropdownItem}
-                onPress={() => {
-                  const newPlatforms = selectedPlatforms.includes(platform.id)
-                    ? selectedPlatforms.filter(p => p !== platform.id)
-                    : [...selectedPlatforms, platform.id];
-                  setSelectedPlatforms(newPlatforms);
-                }}>
-                <Icon
-                  name={
-                    selectedPlatforms.includes(platform.id)
-                      ? 'checkbox-marked'
-                      : 'checkbox-blank-outline'
-                  }
-                  size={24}
-                  color="#007B8E"
-                />
-                <Icon
-                  name={platform.icon}
-                  size={24}
-                  color="#007B8E"
-                  style={styles.platformIcon}
-                />
-                <Text style={styles.dropdownItemText}>{platform.name}</Text>
-              </TouchableOpacity>
-            ))}
+const SocialMediaDropdown = () => {
+  return (
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={showSocialMediaDropdown}
+      onRequestClose={() => setShowSocialMediaDropdown(false)}>
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={() => setShowSocialMediaDropdown(false)}>
+        <View style={styles.dropdownContainer} onStartShouldSetResponder={() => true}>
+          {socialMediaPlatforms.map(platform => (
+            <TouchableOpacity
+              key={platform.id}
+              style={styles.dropdownItem}
+              onPress={() => {
+                const isSelected = selectedPlatforms.includes(platform.id);
+                const newPlatforms = isSelected
+                  ? selectedPlatforms.filter(p => p !== platform.id)
+                  : [...selectedPlatforms, platform.id];
+                setSelectedPlatforms(newPlatforms);
+                // Don't close the modal when selecting items
+              }}>
+              <Icon
+                name={
+                  selectedPlatforms.includes(platform.id)
+                    ? 'checkbox-marked'
+                    : 'checkbox-blank-outline'
+                }
+                size={24}
+                color="#007B8E"
+              />
+              <Icon
+                name={platform.icon}
+                size={24}
+                color="#007B8E"
+                style={styles.platformIcon}
+              />
+              <Text style={styles.dropdownItemText}>{platform.name}</Text>
+            </TouchableOpacity>
+          ))}
+          <View style={styles.dropdownButtonContainer}>
+            <TouchableOpacity
+              style={styles.dropdownDoneButton}
+              onPress={() => setShowSocialMediaDropdown(false)}>
+              <Text style={styles.dropdownDoneButtonText}>Done</Text>
+            </TouchableOpacity>
           </View>
-        </TouchableOpacity>
-      </Modal>
-    );
-  };
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+};
+
   const handleEditVideo = (video: YouTubeVideo) => {
     setNewVideoTitle(video.title);
     setNewVideoUrl(video.url);
@@ -1288,6 +1298,23 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       justifyContent: 'space-between',
       marginTop: 10,
     },
+     dropdownButtonContainer: {
+    marginTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    paddingTop: 15,
+  },
+  dropdownDoneButton: {
+    backgroundColor: '#007B8E',
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  dropdownDoneButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
     videoDescriptionInput: {
       height: 80,
       textAlignVertical: 'top',

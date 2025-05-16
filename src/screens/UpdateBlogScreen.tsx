@@ -288,6 +288,7 @@ const UpdateBlogScreen: React.FC<UpdateBlogScreenProps> = ({
 
   const handleUpdateBlog = async () => {
     // Validate form first
+    Keyboard.dismiss();
     if (!validateForm()) {
       return;
     }

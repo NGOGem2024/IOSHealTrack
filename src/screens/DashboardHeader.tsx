@@ -56,7 +56,7 @@ const DashboardHeader: React.FC = () => {
             style={styles.logoImage}
             resizeMode="contain"
           />
-          <Text style={styles.versionText}>v0.5</Text>
+          <Text style={styles.versionText}>v0.6</Text>
         </View>
         <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
           <Ionicons name="menu" size={26} color="#FFFFFF" />

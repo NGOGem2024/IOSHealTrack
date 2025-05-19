@@ -78,7 +78,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
             style={styles.logoImage}
             resizeMode="contain"
           />
-          <Text style={styles.versionText}>v0.5</Text>
+          <Text style={styles.versionText}>v0.6</Text>
         </TouchableOpacity>
 
         <View style={styles.rightSection}>

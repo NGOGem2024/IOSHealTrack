@@ -32,6 +32,7 @@ import {CustomPicker, CustomRadioGroup} from './customradio';
 import LoadingScreen from '../components/loadingScreen';
 import PhoneInput from 'react-native-phone-number-input';
 import CountryPicker from './CountryPickerDoctors';
+import UpdateDocSkeletonLoader from '../components/UpdateDocSkeletonLoader';
 
 const {width} = Dimensions.get('window');
 
@@ -348,9 +349,10 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <LoadingScreen />
-      </View>
+          <View style={{flex: 1}}>
+        <BackTabTop screenName="Appointments" />
+      <UpdateDocSkeletonLoader />
+    </View>
     );
   }
 

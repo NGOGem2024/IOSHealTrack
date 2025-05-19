@@ -65,7 +65,7 @@ const purpleTheme: Theme = {
   name: 'purple',
   colors: {
     primary: '#8A2BE2',
-    background: '#F8F0FF',
+    background: '#FFFFFF',
     card: '#E6D0FF',
     text: '#4B0082',
     border: '#D8BFD8',

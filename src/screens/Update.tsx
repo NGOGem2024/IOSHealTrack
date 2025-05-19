@@ -39,6 +39,7 @@ interface Therapy {
   therepy_end_time?: string;
   status?: string;
   therepy_cost?: string;
+  doctor_id: string;
 }
 interface PickerItem {
   _id: string;

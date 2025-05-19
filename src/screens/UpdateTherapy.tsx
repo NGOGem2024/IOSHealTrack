@@ -40,6 +40,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 //import UpdateTherapySkeleton from '../../components/UpdateTherapySkeleton';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import UpdateTherapySkeleton from '../components/UpdateTherapySkeleton';
+import { useTheme } from './ThemeContext';
+import { getTheme } from './Theme';
 interface Therapy {
   _id: string;
   plan_id: string;
@@ -52,6 +54,7 @@ interface Therapy {
   therepy_start_time: string;
   therepy_end_time?: string;
   status?: string;
+  doctor_id : string;
   therepy_cost?: string;
   doctor_name?: string;
 }
@@ -61,6 +64,12 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TherapyHistory'>;
 const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
   const {session} = useSession();
   const patientId = route.params?.patientId;
+const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
+  );
 
   const [therapies, setTherapies] = useState<Therapy[] | undefined>(undefined);
   const [pastTherapies, setPastTherapies] = useState<Therapy[]>([]);
@@ -469,6 +478,15 @@ const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
     );
   };
 
+if (isLoading) {
+  return (
+    <View style={{flex: 1}}>
+        <BackTabTop screenName="Appointments" />
+      <UpdateTherapySkeleton />
+    </View>
+  );
+}
+
   return (
     <View style={styles.safeArea}>
       <BackTabTop screenName="Appointments" />
@@ -542,12 +560,8 @@ const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
           </View>
         )}
 
-        {isLoading ? (
-          // Replace loading text with skeleton loader
-          <View style={{flex: 1}}>
-            <UpdateTherapySkeleton />
-          </View>
-        ) : (
+        
+        
           <FlatList
             data={getDisplayedTherapies()}
             keyExtractor={item => item._id}
@@ -562,7 +576,6 @@ const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           />
-        )}
       </View>
       {editingTherapy && (
         <EditTherapy
@@ -688,12 +701,12 @@ const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
 
 const windowWidth = Dimensions.get('window').width;
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   selectedDropdownItem: {
     backgroundColor: 'rgba(17, 159, 179, 0.1)',
   },
   therapyCard: {
-    backgroundColor: '#f0fbfc', // Changed from rgba to solid color
+    backgroundColor: theme.colors.card, // Changed from rgba to solid color
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
@@ -742,7 +755,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white', // Changed from rgba to solid color
+    backgroundColor: theme.colors.border,
     padding: 10,
     borderRadius: 5,
     marginBottom: 10,
@@ -752,7 +765,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   dropdownText: {
-    color: '#333333',
+    color: theme.colors.text,
   },
   safeArea: {
     flex: 1,
@@ -885,7 +898,7 @@ const styles = StyleSheet.create({
   },
   therapyText: {
     fontSize: 14,
-    color: '#333333',
+    color: theme.colors.text,
     marginBottom: 4,
   },
   buttonContainer: {
@@ -930,7 +943,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   dropdownContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.border,
     borderRadius: 5,
     overflow: 'hidden',
     marginBottom: 10,
@@ -938,7 +951,7 @@ const styles = StyleSheet.create({
   dropdownItem: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    borderBottomColor: theme.colors.border,
   },
   modalTitle: {
     fontSize: 20,

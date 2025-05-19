@@ -54,7 +54,7 @@ const DoctorScreenSkeleton: React.FC<SkeletonProps> = ({theme}) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: '#007b8e',
     },
     profileCard: {
       backgroundColor: colors.card,

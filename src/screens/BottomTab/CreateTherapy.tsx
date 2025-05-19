@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {useTheme} from '../ThemeContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ConfirmationPopup from './confirmationpopup';
+import {useFocusEffect} from '@react-navigation/native'; // Import useFocusEffect
 
 import moment from 'moment-timezone';
 import {useSession} from '../../context/SessionContext';
@@ -28,7 +29,6 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../types/types';
 import BackTabTop from '../BackTopTab';
 import NoPlanPopup from './noplan';
-//import LoadingScreen from '../../components/loadingScreen';
 import BookAppSkeletonLoader from '../../components/BookAppSkeletonLoader';
 import {Bold} from 'lucide-react-native';
 import AvailableSlots from '../AvailableSlots';
@@ -111,16 +111,30 @@ const CreateTherapy = ({route, navigation}: Props) => {
     );
   }, [appointmentType, hasLiveSwitchAccess]);
 
+  // Initial data fetching on component mount
   useEffect(() => {
     fetchDoctors();
     fetchTherapyPlans();
   }, []);
+
+  // Use useFocusEffect to refetch therapy plans when the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // This will run when the screen comes into focus
+      fetchTherapyPlans();
+      return () => {
+        // This will run when the screen goes out of focus (cleanup)
+      };
+    }, [patientId, session.idToken]), // Add dependencies that should trigger a refetch
+  );
+
   useEffect(() => {
     if (therapyPlans.length > 0) {
       const latestPlan = therapyPlans[therapyPlans.length - 1];
       setSelectedPlan(latestPlan);
     }
   }, [therapyPlans]);
+  
   useEffect(() => {
     checkLiveSwitchAccess();
   }, [session.accessToken]);
@@ -130,6 +144,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
     setHasLiveSwitchAccess(!!liveTokens);
     setShowLiveSwitchLogin(appointmentType === 'Liveswitch' && !liveTokens);
   };
+  
   const renderSlotDurationPicker = () => {
     if (Platform.OS === 'ios') {
       return (
@@ -193,16 +208,11 @@ const CreateTherapy = ({route, navigation}: Props) => {
       </View>
     );
   };
+  
   const handleLiveSwitchLoginSuccess = async () => {
     await checkLiveSwitchAccess();
     showSuccessToast('Signed in with LiveSwitch successfully');
   };
-
-  // useEffect(() => {
-  //   if (selectedDoctor && selectedDate) {
-  //     fetchAvailableSlots(selectedDate);
-  //   }
-  // }, [selectedDoctor, selectedDate, slotDuration]);
 
   const handleAppointmentTypeChange = (type: string) => {
     setAppointmentType(type);
@@ -238,22 +248,29 @@ const CreateTherapy = ({route, navigation}: Props) => {
 
   const fetchTherapyPlans = async () => {
     try {
+      
       const response = await axiosinstance.get(`/get/plans/${patientId}`, {
         headers: {
           Authorization: `Bearer ${session.idToken}`,
         },
       });
+      
       setTherapyPlans(response.data.therapy_plans);
+      
       if (
         !response.data.therapy_plans ||
         response.data.therapy_plans.length === 0
       ) {
         setShowNoPlanPopup(true);
+      } else {
+        // Hide the popup if plans exist
+        setShowNoPlanPopup(false);
       }
     } catch (error) {
       handleError(error);
     }
   };
+  
   if (isLoading) {
     return (
       <View style={styles.safeArea}>
@@ -288,42 +305,17 @@ const CreateTherapy = ({route, navigation}: Props) => {
     setShowDatePicker(Platform.OS === 'ios');
     setSelectedDate(currentDate);
   };
+  
   const handleCreatePlan = () => {
     setShowNoPlanPopup(false);
-    navigation.navigate('CreateTherapyPlan', {patientId});
+    navigation.navigate('CreateTherapyPlan', {
+      patientId,
+      onPlanCreated: () => {
+      
+      },
+    });
   };
 
-  // Ensure the fetchAvailableSlots function is properly defined in the component scope
-  // const fetchAvailableSlots = async (date: Date) => {
-  //   if (!selectedDoctor) {
-  //     handleError(new Error('Please select a doctor first.'));
-  //     return;
-  //   }
-
-  //   setIsLoadingSlots(true);
-  //   setError('');
-  //   try {
-  //     const response = await axiosinstance.post(
-  //       '/availability',
-  //       {
-  //         date: moment(date).format('YYYY-MM-DD'),
-  //         doctor_id: selectedDoctor._id,
-  //         slot_duration: slotDuration, // Add slot duration to the request
-  //       },
-  //       {
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //           Authorization: `Bearer ${session.idToken}`,
-  //         },
-  //       },
-  //     );
-  //     setAvailableSlots(response.data);
-  //   } catch (error) {
-  //     handleError(error);
-  //   } finally {
-  //     setIsLoadingSlots(false);
-  //   }
-  // };
   const isSlotDisabled = (slot: any) => {
     const now = new Date();
     const slotDate = new Date(selectedDate);

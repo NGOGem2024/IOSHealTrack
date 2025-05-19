@@ -5,8 +5,10 @@ import {NavigatorScreenParams} from '@react-navigation/native';
 export type RootStackParamList = {
   TabNavigator: NavigatorScreenParams<RootTabParamList>;
   Register: undefined;
-  Auth: undefined;
-  CreateTherapyPlan: {patientId?: string};
+  Auth: undefined;  CreateTherapyPlan: {
+    patientId?: string;
+    onPlanCreated?: () => void; // Add the callback parameter
+  };
   UpdatePatient: {patientId?: string};
   PatientRegister: undefined;
   Doctor: {doctorId?: string};

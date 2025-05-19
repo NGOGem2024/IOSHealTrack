@@ -210,7 +210,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 {/* Modal Header */}
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>Record Payment</Text>
-                  <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                  <TouchableOpacity
+                    onPress={onClose}
+                    style={styles.closeButton}>
                     <Text style={styles.closeButtonText}>✕</Text>
                   </TouchableOpacity>
                 </View>
@@ -218,7 +220,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 {paymentInfo.payment_structure.next_payment_number && (
                   <View style={styles.paymentNumberBadge}>
                     <Text style={styles.paymentNumberBadgeText}>
-                      Payment #{paymentInfo.payment_structure.next_payment_number}
+                      Payment #
+                      {paymentInfo.payment_structure.next_payment_number}
                     </Text>
                   </View>
                 )}
@@ -281,7 +284,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                           returnKeyType="done"
                         />
                       </View>
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={styles.addButton}
                         activeOpacity={0.7}
                         onPress={handleAddonSubmit}>
@@ -297,11 +300,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       <Text style={styles.addonAmount}>₹{addon.amount}</Text>
                       <TouchableOpacity
                         onPress={() => {
-                          const newAddons = addons.filter((_, i) => i !== index);
+                          const newAddons = addons.filter(
+                            (_, i) => i !== index,
+                          );
                           setAddons(newAddons);
                         }}
                         style={styles.removeButton}>
-                        <Icon name="times" size={normalize(16)} color="#e74c3c" />
+                        <Icon
+                          name="times"
+                          size={normalize(16)}
+                          color="#e74c3c"
+                        />
                       </TouchableOpacity>
                     </View>
                   ))}

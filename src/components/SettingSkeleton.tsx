@@ -6,6 +6,7 @@ import {
   Dimensions,
   ViewStyle,
 } from 'react-native';
+import { useTheme } from '../screens/ThemeContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -16,9 +17,18 @@ interface SkeletonItemProps {
   borderRadius?: number;
 }
 
-const SettingsScreenSkeleton: React.FC = () => {
+// Component props interface
+interface SettingsScreenSkeletonProps {
+  // You can add any props needed here
+}
+
+const SettingsScreenSkeleton: React.FC<SettingsScreenSkeletonProps> = () => {
+  // Use the theme context to get current theme
+  const { theme } = useTheme();
+  const isDarkMode = theme.name === 'dark';
+
   // Create an animated value for shimmer effect
-  const shimmerAnimation = new Animated.Value(0);
+  const shimmerAnimation = React.useRef(new Animated.Value(0)).current;
 
   // Start shimmer animation
   React.useEffect(() => {
@@ -36,13 +46,16 @@ const SettingsScreenSkeleton: React.FC = () => {
         }),
       ])
     ).start();
-  }, []);
+  }, [shimmerAnimation]);
 
   // Interpolate shimmer animation
   const shimmerTranslate = shimmerAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: [-screenWidth, screenWidth],
   });
+
+  // Get theme-aware styles
+  const styles = getStyles(isDarkMode);
 
   // Shimmer overlay component
   const ShimmerOverlay = () => (
@@ -78,10 +91,6 @@ const SettingsScreenSkeleton: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Back Tab Top Skeleton */}
-      <View style={styles.backTabSkeleton}>
-        <SkeletonItem height={50} width={150} borderRadius={4} />
-      </View>
 
       {/* Organization Settings Card Skeleton */}
       <View style={styles.section}>
@@ -128,10 +137,11 @@ const SettingsScreenSkeleton: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+// Create styles based on theme
+const getStyles = (isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: isDarkMode ? '#121212' : '#F3F4F6',
     paddingHorizontal: 20,
     paddingVertical: 15,
   },
@@ -139,18 +149,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? '#233436' : '#FFFFFF',
     padding: 15,
     borderRadius: 10,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDarkMode ? 0.4 : 0.1,
     shadowRadius: 1.5,
     elevation: 3,
+    borderColor: isDarkMode ? '#119FB3' : 'white',
+    borderWidth: 1,
   },
   skeletonItem: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: isDarkMode ? '#2C2C2C' : '#E5E7EB',
     overflow: 'hidden',
     marginVertical: 5,
   },
@@ -160,13 +172,13 @@ const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
     width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.5)',
   },
   organizationCardSkeleton: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: isDarkMode ? '#1E1E1E' : '#F9FAFB',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: isDarkMode ? '#333333' : '#E5E7EB',
   },
   orgCardContentSkeleton: {
     flexDirection: 'row',
@@ -184,7 +196,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: isDarkMode ? '#2C2C2C' : '#f0f0f0',
   },
   buttonContainerSkeleton: {
     marginTop: 20,

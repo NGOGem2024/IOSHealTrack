@@ -27,6 +27,7 @@ import LoadingScreen from '../components/loadingScreen';
 import ImagePicker from 'react-native-image-crop-picker';
 import {Platform} from 'react-native';
 import {useSession} from '../context/SessionContext';
+import OrganizationSkeletonLoader from '../components/OrganizationSkeletonLoader';
 const defaultOrgLogo = require('../assets/profile.png');
 const defaultOrgBanner = require('../assets/banner.jpg');
 
@@ -765,7 +766,7 @@ const SocialMediaDropdown = () => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <LoadingScreen />
+        <OrganizationSkeletonLoader />
       </View>
     );
   }

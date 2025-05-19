@@ -356,7 +356,7 @@ const UpdatePatient: React.FC<UpdatePatientProps> = ({navigation, route}) => {
                   />
                 </View>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, {color: currentColors.text}]}
                   placeholder="Enter Email"
                   value={patientData.patient_email}
                   onChangeText={value =>

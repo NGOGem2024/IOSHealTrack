@@ -26,7 +26,7 @@ const CustomPicker: React.FC<CustomPickerProps> = ({
   placeholder,
 }) => {
   const [modalVisible, setModalVisible] = React.useState(false);
-const {theme} = useTheme();
+  const {theme} = useTheme();
   const styles = getStyles(
     getTheme(
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
@@ -53,7 +53,6 @@ const {theme} = useTheme();
               label={item.label}
               value={item.value}
               color={theme.colors.text}
-             
             />
           ))}
         </Picker>
@@ -106,59 +105,59 @@ const {theme} = useTheme();
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
-  androidPickerContainer: {
-    backgroundColor: theme.colors.border,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  androidPicker: {
-    height: 48,
-    marginHorizontal:15,
-    paddingLeft:5,
-    backgroundColor: theme.colors.border,
-    color: theme.colors.text,
-  },
-  iosPickerContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  iosPickerButton: {
-    height: 48,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  selectedText: {
-    fontSize: 16,
-    color: '#000000',
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalView: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-  },
-  modalButtonText: {
-    color: '#119FB3',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  iosPicker: {
-    backgroundColor: '#FFFFFF',
-    height: 216,
-  },
-});
+    androidPickerContainer: {
+      backgroundColor: theme.colors.border,
+      borderRadius: 20,
+      overflow: 'hidden',
+    },
+    androidPicker: {
+      height: 48,
+      marginHorizontal: 15,
+      paddingLeft: 5,
+      backgroundColor: theme.colors.border,
+      color: theme.colors.text,
+    },
+    iosPickerContainer: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 20,
+      overflow: 'hidden',
+    },
+    iosPickerButton: {
+      height: 48,
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      backgroundColor: theme.colors.border,
+    },
+    selectedText: {
+      fontSize: 16,
+      color: theme.colors.text,
+    },
+    modalOverlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalView: {
+      backgroundColor: '#FFFFFF',
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: '#E5E5E5',
+    },
+    modalButtonText: {
+      color: '#119FB3',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    iosPicker: {
+      backgroundColor: '#FFFFFF',
+      height: 216,
+    },
+  });
 
 export default CustomPicker;

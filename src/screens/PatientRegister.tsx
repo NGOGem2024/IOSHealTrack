@@ -217,7 +217,7 @@ const PatientRegister: React.FC<PatientRegisterScreenProps> = ({
     try {
       const formattedData = {
         ...patientData,
-        patient_phone: `+${selectedCountry.callingCode}${patientData.patient_phone}`,
+        patient_phone: `+${selectedCountry.callingCode} ${patientData.patient_phone}`,
       };
 
       const response = await axiosInstance.post(

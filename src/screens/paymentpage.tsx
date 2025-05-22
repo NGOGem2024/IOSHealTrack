@@ -381,34 +381,6 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
             </View>
           </View>
 
-          <PaymentModal
-            visible={isPaymentModalVisible}
-            onClose={() => setIsPaymentModalVisible(false)}
-            onSubmit={handleRecordPayment}
-            currentSession={paymentInfo.session_info.completed_sessions}
-            paymentInfo={paymentInfo}
-          />
-          <EditPaymentModal
-            visible={isEditModalVisible}
-            onClose={() => {
-              setIsEditModalVisible(false);
-              setSelectedPayment(null);
-            }}
-            onSubmit={handleEditPayment}
-            paymentData={
-              selectedPayment
-                ? {
-                    amount: selectedPayment.amount,
-                    type: selectedPayment.type,
-                    addon_services: selectedPayment.addon_services || [],
-                  }
-                : {
-                    amount: 0,
-                    type: 'CASH',
-                    addon_services: [],
-                  }
-            }
-          />
           <Modal
             visible={isCloseModalVisible}
             animationType="fade"
@@ -448,6 +420,34 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
             </View>
           </Modal>
         </ScrollView>
+        <PaymentModal
+          visible={isPaymentModalVisible}
+          onClose={() => setIsPaymentModalVisible(false)}
+          onSubmit={handleRecordPayment}
+          currentSession={paymentInfo.session_info.completed_sessions}
+          paymentInfo={paymentInfo}
+        />
+        <EditPaymentModal
+          visible={isEditModalVisible}
+          onClose={() => {
+            setIsEditModalVisible(false);
+            setSelectedPayment(null);
+          }}
+          onSubmit={handleEditPayment}
+          paymentData={
+            selectedPayment
+              ? {
+                  amount: selectedPayment.amount,
+                  type: selectedPayment.type,
+                  addon_services: selectedPayment.addon_services || [],
+                }
+              : {
+                  amount: 0,
+                  type: 'CASH',
+                  addon_services: [],
+                }
+          }
+        />
       </View>
     </View>
   );

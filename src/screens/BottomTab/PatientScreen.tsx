@@ -393,6 +393,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
               onPress={() =>
                 navigation.navigate('CreateConsultation', {
                   patientId: patientId,
+                  appointmentId: '',
                 })
               }>
               <MaterialIcons name="add" size={22} color="#FFFFFF" />

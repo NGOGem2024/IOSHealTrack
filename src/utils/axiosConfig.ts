@@ -3,6 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSession} from '../context/SessionContext';
 import {Platform} from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
+import * as Keychain from 'react-native-keychain';
+
 
 let isConnected: boolean = true;
 
@@ -12,8 +14,8 @@ NetInfo.addEventListener(state => {
 });
 
 const instance = axios.create({
-  baseURL: 'https://healtrack.azurewebsites.net/',
-  // baseURL: 'http://192.168.31.74:5000',
+  //baseURL: 'https://healtrack.azurewebsites.net/',
+  baseURL: 'http://192.168.1.9:5000',
   //baseURL: 'https://healtrackapp-production-b2ab.up.railway.app',
   headers: {
     'Content-Type': 'application/json',
@@ -38,7 +40,8 @@ instance.interceptors.request.use(
       throw new NetworkError('No internet connection');
     }
 
-    const idToken = await AsyncStorage.getItem('userToken');
+     const keychainResult = await Keychain.getGenericPassword();
+      const idToken = keychainResult ? keychainResult.password : null;
     const accessToken = await AsyncStorage.getItem('googleAccessToken');
     const liveSwitchToken = await AsyncStorage.getItem('LiveTokens');
     const liveSwitchTokenExpiresAt = await AsyncStorage.getItem(

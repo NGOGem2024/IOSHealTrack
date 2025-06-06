@@ -44,12 +44,20 @@ interface Addon {
   amount: number;
 }
 
+interface TherapySession {
+  _id: string;
+  status: string;
+  date: string;
+  session_number: number;
+}
+
 interface PaymentModalProps {
   visible: boolean;
   onClose: () => void;
   onSubmit: (amount: number, type: string, addons?: Addon[]) => void;
   currentSession: number;
   paymentInfo: any;
+  selectedSession?: TherapySession | null; // Add this line
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({
@@ -58,6 +66,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   onSubmit,
   currentSession,
   paymentInfo,
+  selectedSession, // Add this parameter
 }) => {
   const [amount, setAmount] = useState<string>('');
   const [isAdditionalServicesOpen, setIsAdditionalServicesOpen] =
@@ -125,6 +134,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const calculateTotalAmount = () => {
     return calculateBaseAmount() + calculateAddonTotal();
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
   };
 
   const renderPaymentMethodSelector = () => {
@@ -216,6 +234,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     <Text style={styles.closeButtonText}>✕</Text>
                   </TouchableOpacity>
                 </View>
+
+                {/* Selected Session Info */}
+                {selectedSession && (
+                  <View style={styles.selectedSessionContainer}>
+                    <Text style={styles.selectedSessionLabel}>Selected Session:</Text>
+                    <Text style={styles.selectedSessionText}>
+                      Session {selectedSession.session_number} - {formatDate(selectedSession.date)}
+                    </Text>
+                  </View>
+                )}
 
                 {paymentInfo.payment_structure.next_payment_number && (
                   <View style={styles.paymentNumberBadge}>
@@ -393,6 +421,24 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: normalize(22),
       color: '#119FB3',
       fontWeight: '700',
+    },
+    selectedSessionContainer: {
+      backgroundColor: theme.colors.border,
+      padding: getResponsiveSize(12),
+      borderRadius: getResponsiveSize(10),
+      marginBottom: getResponsiveSize(15),
+      borderLeftWidth: 4,
+      borderLeftColor: '#007B8E',
+    },
+    selectedSessionLabel: {
+      fontSize: normalize(14),
+      color: '#6c757d',
+      marginBottom: getResponsiveSize(4),
+    },
+    selectedSessionText: {
+      fontSize: normalize(16),
+      fontWeight: '600',
+      color: theme.colors.text,
     },
     inputSection: {
       marginBottom: getResponsiveSize(18),

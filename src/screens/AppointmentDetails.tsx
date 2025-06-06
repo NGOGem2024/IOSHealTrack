@@ -294,6 +294,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
         navigation.navigate('payment', {
           planId: appointment.plan_id,
           patientId: appointment.patient_id,
+          therapyId: appointment._id
         });
       } else {
         Alert.alert('Error', 'Failed to end therapy session.');

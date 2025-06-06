@@ -167,7 +167,7 @@ const calculateTherapyProgress = (therapyPlan: TherapyPlan): number => {
 
     // Safely count completed sessions
     const completedSessions = therapyPlan.therapy_sessions.filter(
-      session => session && session.status === 'Completed',
+      session => session && session.status === 'completed',
     ).length;
 
     // Calculate progress percentage

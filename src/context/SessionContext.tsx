@@ -5,6 +5,8 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react';
+import * as Keychain from 'react-native-keychain';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Session {
@@ -37,46 +39,53 @@ export const SessionProvider: React.FC<{children: ReactNode}> = ({
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const loadSession = async () => {
-      try {
-        const idToken = await AsyncStorage.getItem('userToken');
-        const accessToken = await AsyncStorage.getItem('googleAccessToken');
-        const isadmin = await AsyncStorage.getItem('is_admin');
-        const doctor_id = await AsyncStorage.getItem('doctor_id');
-        const is_admin = isadmin === 'true';
+ useEffect(() => {
+  const loadSession = async () => {
+    try {
+      const keychainResult = await Keychain.getGenericPassword();
+      const accessToken = await AsyncStorage.getItem('googleAccessToken');
+      const isadmin = await AsyncStorage.getItem('is_admin');
+      const doctor_id = await AsyncStorage.getItem('doctor_id');
+      const is_admin = isadmin === 'true';
 
-        if (idToken) {
-          setSession({
-            isLoggedIn: true,
-            idToken,
-            accessToken,
-            is_admin,
-            doctor_id,
-          });
-        } else {
-          // Ensure isLoggedIn is set to false if there's no idToken
-          setSession(prev => ({...prev, isLoggedIn: false}));
-        }
-      } catch (error) {
-        console.error('Error loading session:', error);
-        // Ensure isLoggedIn is set to false in case of an error
+      if (keychainResult) {
+        const idToken = keychainResult.password; // ← token is stored here
+        setSession({
+          isLoggedIn: true,
+          idToken,
+          accessToken,
+          is_admin,
+          doctor_id,
+        });
+      } else {
         setSession(prev => ({...prev, isLoggedIn: false}));
-      } finally {
-        setIsLoading(false);
       }
-    };
-    loadSession();
-  }, []);
+    } catch (error) {
+      console.error('Error loading session:', error);
+      setSession(prev => ({...prev, isLoggedIn: false}));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  loadSession();
+}, []);
+
 
   const logout = async () => {
-    await AsyncStorage.removeItem('userToken');
+  try {
+    // Remove token stored in Keychain
+    await Keychain.resetGenericPassword();
+
+    // Remove other data from AsyncStorage
     await AsyncStorage.removeItem('is_admin');
     await AsyncStorage.removeItem('doctor_id');
     await AsyncStorage.removeItem('googleAccessToken');
     await AsyncStorage.removeItem('LiveTokens');
     await AsyncStorage.removeItem('doctor_photo');
     await AsyncStorage.removeItem('expires_in');
+
+    // Reset session state
     setSession({
       isLoggedIn: false,
       idToken: null,
@@ -84,8 +93,10 @@ export const SessionProvider: React.FC<{children: ReactNode}> = ({
       is_admin: false,
       doctor_id: null,
     });
-  };
-
+  } catch (error) {
+    console.error('Error during logout:', error);
+  }
+};
   const updateAccessToken = async (newAccessToken: string) => {
     await AsyncStorage.setItem('googleAccessToken', newAccessToken);
     setSession(prevSession => ({

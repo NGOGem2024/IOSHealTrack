@@ -13,6 +13,8 @@ import {
   Dimensions,
   SafeAreaView,
 } from 'react-native';
+import * as Keychain from 'react-native-keychain';
+
 import {useSession} from '../context/SessionContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from '../utils/axiosConfig';
@@ -106,7 +108,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
       if (response.data.token) {
         // Store token and other basic info
-        await AsyncStorage.setItem('userToken', response.data.token);
+        await Keychain.setGenericPassword('auth', response.data.token);
+
         await AsyncStorage.setItem(
           'is_admin',
           JSON.stringify(response.data.is_admin),
@@ -174,7 +177,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
       if (response.data.token) {
         // Store token and other basic info
-        await AsyncStorage.setItem('userToken', response.data.token);
+       await Keychain.setGenericPassword('auth', response.data.token);
         await AsyncStorage.setItem(
           'is_admin',
           JSON.stringify(response.data.is_admin),

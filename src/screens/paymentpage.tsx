@@ -66,13 +66,14 @@ interface PaymentInfo {
     type: string;
     session_number: number;
     addon_services?: Addon[];
+    therapyId?: string; // Add this to match your data structure
   }>;
-  therapy_sessions?: TherapySession[]; // Add this to include session data
+  therapy_sessions?: TherapySession[];
 }
 
 const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
   const {theme} = useTheme();
-  const {planId, patientId} = route.params || {};
+  const {planId, patientId, therapyId} = route.params || {}; // Extract therapyId from params
   const styles = getStyles(
     getTheme(
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
@@ -85,16 +86,31 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
   const [isCloseModalVisible, setIsCloseModalVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
-  
+
   // Add state for session selection
-  const [availableSessions, setAvailableSessions] = useState<TherapySession[]>([]);
-  const [isSessionDropdownVisible, setIsSessionDropdownVisible] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<TherapySession | null>(null);
+  const [availableSessions, setAvailableSessions] = useState<TherapySession[]>(
+    [],
+  );
+  const [filteredSessions, setFilteredSessions] = useState<TherapySession[]>(
+    [],
+  ); // New state for filtered sessions
+  const [isSessionDropdownVisible, setIsSessionDropdownVisible] =
+    useState(false);
+  const [selectedSession, setSelectedSession] = useState<TherapySession | null>(
+    null,
+  );
 
   useEffect(() => {
     fetchPaymentInfo();
-    fetchPlanDetails(); // Add this to get session data
+    fetchPlanDetails();
   }, []);
+
+  // New useEffect to filter sessions and auto-select when data is loaded
+  useEffect(() => {
+    if (availableSessions.length > 0 && paymentInfo?.payment_history) {
+      filterAvailableSessions();
+    }
+  }, [availableSessions, paymentInfo, therapyId]);
 
   const fetchPaymentInfo = async () => {
     try {
@@ -111,23 +127,83 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
     }
   };
 
-  // Add new function to fetch plan details with session data
   const fetchPlanDetails = async () => {
     try {
       const response = await axiosInstance.get(`/get/plan/${planId}`);
-      
-      if (response.status === 200 && response.data.therapy_plan.therapy_sessions) {
+
+      if (
+        response.status === 200 &&
+        response.data.therapy_plan.therapy_sessions
+      ) {
         setAvailableSessions(response.data.therapy_plan.therapy_sessions);
-        // Set default selected session to the first available session
-        if (response.data.therapy_plan.therapy_sessions.length > 0) {
-          setSelectedSession(response.data.therapy_plan.therapy_sessions[0]);
-        }
       }
     } catch (error) {
       console.error('Error fetching plan details:', error);
     }
   };
 
+  const filterAvailableSessions = () => {
+    if (!availableSessions.length) {
+      setFilteredSessions([]);
+      setSelectedSession(null);
+      return;
+    }
+
+    // If no payment history, all sessions are available
+    if (
+      !paymentInfo?.payment_history ||
+      paymentInfo.payment_history.length === 0
+    ) {
+      setFilteredSessions(availableSessions);
+      setSelectedSession(
+        availableSessions.length > 0 ? availableSessions[0] : null,
+      );
+      return;
+    }
+
+    // Get session IDs that already have payments - only check therapyId field
+    const paidSessionIds = new Set();
+
+    paymentInfo.payment_history.forEach(payment => {
+      // Only add therapyId to the set (ignore payments without therapyId)
+      if (payment.therapyId) {
+        paidSessionIds.add(payment.therapyId);
+      }
+    });
+
+    // Filter out sessions that already have payments (by therapyId only)
+    const filtered = availableSessions.filter(session => {
+      const hasPayment = paidSessionIds.has(session._id);
+      return !hasPayment;
+    });
+
+    console.log('Filtered Sessions:', filtered);
+    setFilteredSessions(filtered);
+
+    // Auto-select session logic
+    let sessionToSelect = null;
+
+    if (therapyId) {
+      // If therapyId is provided in params, try to select that session
+      sessionToSelect = filtered.find(session => session._id === therapyId);
+
+      if (!sessionToSelect) {
+        // If the specified therapyId is not available (maybe already paid),
+        // show an alert and select the first available session
+        Alert.alert(
+          'Session Not Available',
+          'The specified session is not available for payment. It may have already been paid for.',
+          [{text: 'OK'}],
+        );
+        sessionToSelect = filtered.length > 0 ? filtered[0] : null;
+      }
+    } else {
+      // If no therapyId in params, select the first available session
+      sessionToSelect = filtered.length > 0 ? filtered[0] : null;
+    }
+
+    setSelectedSession(sessionToSelect);
+  };
   const handleRecordPayment = async (
     amount: number,
     type: string,
@@ -141,15 +217,18 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
 
       setLoading(true);
 
-      const response = await axiosInstance.post(`/put/payment/${planId}/${selectedSession._id}`, {
-        amount,
-        type,
-        session_number: selectedSession.session_number,
-        addon_services: addons.map(addon => ({
-          name: addon.name,
-          amount: addon.amount,
-        })),
-      });
+      const response = await axiosInstance.post(
+        `/put/payment/${planId}/${selectedSession._id}`,
+        {
+          amount,
+          type,
+          session_number: selectedSession.session_number,
+          addon_services: addons.map(addon => ({
+            name: addon.name,
+            amount: addon.amount,
+          })),
+        },
+      );
 
       if (response.status === 200) {
         showSuccessToast('Payment Recorded Successfully');
@@ -251,22 +330,32 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
     });
   };
 
-  // Session dropdown component
-const renderSessionDropdown = () => (
+  // Updated session dropdown component to use filtered sessions
+  const renderSessionDropdown = () => (
     <View style={styles.card}>
       <Text style={styles.sectionTitle}>Select Session</Text>
-      <TouchableOpacity
-        style={styles.dropdownButton}
-        onPress={() => setIsSessionDropdownVisible(true)}>
-        <Text style={styles.dropdownButtonText}>
-          {selectedSession 
-            ? `Session ${selectedSession.session_number} - ${formatDate(selectedSession.date)}` 
-            : 'Select a session'}
-        </Text>
-        <Text style={styles.dropdownArrow}>▼</Text>
-      </TouchableOpacity>
-      
-      {/* Session Dropdown Modal */}
+      {filteredSessions.length === 0 ? (
+        <View style={styles.noSessionsContainer}>
+          <Text style={styles.noSessionsText}>
+            All sessions have been paid for or no sessions available
+          </Text>
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={styles.dropdownButton}
+          onPress={() => setIsSessionDropdownVisible(true)}>
+          <Text style={styles.dropdownButtonText}>
+            {selectedSession
+              ? `Session ${selectedSession.session_number} - ${formatDate(
+                  selectedSession.date,
+                )}`
+              : 'Select a session'}
+          </Text>
+          <Text style={styles.dropdownArrow}>▼</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Session Dropdown Modal - Updated to use filteredSessions */}
       <Modal
         visible={isSessionDropdownVisible}
         animationType="fade"
@@ -282,13 +371,16 @@ const renderSessionDropdown = () => (
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.sessionList} showsVerticalScrollIndicator={false}>
-              {availableSessions.map((session) => (
+            <ScrollView
+              style={styles.sessionList}
+              showsVerticalScrollIndicator={false}>
+              {filteredSessions.map(session => (
                 <TouchableOpacity
                   key={session._id}
                   style={[
                     styles.sessionOption,
-                    selectedSession?._id === session._id && styles.selectedSessionOption
+                    selectedSession?._id === session._id &&
+                      styles.selectedSessionOption,
                   ]}
                   onPress={() => {
                     setSelectedSession(session);
@@ -299,19 +391,23 @@ const renderSessionDropdown = () => (
                       <Text style={styles.sessionOptionNumber}>
                         Session {session.session_number}
                       </Text>
-                      <View style={[
-                      styles.statusBadge,
-                      session.status === 'Completed' ? styles.completedBadge : 
-                      session.status === 'In Progress' ? styles.inProgressBadge :
-                      styles.scheduledBadge
-                    ]}>
-                      <Text style={styles.statusBadgeText}>{session.status}</Text>
-                    </View>
+                      <View
+                        style={[
+                          styles.statusBadge,
+                          session.status === 'Completed'
+                            ? styles.completedBadge
+                            : session.status === 'In Progress'
+                            ? styles.inProgressBadge
+                            : styles.scheduledBadge,
+                        ]}>
+                        <Text style={styles.statusBadgeText}>
+                          {session.status}
+                        </Text>
+                      </View>
                       <Text style={styles.sessionOptionDate}>
                         {formatDate(session.date)}
                       </Text>
                     </View>
-                    
                   </View>
                 </TouchableOpacity>
               ))}
@@ -351,7 +447,6 @@ const renderSessionDropdown = () => (
           style={styles.container}
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={true}>
-          
           {/* Session Selection Dropdown */}
           {renderSessionDropdown()}
 
@@ -479,7 +574,7 @@ const renderSessionDropdown = () => (
               </View>
             )}
           </View>
-          
+
           <View style={styles.footerContainer}>
             <View style={styles.buttonContainer}>
               <TouchableOpacity
@@ -489,12 +584,13 @@ const renderSessionDropdown = () => (
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
-                  styles.button, 
+                  styles.button,
                   styles.recordPaymentButton,
-                  !selectedSession && styles.disabledButton
+                  (!selectedSession || filteredSessions.length === 0) &&
+                    styles.disabledButton,
                 ]}
                 onPress={() => setIsPaymentModalVisible(true)}
-                disabled={!selectedSession}>
+                disabled={!selectedSession || filteredSessions.length === 0}>
                 <Text style={styles.buttonText}>Record Payment</Text>
               </TouchableOpacity>
             </View>
@@ -545,7 +641,7 @@ const renderSessionDropdown = () => (
           onSubmit={handleRecordPayment}
           currentSession={paymentInfo.session_info.completed_sessions}
           paymentInfo={paymentInfo}
-          selectedSession={selectedSession} // Pass selected session to modal
+          selectedSession={selectedSession}
         />
         <EditPaymentModal
           visible={isEditModalVisible}
@@ -573,17 +669,28 @@ const renderSessionDropdown = () => (
   );
 };
 
-
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
-     modalContainer: {
+    modalContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
       paddingHorizontal: 16,
     },
-    
+    noSessionsContainer: {
+      backgroundColor: theme.colors.border,
+      padding: 16,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    noSessionsText: {
+      fontSize: 16,
+      color: '#6c757d',
+      fontStyle: 'italic',
+      textAlign: 'center',
+    },
     dropdownModal: {
       backgroundColor: 'white',
       borderRadius: 16,
@@ -600,7 +707,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       shadowRadius: 8,
       elevation: 8,
     },
-    
+
     modalHeader: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -610,7 +717,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderBottomWidth: 1,
       borderBottomColor: '#e0e0e0',
     },
-    
+
     dropdownModalTitle: {
       fontSize: 20,
       fontWeight: '600',
@@ -618,7 +725,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       textAlign: 'center',
       flex: 1,
     },
-    
+
     closeButton1: {
       padding: 8,
       borderRadius: 20,
@@ -628,20 +735,20 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    
+
     closeButtonText: {
       fontSize: 18,
       color: '#6c757d',
       fontWeight: '600',
       lineHeight: 18,
     },
-    
+
     sessionList: {
       paddingHorizontal: 16,
       paddingVertical: 12,
       maxHeight: 400,
     },
-    
+
     sessionOption: {
       backgroundColor: '#f8f9fa',
       padding: 16,
@@ -650,35 +757,35 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderWidth: 1,
       borderColor: '#e0e0e0',
     },
-    
+
     selectedSessionOption: {
       backgroundColor: '#e8f4f8',
       borderColor: '#007B8E',
       borderWidth: 2,
     },
-    
+
     sessionOptionContent: {
       flexDirection: 'column',
       gap: 8,
     },
-    
+
     sessionOptionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    
+
     sessionOptionNumber: {
       fontSize: 16,
       fontWeight: '600',
       color: '#2c3e50',
     },
-    
+
     sessionOptionDate: {
       fontSize: 14,
       color: '#6c757d',
     },
-    
+
     statusBadge: {
       paddingHorizontal: 10,
       paddingVertical: 4,
@@ -686,25 +793,25 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignSelf: 'flex-start',
       marginTop: 4,
     },
-    
+
     completedBadge: {
       backgroundColor: '#d4edda',
     },
-    
+
     inProgressBadge: {
       backgroundColor: '#fff3cd',
     },
-    
+
     scheduledBadge: {
       backgroundColor: '#cce5ff',
     },
-    
+
     statusBadgeText: {
       fontSize: 12,
       fontWeight: '500',
       color: '#2c3e50',
     },
-     dropdownButton: {
+    dropdownButton: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',

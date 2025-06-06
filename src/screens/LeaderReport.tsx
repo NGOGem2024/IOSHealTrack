@@ -257,7 +257,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     chartTitle: {
       fontSize: normalize(20),
       fontWeight: '700',
-      color: '#007b8e',
+      color: theme.colors.mainColor,
       textAlign: 'center',
       marginBottom: getResponsiveSize(5),
     },

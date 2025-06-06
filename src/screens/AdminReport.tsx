@@ -753,7 +753,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.colors.inputBox,
+      backgroundColor: theme.colors.bgColor,
     },
     // Add overlay style for dropdown backdrop
     dropdownOverlay: {
@@ -902,7 +902,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     chartTitle: {
       fontSize: 20,
       fontWeight: '700',
-      color: '#007b8e',
+      color: theme.colors.mainColor,
       textAlign: 'center',
     },
     chartSubtitle: {
@@ -923,7 +923,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontWeight: '500',
     },
     noDataText: {
-      color: 'gray',
+      color: theme.colors.text,
       textAlign: 'center',
       marginTop: 20,
       marginBottom: 30,
@@ -970,7 +970,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     practoSummaryTitle: {
       fontSize: 18,
       fontWeight: '700',
-      color: '#007b8e',
+      color: theme.colors.mainColor,
       textAlign: 'center',
       marginBottom: 15,
     },

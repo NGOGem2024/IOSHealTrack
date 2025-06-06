@@ -13,7 +13,7 @@ import axiosinstance from '../utils/axiosConfig';
 import { useTheme } from '../screens/ThemeContext';
 import { getTheme } from '../screens/Theme';
 
-// Responsive utils (matching DoctorLeaderboard)
+// Responsive utils
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const scale = SCREEN_WIDTH / 375; // Base width is 375
 
@@ -69,7 +69,7 @@ const TherapyTypeByDoctor: React.FC<Props> = ({ month, year }) => {
   const { theme } = useTheme();
   const styles = getStyles(getTheme(theme.name as any));
 
-  // Animation refs (matching DoctorLeaderboard)
+  // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
@@ -169,50 +169,81 @@ const TherapyTypeByDoctor: React.FC<Props> = ({ month, year }) => {
     );
   };
 
-  const renderDoctorItem = (item: DoctorTherapyTypes, index: number) => (
-    <Animated.View
-      key={`${item.doctor_name}-${index}`}
-      style={[
-        styles.doctorCard,
-        {
-          opacity: fadeAnim,
-          transform: [{
-            translateX: slideAnim.interpolate({
-              inputRange: [0, 50],
-              outputRange: [0, 50],
-            }),
-          }],
-        },
-      ]}>
-      <View style={styles.doctorHeader}>
-        <View style={styles.doctorAvatar}>
-          <Text style={styles.doctorAvatarText}>
-            {item.doctor_name?.charAt(0) || 'D'}
-          </Text>
-        </View>
-        <Text style={styles.doctorName}>{item.doctor_name}</Text>
-      </View>
+  const renderDoctorItem = (item: DoctorTherapyTypes, index: number) => {
+    const therapyData = [
+      { 
+        type: 'In Clinic', 
+        count: item.therapyTypes['In Clinic'].count, 
+        color: '#007b8e',
+      },
+      { 
+        type: 'In Home', 
+        count: item.therapyTypes['In Home'].count, 
+        color: '#0b5e69',
+      },
+      { 
+        type: 'IP/ICU', 
+        count: item.therapyTypes['IP/ICU'].count, 
+        color: '#2c3e50',
+      },
+      { 
+        type: 'Online', 
+        count: item.therapyTypes['Online'].count, 
+        color: '#27ae60',
+      },
+    ];
 
-      <View style={styles.therapyGrid}>
-        <View style={[styles.therapyItem, { backgroundColor: '#007b8e' }]}>
-          <Text style={styles.therapyLabel}>In Clinic</Text>
-          <Text style={styles.therapyValue}>{item.therapyTypes['In Clinic'].count}</Text>
+    // Calculate total sessions for this doctor
+    const totalSessions = therapyData.reduce((sum, therapy) => sum + therapy.count, 0);
+
+    return (
+      <Animated.View
+        key={`${item.doctor_name}-${index}`}
+        style={[
+          styles.doctorCard,
+          {
+            opacity: fadeAnim,
+            transform: [{
+              translateX: slideAnim.interpolate({
+                inputRange: [0, 50],
+                outputRange: [0, 50],
+              }),
+            }],
+          },
+        ]}>
+        
+        {/* Doctor Header */}
+        <View style={styles.doctorHeader}>
+          <View style={styles.doctorInfo}>
+            <View style={styles.doctorAvatar}>
+              <Text style={styles.doctorAvatarText}>
+                {item.doctor_name?.charAt(0) || 'D'}
+              </Text>
+            </View>
+            <View style={styles.doctorDetails}>
+              <Text style={styles.doctorName}>{item.doctor_name}</Text>
+              <Text style={styles.totalSessions}>Total Sessions: {totalSessions}</Text>
+            </View>
+          </View>
         </View>
-        <View style={[styles.therapyItem, { backgroundColor: '#0b5e69' }]}>
-          <Text style={styles.therapyLabel}>In Home</Text>
-          <Text style={styles.therapyValue}>{item.therapyTypes['In Home'].count}</Text>
+
+        {/* Therapy Types */}
+        <View style={styles.therapySection}>
+          <Text style={styles.therapySectionTitle}>Therapy Distribution</Text>
+          {therapyData.map((therapy) => (
+            <View key={therapy.type} style={styles.therapyRow}>
+              <View style={styles.therapyInfo}>
+                <Text style={styles.therapyType}>{therapy.type}</Text>
+              </View>
+              <View style={[styles.therapyCountBadge, { backgroundColor: therapy.color }]}>
+                <Text style={styles.therapyCount}>{therapy.count}</Text>
+              </View>
+            </View>
+          ))}
         </View>
-        <View style={[styles.therapyItem, { backgroundColor: '#2c3e50' }]}>
-          <Text style={styles.therapyLabel}>IP/ICU</Text>
-          <Text style={styles.therapyValue}>{item.therapyTypes['IP/ICU'].count}</Text>
-        </View>
-        <View style={[styles.therapyItem, { backgroundColor: '#27ae60' }]}>
-          <Text style={styles.therapyLabel}>Online</Text>
-          <Text style={styles.therapyValue}>{item.therapyTypes['Online'].count}</Text>
-        </View>
-      </View>
-    </Animated.View>
-  );
+      </Animated.View>
+    );
+  };
 
   if (loading) {
     return (
@@ -240,6 +271,7 @@ const TherapyTypeByDoctor: React.FC<Props> = ({ month, year }) => {
         </View>
       ) : (
         <View style={styles.doctorsList}>
+          <Text style={styles.doctorsListTitle}>Doctor Performance Breakdown</Text>
           {data.map((item, index) => renderDoctorItem(item, index))}
         </View>
       )}
@@ -251,106 +283,126 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     container: {
       backgroundColor: theme.colors.card,
-      borderRadius: getResponsiveSize(15),
-      padding: getResponsiveSize(20),
+      borderRadius: getResponsiveSize(12),
+      padding: getResponsiveSize(16),
       width: '100%',
-      marginBottom: getResponsiveSize(20),
+      marginBottom: getResponsiveSize(16),
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: getResponsiveSize(4) },
-      shadowOpacity: 0.1,
-      shadowRadius: getResponsiveSize(6),
-      elevation: 5,
+      shadowOffset: { width: 0, height: getResponsiveSize(3) },
+      shadowOpacity: 0.08,
+      shadowRadius: getResponsiveSize(5),
+      elevation: 4,
     },
     chartTitle: {
-      fontSize: normalize(20),
+      fontSize: normalize(18),
       fontWeight: '700',
-      color: '#007b8e',
+      color: theme.colors.mainColor,
       textAlign: 'center',
-      marginBottom: getResponsiveSize(5),
+      marginBottom: getResponsiveSize(4),
     },
     chartSubtitle: {
-      fontSize: normalize(14),
+      fontSize: normalize(13),
       color: '#7f8c8d',
       textAlign: 'center',
-      marginBottom: getResponsiveSize(20),
+      marginBottom: getResponsiveSize(16),
     },
     loading: {
       alignItems: 'center',
       justifyContent: 'center',
-      marginVertical: getResponsiveSize(50),
+      marginVertical: getResponsiveSize(40),
     },
     loadingText: {
-      marginTop: getResponsiveSize(10),
+      marginTop: getResponsiveSize(8),
       color: '#007b8e',
-      fontSize: normalize(16),
+      fontSize: normalize(14),
     },
     noDataContainer: {
       alignItems: 'center',
       justifyContent: 'center',
-      marginVertical: getResponsiveSize(50),
+      marginVertical: getResponsiveSize(40),
     },
     noDataText: {
-      fontSize: normalize(16),
+      fontSize: normalize(14),
       color: '#7f8c8d',
       textAlign: 'center',
     },
+    // Summary styles
     summaryContainer: {
-      marginBottom: getResponsiveSize(25),
+      marginBottom: getResponsiveSize(20),
     },
     summaryTitle: {
-      fontSize: normalize(18),
+      fontSize: normalize(16),
       fontWeight: '600',
-      color: '#007b8e',
+      color: theme.colors.mainColor,
       textAlign: 'center',
-      marginBottom: getResponsiveSize(15),
+      marginBottom: getResponsiveSize(12),
     },
     summaryCards: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
-      gap: getResponsiveSize(10),
+      gap: getResponsiveSize(8),
     },
     summaryCard: {
-      width: (SCREEN_WIDTH - getResponsiveSize(80)) / 2,
-      borderRadius: getResponsiveSize(12),
-      padding: getResponsiveSize(15),
+      width: (SCREEN_WIDTH - getResponsiveSize(72)) / 2,
+      borderRadius: getResponsiveSize(10),
+      padding: getResponsiveSize(12),
       alignItems: 'center',
-      elevation: 3,
+      elevation: 2,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: getResponsiveSize(2) },
-      shadowOpacity: 0.1,
-      shadowRadius: getResponsiveSize(4),
+      shadowOpacity: 0.08,
+      shadowRadius: getResponsiveSize(3),
     },
     summaryCardLabel: {
       fontSize: normalize(12),
       color: 'white',
       fontWeight: '500',
       textAlign: 'center',
-      marginBottom: getResponsiveSize(5),
+      marginBottom: getResponsiveSize(4),
     },
     summaryCardValue: {
-      fontSize: normalize(20),
+      fontSize: normalize(18),
       color: 'white',
       fontWeight: 'bold',
     },
+    // Doctor card styles
     doctorsList: {
-      // Container for doctor items - replaces FlatList
+      marginTop: getResponsiveSize(8),
+    },
+    doctorsListTitle: {
+      fontSize: normalize(16),
+      fontWeight: '600',
+      color: theme.colors.mainColor,
+      marginBottom: getResponsiveSize(12),
+      textAlign: 'center',
     },
     doctorCard: {
-      backgroundColor: '#f8f9fa',
-      borderRadius: getResponsiveSize(15),
-      padding: getResponsiveSize(16),
-      marginBottom: getResponsiveSize(15),
-      elevation: 2,
+      backgroundColor: theme.colors.inputBox,
+      borderRadius: getResponsiveSize(12),
+      padding: getResponsiveSize(12),
+      marginBottom: getResponsiveSize(12),
+      elevation: 3,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: getResponsiveSize(2) },
-      shadowOpacity: 0.05,
-      shadowRadius: getResponsiveSize(4),
+      shadowOpacity: 0.06,
+      shadowRadius: getResponsiveSize(6),
+      borderLeftWidth: getResponsiveSize(3),
+      borderLeftColor: '#007b8e',
     },
     doctorHeader: {
       flexDirection: 'row',
+      justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: getResponsiveSize(15),
+      marginBottom: getResponsiveSize(14),
+      paddingBottom: getResponsiveSize(12),
+      borderBottomWidth: 1,
+      borderBottomColor: '#f0f0f0',
+    },
+    doctorInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
     },
     doctorAvatar: {
       width: getResponsiveSize(40),
@@ -360,43 +412,62 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: getResponsiveSize(12),
+      elevation: 2,
     },
     doctorAvatarText: {
       fontSize: normalize(16),
       fontWeight: 'bold',
       color: 'white',
     },
-    doctorName: {
-      fontSize: normalize(16),
-      fontWeight: '600',
-      color: '#2c3e50',
+    doctorDetails: {
       flex: 1,
     },
-    therapyGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
-      gap: getResponsiveSize(8),
+    doctorName: {
+      fontSize: normalize(15),
+      fontWeight: '700',
+      color: theme.colors.text,
+      marginBottom: getResponsiveSize(3),
     },
-    therapyItem: {
-      width: (SCREEN_WIDTH - getResponsiveSize(120)) / 2,
-      borderRadius: getResponsiveSize(10),
-      padding: getResponsiveSize(12),
-      alignItems: 'center',
-      elevation: 2,
-    },
-    therapyLabel: {
-      fontSize: normalize(11),
-      color: 'white',
+    totalSessions: {
+      fontSize: normalize(12),
+      color: '#7f8c8d',
       fontWeight: '500',
-      textAlign: 'center',
-      marginBottom: getResponsiveSize(4),
     },
-    therapyValue: {
-      fontSize: normalize(18),
-      color: 'white',
+    therapySection: {
+      marginBottom: getResponsiveSize(8),
+    },
+    therapySectionTitle: {
+      fontSize: normalize(13),
+      fontWeight: '700',
+      color: theme.colors.mainColor,
+      marginBottom: getResponsiveSize(10),
+    },
+    therapyRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: getResponsiveSize(8),
+      paddingVertical: getResponsiveSize(2),
+    },
+    therapyInfo: {
+      flex: 1,
+    },
+    therapyType: {
+      fontSize: normalize(12),
+      fontWeight: '600',
+      color: theme.colors.text,
+    },
+    therapyCountBadge: {
+      borderRadius: getResponsiveSize(10),
+      paddingHorizontal: getResponsiveSize(8),
+      paddingVertical: getResponsiveSize(3),
+      elevation: 1,
+    },
+    therapyCount: {
+      fontSize: normalize(12),
       fontWeight: 'bold',
+      color: 'white',
     },
   });
 
-export default TherapyTypeByDoctor;
+  export default TherapyTypeByDoctor;

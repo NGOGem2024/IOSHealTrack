@@ -20,7 +20,7 @@ export type RootStackParamList = {
   Media: undefined;
   Report: undefined;
   Logout: undefined;
-  payment: {planId?: string; patientId?: string};
+  payment: {planId?: string; patientId?: string, therapyId: string};
   AllPatients: undefined;
   EditTherapyPlan: {planId?: string};
   OrganizationSettings: undefined;

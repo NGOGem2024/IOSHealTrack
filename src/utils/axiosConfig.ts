@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSession} from '../context/SessionContext';
 import {Platform} from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
+import * as Keychain from 'react-native-keychain';
 
 let isConnected: boolean = true;
 
@@ -38,7 +39,8 @@ instance.interceptors.request.use(
       throw new NetworkError('No internet connection');
     }
 
-    const idToken = await AsyncStorage.getItem('userToken');
+    const keychainResult = await Keychain.getGenericPassword();
+    const idToken = keychainResult ? keychainResult.password : null;
     const accessToken = await AsyncStorage.getItem('googleAccessToken');
     const liveSwitchToken = await AsyncStorage.getItem('LiveTokens');
     const liveSwitchTokenExpiresAt = await AsyncStorage.getItem(

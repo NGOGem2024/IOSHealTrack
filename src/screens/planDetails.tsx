@@ -109,6 +109,7 @@ const TherapyPlanDetails: React.FC = () => {
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
     ),
   );
+  const [therapyId, setTherapyId] = useState<string | null>(null);
   const [isNoteModalVisible, setIsNoteModalVisible] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [isNoteSubmitting, setIsNoteSubmitting] = useState(false);
@@ -809,6 +810,7 @@ const TherapyPlanDetails: React.FC = () => {
                 navigation.navigate('payment', {
                   planId: planId,
                   patientId: patientId || '',
+                  therapyId: ''
                 })
               }>
               <MaterialCommunityIcons

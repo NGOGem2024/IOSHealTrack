@@ -21,6 +21,7 @@ import DoctorLeaderboard from './LeaderReport';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import TherapyTypeByDoctor from '../components/TherapyTypeByDoctor';
 
 // Types for Referral Data
 interface ReferralData {
@@ -209,6 +210,7 @@ const ReportsScreen: React.FC = () => {
     'November',
     'December',
   ];
+  
 
   const getSocialReferenceIcon = (source: string) => {
     const sourceLower = source.toLowerCase();
@@ -251,6 +253,8 @@ const ReportsScreen: React.FC = () => {
 
   // Check if any dropdown is open
   const isAnyDropdownOpen = showMonthPicker || showYearPicker;
+
+  
 
   const fetchReportData = async () => {
     if (!session.is_admin) return;
@@ -419,19 +423,9 @@ const ReportsScreen: React.FC = () => {
 
   // Referral Details Card Component
   const ReferralDetailsCard = () => {
-    // Local state for toggling view mode
     const [showAll, setShowAll] = useState(false);
-
-    // Calculate total count as before
-    const totalCount = referralDetails.reduce(
-      (sum, item) => sum + item.count,
-      0,
-    );
-
-    // If not showing all, slice the first 3 items (you can change the number as needed)
-    const displayedData = showAll
-      ? referralDetails
-      : referralDetails.slice(0, 3);
+    const totalCount = referralDetails.reduce((sum, item) => sum + item.count, 0);
+    const displayedData = showAll ? referralDetails : referralDetails.slice(0, 3);
 
     return (
       <View style={[styles.chartCard, styles.referralDetailsCard]}>
@@ -444,46 +438,30 @@ const ReportsScreen: React.FC = () => {
           <Text style={[styles.referralDetailsHeaderText, {flex: 2}]}>
             Source
           </Text>
-          <Text
-            style={[
-              styles.referralDetailsHeaderText,
-              {flex: 1, textAlign: 'right'},
-            ]}>
+          <Text style={[styles.referralDetailsHeaderText, {flex: 1, textAlign: 'right'}]}>
             Count
           </Text>
         </View>
 
-        <FlatList
-          data={displayedData}
-          removeClippedSubviews={true} // Helps with performance
-          initialNumToRender={10} // Loads only the initial 10 items
-          maxToRenderPerBatch={10} // Controls rendering performance
-          windowSize={5}
-          keyExtractor={(item, index) => `${item._id}-${index}`}
-          renderItem={({item}) => (
-            <View style={styles.referralDetailsRow}>
-              <Text
-                style={[styles.referralDetailsText, {flex: 2}]}
-                numberOfLines={1}
-                ellipsizeMode="tail">
-                {item._id}
-              </Text>
-              <Text
-                style={[
-                  styles.referralDetailsText,
-                  {flex: 1, textAlign: 'right'},
-                ]}>
-                {item.count}
-              </Text>
-            </View>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.noDataText}>No referral details available</Text>
-          }
-          scrollEnabled={false} // Disable scrolling since it's within ScrollView
-        />
+        {/* Replace FlatList with map */}
+        {displayedData.map((item, index) => (
+          <View key={`${item._id}-${index}`} style={styles.referralDetailsRow}>
+            <Text
+              style={[styles.referralDetailsText, {flex: 2}]}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {item._id}
+            </Text>
+            <Text style={[styles.referralDetailsText, {flex: 1, textAlign: 'right'}]}>
+              {item.count}
+            </Text>
+          </View>
+        ))}
 
-        {/* Toggle button: only show if there are more than 3 items */}
+        {displayedData.length === 0 && (
+          <Text style={styles.noDataText}>No referral details available</Text>
+        )}
+
         {referralDetails.length > 3 && (
           <TouchableOpacity
             onPress={() => setShowAll(!showAll)}
@@ -496,6 +474,7 @@ const ReportsScreen: React.FC = () => {
       </View>
     );
   };
+
   const maxValue = Math.max(...socialReferenceData.map(item => item.count));
   const segments = maxValue <= 1 ? 1 : Math.min(4, maxValue);
   
@@ -673,6 +652,7 @@ const ReportsScreen: React.FC = () => {
             <Text style={styles.noDataText}>No referral data available</Text>
           )}
           <DoctorLeaderboard month={selectedMonth} year={selectedYear} />
+          <TherapyTypeByDoctor  month={selectedMonth} year={selectedYear}/>
 
           {/* Social Reference Bar Chart */}
           {socialReferenceData.length > 0 ? (

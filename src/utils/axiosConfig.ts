@@ -5,7 +5,6 @@ import {Platform} from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import * as Keychain from 'react-native-keychain';
 
-
 let isConnected: boolean = true;
 
 NetInfo.addEventListener(state => {
@@ -15,7 +14,7 @@ NetInfo.addEventListener(state => {
 
 const instance = axios.create({
   //baseURL: 'https://healtrack.azurewebsites.net/',
-  baseURL: 'http://192.168.1.9:5000',
+  baseURL: 'http://192.168.1.24:5000',
   //baseURL: 'https://healtrackapp-production-b2ab.up.railway.app',
   headers: {
     'Content-Type': 'application/json',
@@ -40,8 +39,8 @@ instance.interceptors.request.use(
       throw new NetworkError('No internet connection');
     }
 
-     const keychainResult = await Keychain.getGenericPassword();
-      const idToken = keychainResult ? keychainResult.password : null;
+    const keychainResult = await Keychain.getGenericPassword();
+    const idToken = keychainResult ? keychainResult.password : null;
     const accessToken = await AsyncStorage.getItem('googleAccessToken');
     const liveSwitchToken = await AsyncStorage.getItem('LiveTokens');
     const liveSwitchTokenExpiresAt = await AsyncStorage.getItem(
@@ -59,7 +58,7 @@ instance.interceptors.request.use(
     }
 
     if (idToken) {
-      //console.log(idToken)
+      // console.log(idToken);
       config.headers['Authorization'] = `Bearer ${idToken}`;
     }
 

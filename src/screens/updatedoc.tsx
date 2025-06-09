@@ -347,7 +347,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   if (isLoading) {
     return (
       <View style={{flex: 1}}>
-        <BackTabTop screenName="Appointments" />
+        <BackTabTop screenName="Edit Doctor" />
         <UpdateDocSkeletonLoader />
       </View>
     );

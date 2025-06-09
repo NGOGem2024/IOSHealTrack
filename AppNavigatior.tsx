@@ -42,6 +42,7 @@ import CreateConsultationScreen from './src/screens/CreateConsultationScreen';
 import CreateBlogScreen from './src/screens/CreateBlogScreen';
 import BlogDetailsScreen from './src/screens/BlogDetailsScreen';
 import UpdateBlogScreen from './src/screens/UpdateBlogScreen';
+import PaymentHistory from './src/screens/PaymentHistory';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -97,6 +98,11 @@ const HomeStackNavigator = () => (
     <Stack.Screen
       name="Patient"
       component={PatientScreen}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="PaymentHistory"
+      component={PaymentHistory}
       options={{headerShown: false}}
     />
     <Stack.Screen

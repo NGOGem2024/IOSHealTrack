@@ -89,6 +89,7 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
   const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(false);
 
   const colorScheme = useColorScheme();
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
@@ -108,17 +109,24 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
   // Effect to refresh blog data when navigating back to this screen
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      // Refresh data when the screen is focused again
-      fetchBlogDetails();
+      // Only refresh if we don't already have data to prevent unnecessary loading
+      if (!blog) {
+        fetchBlogDetails();
+      }
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, blog]);
 
   const fetchBlogDetails = async () => {
     if (!session.idToken || !blogId) return;
 
-    setLoading(true);
+    // Don't set loading to true if we already have data (for refresh)
+    if (!blog) {
+      setLoading(true);
+    }
+    setError(false);
+    
     try {
       const response = await axiosInstance.get(`/blog/${blogId}`, {
         headers: {Authorization: `Bearer ${session.idToken}`},
@@ -126,9 +134,13 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
 
       if (response.data.success) {
         setBlog(response.data.data);
+        setError(false);
+      } else {
+        setError(true);
       }
     } catch (error) {
       handleError(error);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -154,7 +166,7 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
           blog.title
         }\n\n${blog.description.substring(0, 150)}...\n\n${blogLink}`,
         title: blog.title,
-        url: blogLink, // This is used by some platforms that support URL sharing
+        url: blogLink,
       });
     } catch (error) {
       console.error('Error sharing blog:', error);
@@ -167,24 +179,22 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
     }
   };
 
-  if (loading) {
+  // Render loading state with consistent container
+  if (loading && !blog) {
     return (
-      <View style={styles.loadingContainer}>
-        <StatusBar
-          barStyle="light-content"
-          translucent={false}
-          backgroundColor="black"
-        />
-        <LoadingScreen />
+      <View style={[styles.container, {backgroundColor: currentColors.background}]}>
+      
+        <View style={styles.loadingContainer}>
+          <LoadingScreen />
+        </View>
       </View>
     );
   }
 
-
-  if (!blog) {
+  // Render error state with consistent container
+  if (error || !blog) {
     return (
-      <View
-        style={[styles.container, {backgroundColor: currentColors.background}]}>
+      <View style={[styles.container, {backgroundColor: currentColors.background}]}>
         <StatusBar
           backgroundColor={currentColors.background}
           barStyle={isDarkMode ? 'light-content' : 'dark-content'}
@@ -210,16 +220,18 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
     );
   }
 
+  // Main content render
   return (
-    <View
-      style={[styles.container, {backgroundColor: currentColors.background}]}>
+    <View style={[styles.container, {backgroundColor: currentColors.background}]}>
       <StatusBar
         backgroundColor={currentColors.background}
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
       />
       <BackTabTop screenName="Blog Details" />
       <ScrollView 
+        style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -237,8 +249,7 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
           />
         )}
 
-        <View
-          style={[styles.blogContainer, {backgroundColor: currentColors.card}]}>
+        <View style={[styles.blogContainer, {backgroundColor: currentColors.card}]}>
           <View style={styles.blogHeader}>
             <View style={styles.titleContainer}>
               <Text style={[styles.blogTitle, {color: currentColors.text}]}>
@@ -250,8 +261,7 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
                   styles.genreContainer,
                   {backgroundColor: currentColors.background},
                 ]}>
-                <Text
-                  style={[styles.genreText, {color: currentColors.primary}]}>
+                <Text style={[styles.genreText, {color: currentColors.primary}]}>
                   {blog.genre}
                 </Text>
               </View>
@@ -259,12 +269,10 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
 
             <View style={styles.metaContainer}>
               <View style={styles.authorDateContainer}>
-                <Text
-                  style={[styles.authorText, {color: currentColors.secondary}]}>
+                <Text style={[styles.authorText, {color: currentColors.secondary}]}>
                   By {blog.doctor_name}
                 </Text>
-                <Text
-                  style={[styles.dateText, {color: currentColors.secondary}]}>
+                <Text style={[styles.dateText, {color: currentColors.secondary}]}>
                   {formatDate(blog.createdAt)}
                 </Text>
               </View>
@@ -276,33 +284,27 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
                   color={currentColors.primary}
                 />
                 <Text
-                  style={[
-                    styles.readTimeText,
-                    {color: currentColors.secondary},
-                  ]}>
+                  style={[styles.readTimeText, {color: currentColors.secondary}]}>
                   {blog.readTime} min read
                 </Text>
               </View>
             </View>
           </View>
 
-          <View
-            style={[styles.divider, {backgroundColor: currentColors.border}]}
-          />
+          <View style={[styles.divider, {backgroundColor: currentColors.border}]} />
 
           <Text style={[styles.blogContent, {color: currentColors.text}]}>
             {blog.description}
           </Text>
 
           {blog.video && (
-            <View style={styles.videoPlaceholder}>
+            <View style={[styles.videoPlaceholder, {backgroundColor: currentColors.skeleton}]}>
               <Icon
                 name="play-circle-outline"
                 size={50}
                 color={currentColors.primary}
               />
-              <Text
-                style={[styles.videoText, {color: currentColors.secondary}]}>
+              <Text style={[styles.videoText, {color: currentColors.secondary}]}>
                 Video content available
               </Text>
             </View>
@@ -320,17 +322,13 @@ const BlogDetailsScreen: React.FC<BlogDetailsScreenProps> = ({
                 size={22}
                 color={currentColors.primary}
               />
-              <Text
-                style={[styles.actionButtonText, {color: currentColors.text}]}>
+              <Text style={[styles.actionButtonText, {color: currentColors.text}]}>
                 Share
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.actionButton,
-                {backgroundColor: currentColors.primary},
-              ]}
+              style={[styles.actionButton, {backgroundColor: currentColors.primary}]}
               onPress={handleEditBlog}>
               <MaterialCommunityIcons
                 name="square-edit-outline"
@@ -350,8 +348,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollView: {
+    flex: 1,
+  },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 20, // Add consistent bottom padding
   },
   loadingContainer: {
     flex: 1,
@@ -389,6 +391,7 @@ const styles = StyleSheet.create({
   blogContainer: {
     flex: 1,
     padding: 20,
+    minHeight: 400, // Ensure minimum height to prevent layout jumps
   },
   blogHeader: {
     marginBottom: 16,
@@ -448,7 +451,6 @@ const styles = StyleSheet.create({
   },
   videoPlaceholder: {
     height: 180,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -467,11 +469,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 10,
     flex: 1,
     marginHorizontal: 5,
+    minHeight: 44, // Ensure consistent button height
   },
   actionButtonText: {
     marginLeft: 6,

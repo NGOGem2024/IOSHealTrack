@@ -51,7 +51,9 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   const {session} = useSession();
   const {doctorId} = route.params;
   const {theme} = useTheme();
-  const styles = getStyles(
+  
+  // Stable theme reference to prevent re-renders
+  const stableTheme = React.useMemo(() => 
     getTheme(
       (theme?.name as
         | 'purple'
@@ -60,32 +62,23 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
         | 'orange'
         | 'pink'
         | 'dark') || 'blue',
-    ),
-  );
+    ), [theme?.name]);
+  
+  const styles = React.useMemo(() => getStyles(stableTheme), [stableTheme]);
+  
   const [doctorData, setDoctorData] = useState<DoctorData | null>(null);
-  const [doctor, setDoctor] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const formatPhoneNumber = (phone: string): string => {
-    // Remove all non-digit characters
     const cleaned = phone.replace(/\D/g, '');
-
-    // Check if it starts with + and has country code
     if (phone.startsWith('+')) {
-      // Format as +XX XXXXXXXXX
       return `+${cleaned.slice(0, 2)} ${cleaned.slice(2)}`;
     }
-
-    // If no + prefix, assume it needs to be added with default country code
     return `+91 ${cleaned}`;
   };
 
-  useEffect(() => {
-    fetchDoctorDetails();
-  }, []);
-
-  const fetchDoctorDetails = async () => {
+  const fetchDoctorDetails = useCallback(async () => {
     if (!session) return;
     try {
       setIsLoading(true);
@@ -101,46 +94,35 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session, doctorId]);
+
+  useEffect(() => {
+    fetchDoctorDetails();
+  }, [fetchDoctorDetails]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchDoctorDetails();
     setRefreshing(false);
-  }, []);
+  }, [fetchDoctorDetails]);
 
-  // Use the new skeleton loader when loading
-  if (isLoading) {
+  // Render the main content - this prevents layout shifts
+  const renderContent = () => {
+    if (isLoading || !doctorData) {
+      return <DoctorScreenSkeleton theme={{name: theme?.name || 'blue'}} />;
+    }
+
     return (
-      <View style={styles.safeArea}>
-        <BackTabTop screenName="Doctor Profile" />
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor="black"
-          translucent={false}
-        />
-        <DoctorScreenSkeleton theme={{name: theme?.name || 'blue'}} />
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.safeArea}>
-      <BackTabTop screenName="Doctor Profile" />
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="black"
-        translucent={false}
-      />
-
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        style={styles.container}>
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}>
+        
         {/* Profile Header Card */}
         <View style={styles.profileCard}>
-          {/* Profile Header with new layout */}
           <View style={styles.profileHeader}>
             <View style={styles.headerRow}>
               <EnhancedProfilePhoto
@@ -165,24 +147,22 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
             </View>
           </View>
 
-          {/* Horizontal Line */}
           <View style={styles.divider} />
 
-          {/* Rest of the contact information */}
           <View style={styles.contactInfo}>
             <View style={styles.infoRow}>
               <MaterialIcons name="call" size={20} color="#007B8E" />
               <Text style={styles.infoText}>
                 {doctorData?.doctor_phone
                   ? formatPhoneNumber(doctorData.doctor_phone)
-                  : ''}
+                  : 'N/A'}
               </Text>
             </View>
 
             <View style={styles.infoRow}>
               <MaterialIcons name="business" size={20} color="#007B8E" />
               <Text style={styles.infoText}>
-                {doctorData?.organization_name}
+                {doctorData?.organization_name || 'N/A'}
               </Text>
             </View>
 
@@ -193,7 +173,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                 color="#007B8E"
               />
               <Text style={styles.infoText}>
-                Patients: {doctorData?.patients?.length}
+                Patients: {doctorData?.patients?.length || 0}
               </Text>
             </View>
 
@@ -208,14 +188,14 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                 {doctorData?.status
                   ? doctorData.status.charAt(0).toUpperCase() +
                     doctorData.status.slice(1)
-                  : ''}
+                  : 'N/A'}
               </Text>
             </View>
           </View>
         </View>
 
         {/* Quick Actions Card */}
-        {session.is_admin && (
+        {session?.is_admin && (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Quick Actions</Text>
             <TouchableOpacity
@@ -277,7 +257,22 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
             </View>
           )}
       </ScrollView>
-    </View>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="black"
+        translucent={false}
+        animated={false}
+      />
+      <BackTabTop screenName="Doctor Profile" />
+      <View style={styles.container}>
+        {renderContent()}
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -286,6 +281,17 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     safeArea: {
       flex: 1,
       backgroundColor: 'black',
+    },
+    container: {
+      flex: 1,
+      backgroundColor: '#007B8E',
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: 20,
     },
     nameContainer: {
       flexDirection: 'row',
@@ -318,23 +324,10 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginLeft: 16,
       justifyContent: 'center',
     },
-    profileImage: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      borderWidth: 1,
-      borderColor: '#119FB3',
-    },
     doctorName: {
       fontSize: 18,
       fontWeight: 'bold',
       color: theme.colors.text,
-    },
-    emailContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      gap: 8,
     },
     emailText: {
       fontSize: 14,
@@ -357,22 +350,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: '#E0E0E0',
       marginHorizontal: 16,
     },
-    container: {
-      flex: 1,
-      backgroundColor: '#007B8E',
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-
-    qualification: {
-      fontSize: 18,
-      color: '#666',
-      marginTop: 4,
-    },
-
     contactInfo: {
       backgroundColor: theme.colors.card,
       padding: 20,
@@ -382,11 +359,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 10,
+      minHeight: 24, // Consistent height to prevent layout shifts
     },
     infoText: {
       marginLeft: 16,
       fontSize: 16,
       color: theme.colors.text,
+      flex: 1,
     },
     card: {
       backgroundColor: theme.colors.card,
@@ -412,6 +391,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: theme.colors.secondary,
       padding: 16,
       borderRadius: 8,
+      minHeight: 56, // Consistent height
     },
     actionButtonText: {
       marginLeft: 16,
@@ -429,12 +409,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 8,
+      minHeight: 24, // Consistent height
     },
     appointmentText: {
       marginLeft: 12,
       fontSize: 16,
       color: theme.colors.text,
+      flex: 1,
     },
   });
-
 export default DoctorScreen;

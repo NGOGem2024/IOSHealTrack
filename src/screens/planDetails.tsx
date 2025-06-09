@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {
   View,
@@ -23,7 +23,12 @@ import {getTheme} from './Theme';
 import axiosInstance from '../utils/axiosConfig';
 import {useSession} from '../context/SessionContext';
 import {handleError} from '../utils/errorHandler';
-import {useRoute, useNavigation, RouteProp} from '@react-navigation/native';
+import {
+  useRoute,
+  useNavigation,
+  RouteProp,
+  useFocusEffect,
+} from '@react-navigation/native';
 import {RootStackParamList} from '../types/types';
 import BackTabTop from './BackTopTab';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -77,38 +82,44 @@ interface TherapyPlanDetails {
 interface SkeletonPlaceholderProps {
   width: number | string;
   height: number | string;
-  style?: any; // Or use a more specific type like ViewStyle from react-native
+  style?: any;
 }
 
-const SkeletonPlaceholder = ({
-  width,
-  height,
-  style,
-}: SkeletonPlaceholderProps) => {
-  return (
-    <View
-      style={[
-        {
-          width,
-          height,
-          backgroundColor: 'rgba(200, 200, 200, 0.3)',
-          borderRadius: 4,
-        },
-        style,
-      ]}
-    />
-  );
-};
+const SkeletonPlaceholder = React.memo(
+  ({width, height, style}: SkeletonPlaceholderProps) => {
+    return (
+      <View
+        style={[
+          {
+            width,
+            height,
+            backgroundColor: 'rgba(200, 200, 200, 0.3)',
+            borderRadius: 4,
+          },
+          style,
+        ]}
+      />
+    );
+  },
+);
 
 const TherapyPlanDetails: React.FC = () => {
   const route = useRoute<TherapyPlanDetailsRouteProp>();
   const navigation = useNavigation<TherapyNavigationProp>();
   const {theme} = useTheme();
-  const styles = getStyles(
-    getTheme(
-      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
-    ),
+
+  // Memoize theme to prevent unnecessary recalculations
+  const memoizedTheme = useMemo(
+    () =>
+      getTheme(
+        theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+      ),
+    [theme.name],
   );
+
+  // Memoize styles to prevent recreation on every render
+  const styles = useMemo(() => getStyles(memoizedTheme), [memoizedTheme]);
+
   const [therapyId, setTherapyId] = useState<string | null>(null);
   const [isNoteModalVisible, setIsNoteModalVisible] = useState(false);
   const [noteText, setNoteText] = useState('');
@@ -116,92 +127,93 @@ const TherapyPlanDetails: React.FC = () => {
   const {session} = useSession();
   const [patientId, setPatientId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [downloadingPdf, setDownloadingPdf] = useState(false); // New state for PDF download
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [planDetails, setPlanDetails] = useState<TherapyPlanDetails | null>(
     null,
   );
   const {planId} = route.params;
+  const [initialLoad, setInitialLoad] = useState(true);
 
-  useEffect(() => {
-    fetchPlanDetails();
-    const fetchPlanDetails1 = async () => {
+  // Memoize fetchPlanDetails to prevent unnecessary re-renders
+  const fetchPlanDetails = useCallback(
+    async (showLoader = true) => {
+      if (!session.idToken || !planId) return;
+
+      if (showLoader) setLoading(true);
+
       try {
         const response = await axiosInstance.get(`/get/plan/${planId}`, {
           headers: {Authorization: `Bearer ${session.idToken}`},
         });
+
         setPatientId(response.data.patient_id);
         setPlanDetails(response.data);
       } catch (error) {
         handleError(error);
+      } finally {
+        if (showLoader) {
+          setLoading(false);
+          setInitialLoad(false);
+        }
       }
-    };
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchPlanDetails1();
-    });
+    },
+    [session.idToken, planId],
+  );
 
-    return unsubscribe;
-  }, [planId, navigation]);
+  // Initial load effect - only run once
+  useEffect(() => {
+    fetchPlanDetails(true);
+  }, []);
 
-  const fetchPlanDetails = async () => {
-    if (!session.idToken || !planId) return;
-    setLoading(true);
-    try {
-      const response = await axiosInstance.get(`/get/plan/${planId}`, {
-        headers: {Authorization: `Bearer ${session.idToken}`},
-      });
-      setPatientId(response.data.patient_id);
-      setPlanDetails(response.data);
-    } catch (error) {
-      handleError(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const calculateTherapyProgress = (
-    therapyPlan: TherapyPlanDetails['therapy_plan'],
-  ): number => {
-    try {
-      // Guard clause - return 0 if plan doesn't exist or is invalid
-      if (!therapyPlan) return 0;
+  // Use useFocusEffect for focus updates without loader
+  useFocusEffect(
+    useCallback(() => {
+      if (!initialLoad) {
+        fetchPlanDetails(false);
+      }
+    }, [fetchPlanDetails, initialLoad]),
+  );
 
-      // Check if therapy_sessions exists and is an array
-      if (
-        !therapyPlan.therapy_sessions ||
-        !Array.isArray(therapyPlan.therapy_sessions)
-      ) {
+  // Memoize progress calculation
+  const calculateTherapyProgress = useCallback(
+    (therapyPlan: TherapyPlanDetails['therapy_plan']): number => {
+      try {
+        if (!therapyPlan) return 0;
+
+        if (
+          !therapyPlan.therapy_sessions ||
+          !Array.isArray(therapyPlan.therapy_sessions)
+        ) {
+          return 0;
+        }
+
+        if (
+          !therapyPlan.estimated_sessions ||
+          typeof therapyPlan.estimated_sessions !== 'number' ||
+          therapyPlan.estimated_sessions <= 0
+        ) {
+          return 0;
+        }
+
+        const completedSessions = therapyPlan.therapy_sessions.filter(
+          session => session && session.status === 'Completed',
+        ).length;
+
+        const progress =
+          (completedSessions / therapyPlan.estimated_sessions) * 100;
+
+        return Number.isFinite(progress)
+          ? Math.min(Math.max(progress, 0), 100)
+          : 0;
+      } catch (error) {
+        console.warn('Error calculating therapy progress:', error);
         return 0;
       }
+    },
+    [],
+  );
 
-      // Check if estimated_sessions exists and is a valid number
-      if (
-        !therapyPlan.estimated_sessions ||
-        typeof therapyPlan.estimated_sessions !== 'number' ||
-        therapyPlan.estimated_sessions <= 0
-      ) {
-        return 0;
-      }
-
-      // Safely count completed sessions
-      const completedSessions = therapyPlan.therapy_sessions.filter(
-        session => session && session.status === 'Completed',
-      ).length;
-
-      // Calculate progress percentage
-      const progress =
-        (completedSessions / therapyPlan.estimated_sessions) * 100;
-
-      // Ensure progress is between 0 and 100 and is a valid number
-      return Number.isFinite(progress)
-        ? Math.min(Math.max(progress, 0), 100)
-        : 0;
-    } catch (error) {
-      // If anything goes wrong, return 0 instead of breaking
-      console.warn('Error calculating therapy progress:', error);
-      return 0;
-    }
-  };
-
-  const addNoteToTherapyPlan = async () => {
+  const addNoteToTherapyPlan = useCallback(async () => {
     if (!noteText.trim()) {
       Alert.alert('Error', 'Please enter a note');
       return;
@@ -209,7 +221,7 @@ const TherapyPlanDetails: React.FC = () => {
 
     try {
       setIsNoteSubmitting(true);
-      const response = await axiosInstance.put(
+      await axiosInstance.put(
         `/addNote/plan/${planId}`,
         {
           note: noteText,
@@ -219,10 +231,8 @@ const TherapyPlanDetails: React.FC = () => {
         },
       );
 
-      // Refresh the plan details to show the new note
-      await fetchPlanDetails();
+      await fetchPlanDetails(false);
 
-      // Reset and close modal
       setNoteText('');
       setIsNoteModalVisible(false);
 
@@ -233,268 +243,305 @@ const TherapyPlanDetails: React.FC = () => {
     } finally {
       setIsNoteSubmitting(false);
     }
-  };
+  }, [noteText, planId, session.idToken, fetchPlanDetails]);
 
-  const renderNoteModal = () => (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={isNoteModalVisible}
-      onRequestClose={() => setIsNoteModalVisible(false)}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Add Note to Therapy Plan</Text>
-          <TextInput
-            style={styles.noteInput}
-            multiline
-            placeholder="Enter your note here..."
-            value={noteText}
-            onChangeText={setNoteText}
-            maxLength={500}
-          />
-          <View style={styles.modalButtonContainer}>
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => setIsNoteModalVisible(false)}>
-              <Text style={styles.modalCancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalSubmitButton}
-              onPress={addNoteToTherapyPlan}
-              disabled={isNoteSubmitting}>
-              {isNoteSubmitting ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text style={styles.modalSubmitButtonText}>Save Note</Text>
-              )}
-            </TouchableOpacity>
+  const downloadPDF = useCallback(async (planId: string) => {
+    try {
+      setDownloadingPdf(true);
+      const fileName = `therapy_plan_${planId}.pdf`;
+
+      if (
+        Platform.OS === 'android' &&
+        Number(Platform.Version) < 30 &&
+        Number(Platform.Version) >= 23
+      ) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          {
+            title: 'Storage Permission Required',
+            message:
+              'This app needs access to your storage to download the PDF file',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert(
+            'Permission Denied',
+            'Storage permission is required to download the file',
+          );
+          return;
+        }
+      }
+
+      const response = await axiosInstance.get(`/${planId}/pdf`);
+      const base64PDF = response.data.pdf;
+
+      if (!base64PDF) {
+        throw new Error('No PDF data received');
+      }
+
+      if (Platform.OS === 'ios') {
+        const filePath = `${ReactNativeBlobUtil.fs.dirs.DocumentDir}/${fileName}`;
+        await ReactNativeBlobUtil.fs.writeFile(filePath, base64PDF, 'base64');
+        await ReactNativeBlobUtil.ios.openDocument(filePath);
+        Alert.alert('Success', 'PDF opened successfully');
+      } else {
+        let downloadPath = '';
+        if (Number(Platform.Version) >= 30) {
+          downloadPath = `${RNFS.ExternalStorageDirectoryPath}/Download/${fileName}`;
+        } else {
+          downloadPath = `${ReactNativeBlobUtil.fs.dirs.DownloadDir}/${fileName}`;
+        }
+
+        await ReactNativeBlobUtil.fs.writeFile(
+          downloadPath,
+          base64PDF,
+          'base64',
+        );
+
+        await ReactNativeBlobUtil.fs
+          .scanFile([{path: downloadPath, mime: 'application/pdf'}])
+          .catch(err => console.error('Media scan failed:', err));
+
+        if (Number(Platform.Version) >= 30) {
+          await ReactNativeBlobUtil.android.addCompleteDownload({
+            title: fileName,
+            description: 'Therapy plan PDF',
+            mime: 'application/pdf',
+            path: downloadPath,
+            showNotification: true,
+          });
+        }
+
+        Alert.alert(
+          'Download Complete',
+          `PDF saved to Downloads folder as ${fileName}`,
+          [{text: 'OK'}],
+        );
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      Alert.alert(
+        'Download Failed',
+        'Unable to download the PDF file. Please try again.',
+      );
+    } finally {
+      setDownloadingPdf(false);
+    }
+  }, []);
+
+  // Memoize note modal to prevent unnecessary re-renders
+  const renderNoteModal = useMemo(
+    () => (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isNoteModalVisible}
+        onRequestClose={() => setIsNoteModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Add Note to Therapy Plan</Text>
+            <TextInput
+              style={styles.noteInput}
+              multiline
+              placeholder="Enter your note here..."
+              value={noteText}
+              onChangeText={setNoteText}
+              maxLength={500}
+            />
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setIsNoteModalVisible(false)}>
+                <Text style={styles.modalCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalSubmitButton}
+                onPress={addNoteToTherapyPlan}
+                disabled={isNoteSubmitting}>
+                {isNoteSubmitting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.modalSubmitButtonText}>Save Note</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
+    ),
+    [
+      isNoteModalVisible,
+      noteText,
+      isNoteSubmitting,
+      styles,
+      addNoteToTherapyPlan,
+    ],
   );
 
-  const renderSkeletonLoader = () => {
+  // Memoize skeleton loader
+  const renderSkeletonLoader = useMemo(() => {
     return (
-      <ScrollView style={styles.container}>
-        {/* Main Card Skeleton */}
-        <View style={styles.mainCard}>
-          <View style={styles.cardHeader}>
+      <View style={styles.contentContainer}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{minHeight: '100%'}}
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.mainCard}>
+            <View style={styles.cardHeader}>
+              <SkeletonPlaceholder
+                width={150}
+                height={20}
+                style={{marginBottom: 4}}
+              />
+              <View style={styles.actionButtons}>
+                <SkeletonPlaceholder
+                  width={24}
+                  height={24}
+                  style={{marginLeft: 8}}
+                />
+                <SkeletonPlaceholder
+                  width={24}
+                  height={24}
+                  style={{marginLeft: 8}}
+                />
+                <SkeletonPlaceholder
+                  width={24}
+                  height={24}
+                  style={{marginLeft: 8}}
+                />
+              </View>
+            </View>
+            <SkeletonPlaceholder
+              width={200}
+              height={24}
+              style={{marginBottom: 4}}
+            />
             <SkeletonPlaceholder
               width={150}
-              height={20}
-              style={{marginBottom: 4}}
-            />
-            <View style={styles.actionButtons}>
-              <SkeletonPlaceholder
-                width={24}
-                height={24}
-                style={{marginLeft: 8}}
-              />
-              <SkeletonPlaceholder
-                width={24}
-                height={24}
-                style={{marginLeft: 8}}
-              />
-              <SkeletonPlaceholder
-                width={24}
-                height={24}
-                style={{marginLeft: 8}}
-              />
-            </View>
-          </View>
-          <SkeletonPlaceholder
-            width={200}
-            height={24}
-            style={{marginBottom: 4}}
-          />
-          <SkeletonPlaceholder
-            width={150}
-            height={16}
-            style={{marginBottom: 16}}
-          />
-
-          <View style={styles.progressContainer}>
-            <SkeletonPlaceholder
-              width="100%"
-              height={4}
-              style={{marginBottom: 4}}
-            />
-            <SkeletonPlaceholder width={120} height={14} style={{}} />
-          </View>
-
-          <View style={styles.dateInfo}>
-            <SkeletonPlaceholder width={120} height={14} style={{}} />
-            <SkeletonPlaceholder width={120} height={14} style={{}} />
-          </View>
-        </View>
-
-        {/* Medical Info Card Skeleton */}
-        <View style={styles.card}>
-          <SkeletonPlaceholder
-            width={150}
-            height={18}
-            style={{marginBottom: 12}}
-          />
-          <View style={styles.infoRow}>
-            <SkeletonPlaceholder width={80} height={14} style={{}} />
-            <SkeletonPlaceholder
-              width={180}
-              height={14}
-              style={{marginLeft: 8}}
-            />
-          </View>
-          <View style={styles.infoRow}>
-            <SkeletonPlaceholder width={80} height={14} style={{}} />
-            <SkeletonPlaceholder
-              width={180}
-              height={14}
-              style={{marginLeft: 8}}
-            />
-          </View>
-        </View>
-
-        {/* Sessions Card Skeleton */}
-        <View style={styles.card}>
-          <SkeletonPlaceholder
-            width={150}
-            height={18}
-            style={{marginBottom: 12}}
-          />
-          <View style={styles.sessionsContainer}>
-            <View style={styles.infoRow}>
-              <SkeletonPlaceholder width={120} height={14} style={{}} />
-              <SkeletonPlaceholder
-                width={30}
-                height={14}
-                style={{marginLeft: 8}}
-              />
-            </View>
-            <View style={styles.infoRow}>
-              <SkeletonPlaceholder width={120} height={14} style={{}} />
-              <SkeletonPlaceholder
-                width={30}
-                height={14}
-                style={{marginLeft: 8}}
-              />
-            </View>
-
-            <SkeletonPlaceholder
-              width={120}
               height={16}
-              style={{marginTop: 16, marginBottom: 8}}
+              style={{marginBottom: 16}}
             />
 
-            {[1, 2].map((_, index) => (
-              <View key={index} style={styles.sessionSingleItem}>
-                <View style={styles.sessionHeader}>
-                  <SkeletonPlaceholder width={80} height={14} style={{}} />
-                  <SkeletonPlaceholder
-                    width={70}
-                    height={20}
-                    style={{borderRadius: 12}}
-                  />
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Payment Details Card Skeleton */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <SkeletonPlaceholder
-              width={120}
-              height={18}
-              style={{marginBottom: 8}}
-            />
-            <SkeletonPlaceholder
-              width={24}
-              height={24}
-              style={{marginLeft: 8}}
-            />
-          </View>
-          <View style={styles.paymentInfo}>
-            <View style={styles.infoRow}>
-              <SkeletonPlaceholder width={100} height={14} style={{}} />
-              <SkeletonPlaceholder
-                width={80}
-                height={14}
-                style={{marginLeft: 8}}
-              />
-            </View>
-            <View style={styles.infoRow}>
-              <SkeletonPlaceholder width={80} height={14} style={{}} />
-              <SkeletonPlaceholder
-                width={80}
-                height={14}
-                style={{marginLeft: 8}}
-              />
-            </View>
-            <View style={styles.infoRow}>
-              <SkeletonPlaceholder width={80} height={14} style={{}} />
-              <SkeletonPlaceholder
-                width={80}
-                height={14}
-                style={{marginLeft: 8}}
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* Remarks Card Skeleton */}
-        <View style={[styles.card, styles.lastCard]}>
-          <SkeletonPlaceholder
-            width={120}
-            height={18}
-            style={{marginBottom: 12}}
-          />
-          <View style={styles.remarkSection}>
-            <SkeletonPlaceholder
-              width={140}
-              height={16}
-              style={{marginBottom: 12}}
-            />
-            <View style={styles.remarkItem}>
-              <View style={styles.remarkHeader}>
-                <SkeletonPlaceholder width={100} height={14} style={{}} />
-                <SkeletonPlaceholder width={80} height={12} style={{}} />
-              </View>
+            <View style={styles.progressContainer}>
               <SkeletonPlaceholder
                 width="100%"
-                height={40}
-                style={{marginTop: 8}}
+                height={4}
+                style={{marginBottom: 4}}
+              />
+              <SkeletonPlaceholder width={120} height={14} style={{}} />
+            </View>
+
+            <View style={styles.dateInfo}>
+              <SkeletonPlaceholder width={120} height={14} style={{}} />
+              <SkeletonPlaceholder width={120} height={14} style={{}} />
+            </View>
+          </View>
+          <View style={styles.card}>
+            <SkeletonPlaceholder
+              width={150}
+              height={18}
+              style={{marginBottom: 12}}
+            />
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={80} height={14} style={{}} />
+              <SkeletonPlaceholder
+                width={180}
+                height={14}
+                style={{marginLeft: 8}}
+              />
+            </View>
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={80} height={14} style={{}} />
+              <SkeletonPlaceholder
+                width={180}
+                height={14}
+                style={{marginLeft: 8}}
               />
             </View>
           </View>
-        </View>
-      </ScrollView>
-    );
-  };
 
-  if (loading) {
-    return (
-      <View style={styles.safeArea}>
-        <BackTabTop screenName="Plan Details" />
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor="black"
-          translucent={false}
-        />
-        {renderSkeletonLoader()}
+          <View style={styles.card}>
+            <SkeletonPlaceholder
+              width={150}
+              height={18}
+              style={{marginBottom: 12}}
+            />
+            <View style={styles.sessionsContainer}>
+              <View style={styles.infoRow}>
+                <SkeletonPlaceholder width={120} height={14} style={{}} />
+                <SkeletonPlaceholder
+                  width={30}
+                  height={14}
+                  style={{marginLeft: 8}}
+                />
+              </View>
+              <View style={styles.infoRow}>
+                <SkeletonPlaceholder width={120} height={14} style={{}} />
+                <SkeletonPlaceholder
+                  width={30}
+                  height={14}
+                  style={{marginLeft: 8}}
+                />
+              </View>
+
+              <SkeletonPlaceholder
+                width={120}
+                height={16}
+                style={{marginTop: 16, marginBottom: 8}}
+              />
+
+              {[1, 2].map((_, index) => (
+                <View key={index} style={styles.sessionSingleItem}>
+                  <View style={styles.sessionHeader}>
+                    <SkeletonPlaceholder width={80} height={14} style={{}} />
+                    <SkeletonPlaceholder
+                      width={70}
+                      height={20}
+                      style={{borderRadius: 12}}
+                    />
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.card}>
+            <SkeletonPlaceholder
+              width={150}
+              height={18}
+              style={{marginBottom: 12}}
+            />
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={80} height={14} style={{}} />
+              <SkeletonPlaceholder
+                width={180}
+                height={14}
+                style={{marginLeft: 8}}
+              />
+            </View>
+            <View style={styles.infoRow}>
+              <SkeletonPlaceholder width={80} height={14} style={{}} />
+              <SkeletonPlaceholder
+                width={180}
+                height={14}
+                style={{marginLeft: 8}}
+              />
+            </View>
+          </View>
+        </ScrollView>
       </View>
     );
-  }
+  }, [styles]);
 
-  if (!planDetails?.therapy_plan) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Plan not found</Text>
-      </View>
-    );
-  }
+  // Memoize sessions card
+  const renderSessionsCard = useMemo(() => {
+    if (!planDetails?.therapy_plan) return null;
 
-  const renderSessionsCard = () => {
+    const plan = planDetails.therapy_plan;
+
     if (!plan.estimated_sessions && !plan.therapy_sessions) return null;
 
     return (
@@ -534,7 +581,7 @@ const TherapyPlanDetails: React.FC = () => {
                       planId: plan._id,
                     })
                   }>
-                  <View key={session._id} style={styles.sessionSingleItem}>
+                  <View style={styles.sessionSingleItem}>
                     <View style={styles.sessionHeader}>
                       <Text style={styles.sessionNumber}>
                         Session {index + 1}
@@ -548,7 +595,7 @@ const TherapyPlanDetails: React.FC = () => {
                                 ? '#4caf4f'
                                 : session.status === 'Scheduled'
                                 ? '#f48c36'
-                                : '#4caf4f', // Fallback color for any other status
+                                : '#4caf4f',
                           },
                         ]}>
                         <Text style={styles.statusText}>{session.status}</Text>
@@ -562,127 +609,287 @@ const TherapyPlanDetails: React.FC = () => {
         </View>
       </View>
     );
-  };
+  }, [planDetails, styles, navigation]);
 
-  const downloadPDF = async (planId: string) => {
-    try {
-      setDownloadingPdf(true); // Use the PDF-specific loading state
-      const fileName = `therapy_plan_${planId}.pdf`;
-
-      // For Android API levels less than 30, request storage permission (API 23+)
-      if (
-        Platform.OS === 'android' &&
-        Number(Platform.Version) < 30 &&
-        Number(Platform.Version) >= 23
-      ) {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission Required',
-            message:
-              'This app needs access to your storage to download the PDF file',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          Alert.alert(
-            'Permission Denied',
-            'Storage permission is required to download the file',
-          );
-          return;
-        }
-      }
-
-      // Get the base64 encoded PDF from the server
-      const response = await axiosInstance.get(`/${planId}/pdf`);
-      const base64PDF = response.data.pdf;
-
-      if (!base64PDF) {
-        throw new Error('No PDF data received');
-      }
-
-      if (Platform.OS === 'ios') {
-        // For iOS, write to temp directory and use share sheet
-        const filePath = `${ReactNativeBlobUtil.fs.dirs.DocumentDir}/${fileName}`;
-        await ReactNativeBlobUtil.fs.writeFile(filePath, base64PDF, 'base64');
-
-        // Share the file using ReactNativeBlobUtil's iOS-specific sharing
-        await ReactNativeBlobUtil.ios.openDocument(filePath);
-
-        // Alternative approach using react-native-share if openDocument doesn't work
-        // If you're using react-native-share, import it and use:
-        // import Share from 'react-native-share';
-        // const shareOptions = {
-        //   title: 'View PDF',
-        //   url: `file://${filePath}`,
-        //   type: 'application/pdf',
-        // };
-        // await Share.open(shareOptions);
-
-        Alert.alert('Success', 'PDF opened successfully');
-      } else {
-        let downloadPath = '';
-        if (Number(Platform.Version) >= 30) {
-          // For Android 11+ use RNFS.ExternalStorageDirectoryPath to write to the public Downloads folder
-          downloadPath = `${RNFS.ExternalStorageDirectoryPath}/Download/${fileName}`;
-        } else {
-          downloadPath = `${ReactNativeBlobUtil.fs.dirs.DownloadDir}/${fileName}`;
-        }
-
-        // Write the PDF file
-        await ReactNativeBlobUtil.fs.writeFile(
-          downloadPath,
-          base64PDF,
-          'base64',
-        );
-
-        // Trigger a media scan so that the file is indexed
-        await ReactNativeBlobUtil.fs
-          .scanFile([{path: downloadPath, mime: 'application/pdf'}])
-          .catch(err => console.error('Media scan failed:', err));
-
-        if (Number(Platform.Version) >= 30) {
-          // For Android 11+, register the file with the DownloadManager so it appears in the Downloads UI
-          await ReactNativeBlobUtil.android.addCompleteDownload({
-            title: fileName,
-            description: 'Therapy plan PDF',
-            mime: 'application/pdf',
-            path: downloadPath,
-            showNotification: true,
-          });
-        }
-
-        Alert.alert(
-          'Download Complete',
-          `PDF saved to Downloads folder as ${fileName}`,
-          [{text: 'OK'}],
-        );
-      }
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      Alert.alert(
-        'Download Failed',
-        'Unable to download the PDF file. Please try again.',
+  // Main content renderer
+  const renderContent = useMemo(() => {
+    if (!planDetails?.therapy_plan) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Plan not found</Text>
+        </View>
       );
-    } finally {
-      setDownloadingPdf(false); // Hide the PDF loading indicator when done
     }
-  };
-  const plan = planDetails.therapy_plan;
-  const progress = calculateTherapyProgress(plan);
+
+    const plan = planDetails.therapy_plan;
+    const progress = calculateTherapyProgress(plan);
+
+    return (
+      <View style={styles.contentContainer}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{paddingBottom: 20}}
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.mainCard}>
+            <View style={styles.cardHeader}>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('Patient', {
+                    patientId: patientId || '',
+                    preloadedData: undefined,
+                  })
+                }>
+                <Text style={styles.patientName}>
+                  {planDetails?.patient_name}
+                </Text>
+              </TouchableOpacity>
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={() =>
+                    navigation.navigate('CreateTherapy', {
+                      patientId: patientId || '',
+                    })
+                  }>
+                  <Icon name="calendar-clock" size={24} color="#119FB3" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={() =>
+                    navigation.navigate('EditTherapyPlan', {
+                      planId: plan._id,
+                    })
+                  }>
+                  <Icon name="square-edit-outline" size={24} color="#119FB3" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={() => downloadPDF(plan._id)}>
+                  <Icon name="file-pdf-box" size={24} color="#119FB3" />
+                </TouchableOpacity>
+              </View>
+            </View>
+            <Text style={styles.therapyName}>{plan.therapy_name}</Text>
+            <Text style={styles.category}>{plan.patient_therapy_category}</Text>
+
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, {width: `${progress}%`}]} />
+              </View>
+              <Text style={styles.duration}>
+                Duration: {plan.therapy_duration}
+              </Text>
+            </View>
+
+            <View style={styles.dateInfo}>
+              <Text style={styles.dateText}>
+                Start: {new Date(plan.therapy_start).toLocaleDateString()}
+              </Text>
+              <Text style={styles.dateText}>
+                End: {new Date(plan.therapy_end).toLocaleDateString()}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Medical Information</Text>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Diagnosis:</Text>
+              <Text style={styles.value}>{plan.patient_diagnosis}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Symptoms:</Text>
+              <Text style={styles.value}>
+                {Array.isArray(plan.patient_symptoms)
+                  ? plan.patient_symptoms.join(', ')
+                  : plan.patient_symptoms}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.card}>
+            <View style={styles.notesContainer}>
+              <Text style={styles.notesText}>Notes</Text>
+              <TouchableOpacity onPress={() => setIsNoteModalVisible(true)}>
+                <MaterialCommunityIcons
+                  name="plus-circle"
+                  size={24}
+                  color="#007b8e"
+                  style={styles.plusIcon}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {plan.notes && plan.notes.length > 0 && (
+              <>
+                {plan.notes.map((note, index) => (
+                  <View key={index} style={styles.noteItem}>
+                    <View style={styles.noteHeader}>
+                      <Text style={styles.noteDoctor}>{note.doctor_name}</Text>
+                      <Text style={styles.noteDate}>
+                        {new Date(note.date).toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <Text style={styles.noteText}>{note.note}</Text>
+                  </View>
+                ))}
+              </>
+            )}
+          </View>
+
+          {renderSessionsCard}
+
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.sectionTitle}>Payment Details</Text>
+              <TouchableOpacity
+                style={styles.paymentInfoButton}
+                onPress={() =>
+                  navigation.navigate('payment', {
+                    planId: planId,
+                    patientId: patientId || '',
+                    therapyId: '',
+                  })
+                }>
+                <MaterialCommunityIcons
+                  name="information-outline"
+                  size={24}
+                  color="#119FB3"
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.paymentInfo}>
+              <View style={styles.infoRow}>
+                <Text style={styles.paymentLabel}>Total Amount:</Text>
+                <Text style={styles.paymentValue}>₹{plan.total_amount}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.paymentLabel}>Received:</Text>
+                <Text style={styles.paymentValue}>₹{plan.received_amount}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.paymentLabel}>Balance:</Text>
+                <Text style={[styles.paymentValue, styles.balance]}>
+                  ₹{plan.balance}
+                </Text>
+              </View>
+              {plan.extra_addons && plan.extra_addons.length > 0 && (
+                <View style={styles.extraAddonsSection}>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.label}>Extra Addons:</Text>
+                  </View>
+                  {plan.extra_addons.map((addon, index) => {
+                    if (
+                      typeof addon === 'object' &&
+                      'name' in addon &&
+                      'amount' in addon
+                    ) {
+                      return (
+                        <View key={index} style={styles.addonRow}>
+                          <Text style={styles.addonName}>{addon.name}</Text>
+                          <Text style={styles.addonAmount}>
+                            ₹{addon.amount}
+                          </Text>
+                        </View>
+                      );
+                    }
+                    return (
+                      <View key={index} style={styles.addonRow}>
+                        <Text style={styles.addonName}>{addon}</Text>
+                      </View>
+                    );
+                  })}
+                  {plan.addons_amount && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.label}>Total Addons Amount:</Text>
+                      <Text style={styles.value}>₹{plan.addons_amount}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          </View>
+
+          {(plan.presession_remarks?.some(r => r.presession_remark) ||
+            plan.postsession_remarks?.some(r => r.postsession_remarks)) && (
+            <View style={[styles.card, styles.lastCard]}>
+              <Text style={styles.sectionTitle}>Session Remarks</Text>
+
+              {plan.presession_remarks?.some(r => r.presession_remark) && (
+                <View style={styles.remarkSection}>
+                  <Text style={styles.remarkSectionTitle}>
+                    Pre-session Remarks
+                  </Text>
+                  {plan.presession_remarks
+                    .filter(remark => remark.presession_remark)
+                    .map((remark, index) => (
+                      <View key={`pre-${index}`} style={styles.remarkItem}>
+                        <View style={styles.remarkHeader}>
+                          <Text style={styles.doctorName}>
+                            {remark.doctor_name}
+                          </Text>
+                          <Text style={styles.timestamp}>
+                            {new Date(remark.timestamp).toLocaleDateString()}
+                          </Text>
+                        </View>
+                        <Text style={styles.remarkText}>
+                          {remark.presession_remark}
+                        </Text>
+                      </View>
+                    ))}
+                </View>
+              )}
+
+              {plan.postsession_remarks?.some(r => r.postsession_remarks) && (
+                <View style={styles.remarkSection}>
+                  <Text style={styles.remarkSectionTitle}>
+                    Post-session Remarks
+                  </Text>
+                  {plan.postsession_remarks
+                    .filter(remark => remark.postsession_remarks)
+                    .map((remark, index) => (
+                      <View key={`post-${index}`} style={styles.remarkItem}>
+                        <View style={styles.remarkHeader}>
+                          <Text style={styles.doctorName}>
+                            {remark.doctor_name}
+                          </Text>
+                          <Text style={styles.timestamp}>
+                            {new Date(remark.timestamp).toLocaleDateString()}
+                          </Text>
+                        </View>
+                        <Text style={styles.remarkText}>
+                          {remark.postsession_remarks}
+                        </Text>
+                      </View>
+                    ))}
+                </View>
+              )}
+            </View>
+          )}
+        </ScrollView>
+      </View>
+    );
+  }, [
+    planDetails,
+    patientId,
+    planId,
+    navigation,
+    calculateTherapyProgress,
+    downloadPDF,
+    renderSessionsCard,
+    styles,
+  ]);
 
   return (
-    <View style={styles.safeArea}>
-      <BackTabTop screenName="Plan Details" />
+    <SafeAreaView style={styles.safeArea}>
       <StatusBar
         barStyle="light-content"
         backgroundColor="black"
         translucent={false}
+        animated={false}
       />
+      <BackTabTop screenName="Plan Details" />
 
-      {/* Simple transparent loading indicator for PDF downloads */}
       {downloadingPdf && (
         <View style={styles.transparentLoadingContainer}>
           <View style={styles.loadingIndicatorBox}>
@@ -692,247 +899,9 @@ const TherapyPlanDetails: React.FC = () => {
         </View>
       )}
 
-      <ScrollView style={styles.container}>
-        <View style={styles.mainCard}>
-          <View style={styles.cardHeader}>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('Patient', {
-                  patientId: patientId || '',
-                  preloadedData: undefined,
-                })
-              }>
-              <Text style={styles.patientName}>
-                {planDetails?.patient_name}
-              </Text>
-            </TouchableOpacity>
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() =>
-                  navigation.navigate('CreateTherapy', {
-                    patientId: patientId || '',
-                  })
-                }>
-                <Icon name="calendar-clock" size={24} color="#119FB3" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() =>
-                  navigation.navigate('EditTherapyPlan', {
-                    planId: plan._id,
-                  })
-                }>
-                <Icon name="square-edit-outline" size={24} color="#119FB3" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() => downloadPDF(plan._id)}>
-                <Icon name="file-pdf-box" size={24} color="#119FB3" />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <Text style={styles.therapyName}>{plan.therapy_name}</Text>
-          <Text style={styles.category}>{plan.patient_therapy_category}</Text>
-
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, {width: `${progress}%`}]} />
-            </View>
-            <Text style={styles.duration}>
-              Duration: {plan.therapy_duration}
-            </Text>
-          </View>
-
-          <View style={styles.dateInfo}>
-            <Text style={styles.dateText}>
-              Start: {new Date(plan.therapy_start).toLocaleDateString()}
-            </Text>
-            <Text style={styles.dateText}>
-              End: {new Date(plan.therapy_end).toLocaleDateString()}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Medical Information</Text>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Diagnosis:</Text>
-            <Text style={styles.value}>{plan.patient_diagnosis}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Symptoms:</Text>
-            <Text style={styles.value}>
-              {Array.isArray(plan.patient_symptoms)
-                ? plan.patient_symptoms.join(', ')
-                : plan.patient_symptoms}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.notesContainer}>
-            <Text style={styles.notesText}>Notes</Text>
-            <TouchableOpacity onPress={() => setIsNoteModalVisible(true)}>
-              <MaterialCommunityIcons
-                name="plus-circle"
-                size={24}
-                color="#007b8e"
-                style={styles.plusIcon}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {plan.notes && plan.notes.length > 0 && (
-            <>
-              {plan.notes.map((note, index) => (
-                <View key={index} style={styles.noteItem}>
-                  <View style={styles.noteHeader}>
-                    <Text style={styles.noteDoctor}>{note.doctor_name}</Text>
-                    <Text style={styles.noteDate}>
-                      {new Date(note.date).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <Text style={styles.noteText}>{note.note}</Text>
-                </View>
-              ))}
-            </>
-          )}
-        </View>
-
-        {renderSessionsCard()}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.sectionTitle}>Payment Details</Text>
-            <TouchableOpacity
-              style={styles.paymentInfoButton}
-              onPress={() =>
-                navigation.navigate('payment', {
-                  planId: planId,
-                  patientId: patientId || '',
-                  therapyId: ''
-                })
-              }>
-              <MaterialCommunityIcons
-                name="information-outline"
-                size={24}
-                color="#119FB3"
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.paymentInfo}>
-            <View style={styles.infoRow}>
-              <Text style={styles.paymentLabel}>Total Amount:</Text>
-              <Text style={styles.paymentValue}>₹{plan.total_amount}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.paymentLabel}>Received:</Text>
-              <Text style={styles.paymentValue}>₹{plan.received_amount}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.paymentLabel}>Balance:</Text>
-              <Text style={[styles.paymentValue, styles.balance]}>
-                ₹{plan.balance}
-              </Text>
-            </View>
-            {plan.extra_addons && plan.extra_addons.length > 0 && (
-              <View style={styles.extraAddonsSection}>
-                <View style={styles.infoRow}>
-                  <Text style={styles.label}>Extra Addons:</Text>
-                </View>
-                {plan.extra_addons.map((addon, index) => {
-                  // Check if addon is an object with name and amount properties
-                  if (
-                    typeof addon === 'object' &&
-                    'name' in addon &&
-                    'amount' in addon
-                  ) {
-                    return (
-                      <View key={index} style={styles.addonRow}>
-                        <Text style={styles.addonName}>{addon.name}</Text>
-                        <Text style={styles.addonAmount}>₹{addon.amount}</Text>
-                      </View>
-                    );
-                  }
-                  // If addon is a string, render it differently
-                  return (
-                    <View key={index} style={styles.addonRow}>
-                      <Text style={styles.addonName}>{addon}</Text>
-                    </View>
-                  );
-                })}
-                {plan.addons_amount && (
-                  <View style={styles.infoRow}>
-                    <Text style={styles.label}>Total Addons Amount:</Text>
-                    <Text style={styles.value}>₹{plan.addons_amount}</Text>
-                  </View>
-                )}
-              </View>
-            )}
-          </View>
-        </View>
-
-        {(plan.presession_remarks?.some(r => r.presession_remark) ||
-          plan.postsession_remarks?.some(r => r.postsession_remarks)) && (
-          <View style={[styles.card, styles.lastCard]}>
-            <Text style={styles.sectionTitle}>Session Remarks</Text>
-
-            {/* Pre-session Remarks Section */}
-            {plan.presession_remarks?.some(r => r.presession_remark) && (
-              <View style={styles.remarkSection}>
-                <Text style={styles.remarkSectionTitle}>
-                  Pre-session Remarks
-                </Text>
-                {plan.presession_remarks
-                  .filter(remark => remark.presession_remark)
-                  .map((remark, index) => (
-                    <View key={`pre-${index}`} style={styles.remarkItem}>
-                      <View style={styles.remarkHeader}>
-                        <Text style={styles.doctorName}>
-                          {remark.doctor_name}
-                        </Text>
-                        <Text style={styles.timestamp}>
-                          {new Date(remark.timestamp).toLocaleDateString()}
-                        </Text>
-                      </View>
-                      <Text style={styles.remarkText}>
-                        {remark.presession_remark}
-                      </Text>
-                    </View>
-                  ))}
-              </View>
-            )}
-
-            {/* Post-session Remarks Section */}
-            {plan.postsession_remarks?.some(r => r.postsession_remarks) && (
-              <View style={styles.remarkSection}>
-                <Text style={styles.remarkSectionTitle}>
-                  Post-session Remarks
-                </Text>
-                {plan.postsession_remarks
-                  .filter(remark => remark.postsession_remarks)
-                  .map((remark, index) => (
-                    <View key={`post-${index}`} style={styles.remarkItem}>
-                      <View style={styles.remarkHeader}>
-                        <Text style={styles.doctorName}>
-                          {remark.doctor_name}
-                        </Text>
-                        <Text style={styles.timestamp}>
-                          {new Date(remark.timestamp).toLocaleDateString()}
-                        </Text>
-                      </View>
-                      <Text style={styles.remarkText}>
-                        {remark.postsession_remarks}
-                      </Text>
-                    </View>
-                  ))}
-              </View>
-            )}
-          </View>
-        )}
-      </ScrollView>
-      {renderNoteModal()}
-    </View>
+      {loading && initialLoad ? renderSkeletonLoader : renderContent}
+      {renderNoteModal}
+    </SafeAreaView>
   );
 };
 
@@ -943,6 +912,9 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       padding: 12,
       backgroundColor: 'rgba(17, 159, 179, 0.1)',
       borderRadius: 8,
+    },
+    contentContainer: {
+      flex: 1,
     },
     noteHeader: {
       flexDirection: 'row',

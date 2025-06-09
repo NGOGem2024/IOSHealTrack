@@ -134,6 +134,8 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
               <Text style={styles.drawerItemText}>Dashboard</Text>
             </TouchableOpacity>
 
+            
+
             {session.is_admin && (
               <>
                 <TouchableOpacity
@@ -153,6 +155,13 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
                   />
                   <Text style={styles.drawerItemText}>Reports</Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => navigateToScreen('PaymentHistory')}>
+              <Ionicons name="card-outline" size={24} color="#007B8E" />
+              <Text style={styles.drawerItemText}>Payment History</Text>
+            </TouchableOpacity>
               </>
             )}
             <View style={styles.drawerDivider} />
@@ -188,7 +197,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     dropdown: {
       backgroundColor: theme.colors.card,
-      maxHeight: 320,
+      maxHeight: 360, // Increased height to accommodate new menu item
       minHeight: 50,
       padding: 0,
       shadowColor: '#000',

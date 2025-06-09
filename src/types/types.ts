@@ -27,6 +27,7 @@ export type RootStackParamList = {
   UpdateTherapy: {patientId?: string};
   CreateTherapy: {patientId?: string};
   DoctorDashboard: undefined;
+  PaymentHistory: undefined;
   DoctorProfileEdit: undefined;
   DoctorRegister: undefined;
   TabScreen: {

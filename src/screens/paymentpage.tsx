@@ -177,7 +177,6 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
       return !hasPayment;
     });
 
-    console.log('Filtered Sessions:', filtered);
     setFilteredSessions(filtered);
 
     // Auto-select session logic
@@ -346,7 +345,7 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
           onPress={() => setIsSessionDropdownVisible(true)}>
           <Text style={styles.dropdownButtonText}>
             {selectedSession
-              ? `Session ${selectedSession.session_number} - ${formatDate(
+              ? `Session ${selectedSession.session_number}            ${formatDate(
                   selectedSession.date,
                 )}`
               : 'Select a session'}
@@ -394,7 +393,7 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
                       <View
                         style={[
                           styles.statusBadge,
-                          session.status === 'Completed'
+                          session.status === 'completed'
                             ? styles.completedBadge
                             : session.status === 'In Progress'
                             ? styles.inProgressBadge
@@ -692,7 +691,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       textAlign: 'center',
     },
     dropdownModal: {
-      backgroundColor: 'white',
+      backgroundColor: theme.colors.secondary,
       borderRadius: 16,
       padding: 0, // Remove padding to handle it in sections
       width: '95%',
@@ -729,7 +728,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     closeButton1: {
       padding: 8,
       borderRadius: 20,
-      backgroundColor: '#f8f9fa',
+      backgroundColor: theme.colors.secondary,
       minWidth: 36,
       minHeight: 36,
       justifyContent: 'center',
@@ -750,7 +749,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
 
     sessionOption: {
-      backgroundColor: '#f8f9fa',
+      backgroundColor: theme.colors.border,
       padding: 16,
       borderRadius: 12,
       marginBottom: 12,
@@ -759,7 +758,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
 
     selectedSessionOption: {
-      backgroundColor: '#e8f4f8',
+      backgroundColor: theme.colors.border,
       borderColor: '#007B8E',
       borderWidth: 2,
     },
@@ -778,14 +777,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     sessionOptionNumber: {
       fontSize: 16,
       fontWeight: '600',
-      color: '#2c3e50',
+      color: theme.colors.text,
     },
 
     sessionOptionDate: {
       fontSize: 14,
       color: '#6c757d',
     },
-
     statusBadge: {
       paddingHorizontal: 10,
       paddingVertical: 4,
@@ -1072,6 +1070,17 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     card: {
       backgroundColor: theme.colors.card,
+      borderRadius: 15,
+      padding: 16,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    card1: {
+      backgroundColor: theme.colors.secondary,
       borderRadius: 15,
       padding: 16,
       marginBottom: 16,

@@ -240,10 +240,6 @@ const PaymentHistory: React.FC = () => {
       />
       <BackTabTop screenName="Payment History" />
       
-      <View style={[styles.header, {backgroundColor: currentColors.card}]}>
-        <Text style={[styles.headerTitle, {color: currentColors.text}]}>Payment History</Text>
-        <Text style={[styles.headerSubtitle, {color: currentColors.secondary}]}>Total Plans: {totalPlans}</Text>
-      </View>
 
       <FlatList
         data={plans}
@@ -301,7 +297,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, currentColors: any) =>
     },
     listContainer: {
       padding: 16,
-      paddingBottom: 100,
+      paddingBottom: 30,
     },
     planCard: {
       backgroundColor: currentColors.card,

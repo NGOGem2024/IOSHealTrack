@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,20 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useSession} from '../context/SessionContext';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
+import axiosInstance from '../utils/axiosConfig';
+import axios from 'axios';
+
+interface NotificationCount {
+  unread: number;
+  read: number;
+  archived: number;
+  total: number;
+}
+
+interface NotificationResponse {
+  success: boolean;
+  data: NotificationCount;
+}
 
 const DashboardHeader: React.FC = () => {
   const {theme} = useTheme();
@@ -24,6 +38,13 @@ const DashboardHeader: React.FC = () => {
   const {session} = useSession();
   const {width} = useWindowDimensions();
   const [isDropdownVisible, setDropdownVisible] = useState(false);
+  const [notificationCount, setNotificationCount] = useState<NotificationCount>({
+    unread: 0,
+    read: 0,
+    archived: 0,
+    total: 0,
+  });
+  const [notificationLoading, setNotificationLoading] = useState(false);
 
   const styles = getStyles(
     getTheme(
@@ -32,6 +53,48 @@ const DashboardHeader: React.FC = () => {
     insets,
   );
 
+  // Fetch notification count
+  const fetchNotificationCount = async () => {
+    if (!session.idToken) return;
+    setNotificationLoading(true);
+    try {
+      const notificationResponse = await axiosInstance.get(
+        `/notification/count`,
+        {
+          headers: {Authorization: `Bearer ${session.idToken}`},
+        },
+      );
+      
+      if (notificationResponse.data.success) {
+        setNotificationCount(notificationResponse.data.data);
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        setNotificationCount({
+          unread: 0,
+          read: 0,
+          archived: 0,
+          total: 0,
+        });
+      } else {
+        console.error('Error fetching notification count:', error);
+        // You can add handleError(error) here if you have a global error handler
+      }
+    } finally {
+      setNotificationLoading(false);
+    }
+  };
+
+  // Fetch notifications on component mount and set up interval
+  useEffect(() => {
+    fetchNotificationCount();
+    
+    // Poll for notifications every 30 seconds
+    const interval = setInterval(fetchNotificationCount, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const toggleDropdown = () => {
     setDropdownVisible(prev => !prev);
   };
@@ -39,6 +102,11 @@ const DashboardHeader: React.FC = () => {
   const navigateToScreen = (screenName: string) => {
     navigation.navigate(screenName as never);
     setDropdownVisible(false);
+  };
+
+  const handleNotificationPress = () => {
+    // Navigate to NotificationsScreen instead of showing modal
+    navigation.navigate('NotificationsScreen' as never);
   };
 
   return (
@@ -58,10 +126,30 @@ const DashboardHeader: React.FC = () => {
           />
           <Text style={styles.versionText}>v0.6</Text>
         </View>
-        <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
-          <Ionicons name="menu" size={26} color="#FFFFFF" />
-        </TouchableOpacity>
+        
+        <View style={styles.headerActions}>
+          {/* Notification Bell Icon */}
+          <TouchableOpacity 
+            style={styles.notificationButton} 
+            onPress={handleNotificationPress}
+          >
+            <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+            {notificationCount.unread > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>
+                  {notificationCount.unread > 99 ? '99+' : notificationCount.unread}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
 
+          {/* Menu Button */}
+          <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
+            <Ionicons name="menu" size={26} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Menu Dropdown Modal */}
         <Modal
           isVisible={isDropdownVisible}
           onBackdropPress={toggleDropdown}
@@ -154,7 +242,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     dropdown: {
       backgroundColor: theme.colors.card,
-      maxHeight: 360, // Increased height to accommodate new menu item
+      maxHeight: 400, // Increased height to accommodate new menu item
       minHeight: 50,
       padding: 0,
       shadowColor: '#000',
@@ -217,6 +305,31 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     logoImage: {
       width: 110,
       height: 35,
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    notificationButton: {
+      marginRight: 15,
+      position: 'relative',
+    },
+    notificationBadge: {
+      position: 'absolute',
+      top: -5,
+      right: -5,
+      backgroundColor: '#FF3B30',
+      borderRadius: 10,
+      minWidth: 18,
+      height: 18,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 4,
+    },
+    notificationBadgeText: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: 'bold',
     },
     profileButton: {
       alignItems: 'flex-end',

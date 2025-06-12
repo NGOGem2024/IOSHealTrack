@@ -43,6 +43,8 @@ import CreateBlogScreen from './src/screens/CreateBlogScreen';
 import BlogDetailsScreen from './src/screens/BlogDetailsScreen';
 import UpdateBlogScreen from './src/screens/UpdateBlogScreen';
 import PaymentHistory from './src/screens/PaymentHistory';
+import NotificationDetailScreen from './src/screens/NotificationDetailsScreen';
+import NotificationsScreen from './src/screens/NotificationsScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -57,6 +59,16 @@ const HomeStackNavigator = () => (
     <Stack.Screen
       name="AllPatients"
       component={AllPatients}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="NotificationDetailScreen"
+      component={NotificationDetailScreen}
+      options={{headerShown: false}}
+    />
+     <Stack.Screen
+      name="NotificationsScreen"
+      component={NotificationsScreen}
       options={{headerShown: false}}
     />
     <Stack.Screen

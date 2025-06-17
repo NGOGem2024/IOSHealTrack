@@ -66,7 +66,7 @@ const HomeStackNavigator = () => (
       component={NotificationDetailScreen}
       options={{headerShown: false}}
     />
-     <Stack.Screen
+    <Stack.Screen
       name="NotificationsScreen"
       component={NotificationsScreen}
       options={{headerShown: false}}
@@ -390,9 +390,6 @@ const TabNavigator = () => (
 const AppNavigator = () => {
   const {session, isLoading} = useSession();
   const [isSplashComplete, setSplashComplete] = useState(false);
-  if (isLoading) {
-    return <SplashScreen />;
-  }
   if (!isSplashComplete) {
     return (
       <AnimatedSplashScreen

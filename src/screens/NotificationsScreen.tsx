@@ -224,7 +224,7 @@ const NotificationsScreen: React.FC<Props> = ({navigation}) => {
   const getPriorityConfig = (priority: string) => {
     switch (priority) {
       case 'high':
-        return {color: '#FF6B6B', icon: 'alert-circle', bgColor: '#FFE5E5'};
+        return {color: '#007b8e', icon: 'notifications', bgColor: '#e3f7fa'};
       case 'medium':
         return {color: '#FFB020', icon: 'warning', bgColor: '#FFF4E6'};
       case 'low':
@@ -234,7 +234,7 @@ const NotificationsScreen: React.FC<Props> = ({navigation}) => {
           bgColor: '#E6F9F7',
         };
       default:
-        return {color: '#007b8e', icon: 'notifications', bgColor: '#e3f7fa'};
+        return {color: '#FF6B6B', icon: 'alert-circle', bgColor: '#FFE5E5'};
     }
   };
 

@@ -124,7 +124,7 @@ const DashboardHeader: React.FC = () => {
             style={styles.logoImage}
             resizeMode="contain"
           />
-          <Text style={styles.versionText}>v0.6</Text>
+          <Text style={styles.versionText}>v0.7</Text>
         </View>
         
         <View style={styles.headerActions}>

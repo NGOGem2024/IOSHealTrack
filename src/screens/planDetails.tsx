@@ -881,7 +881,7 @@ const TherapyPlanDetails: React.FC = () => {
   ]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar
         barStyle="light-content"
         backgroundColor="black"
@@ -901,7 +901,7 @@ const TherapyPlanDetails: React.FC = () => {
 
       {loading && initialLoad ? renderSkeletonLoader : renderContent}
       {renderNoteModal}
-    </SafeAreaView>
+    </View>
   );
 };
 

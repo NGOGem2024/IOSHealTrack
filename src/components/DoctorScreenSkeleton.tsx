@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Animated, SafeAreaView } from 'react-native';
+import {View, StyleSheet, Animated, SafeAreaView} from 'react-native';
 
 interface SkeletonProps {
   theme: {
@@ -196,7 +196,7 @@ const DoctorScreenSkeleton: React.FC<SkeletonProps> = ({theme}) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Profile Header Skeleton */}
       <View style={styles.profileCard}>
         <View style={styles.headerContainer}>
@@ -215,7 +215,7 @@ const DoctorScreenSkeleton: React.FC<SkeletonProps> = ({theme}) => {
 
         {/* Contact Info Skeleton */}
         <View style={styles.contactInfoContainer}>
-          {[1, 2, 3, 4].map((item) => (
+          {[1, 2, 3, 4].map(item => (
             <View key={item} style={styles.contactInfoItem}>
               <View style={styles.iconPlaceholder}>
                 <ShimmerOverlay />
@@ -243,9 +243,9 @@ const DoctorScreenSkeleton: React.FC<SkeletonProps> = ({theme}) => {
         <View style={styles.cardTitlePlaceholder}>
           <ShimmerOverlay />
         </View>
-        {[1, 2].map((item) => (
+        {[1, 2].map(item => (
           <View key={item} style={styles.appointmentSkeleton}>
-            {[1, 2, 3].map((subItem) => (
+            {[1, 2, 3].map(subItem => (
               <View key={subItem} style={styles.appointmentItemSkeleton}>
                 <View style={styles.iconPlaceholder}>
                   <ShimmerOverlay />
@@ -258,7 +258,7 @@ const DoctorScreenSkeleton: React.FC<SkeletonProps> = ({theme}) => {
           </View>
         ))}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

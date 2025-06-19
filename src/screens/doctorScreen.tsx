@@ -51,21 +51,24 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   const {session} = useSession();
   const {doctorId} = route.params;
   const {theme} = useTheme();
-  
+
   // Stable theme reference to prevent re-renders
-  const stableTheme = React.useMemo(() => 
-    getTheme(
-      (theme?.name as
-        | 'purple'
-        | 'blue'
-        | 'green'
-        | 'orange'
-        | 'pink'
-        | 'dark') || 'blue',
-    ), [theme?.name]);
-  
+  const stableTheme = React.useMemo(
+    () =>
+      getTheme(
+        (theme?.name as
+          | 'purple'
+          | 'blue'
+          | 'green'
+          | 'orange'
+          | 'pink'
+          | 'dark') || 'blue',
+      ),
+    [theme?.name],
+  );
+
   const styles = React.useMemo(() => getStyles(stableTheme), [stableTheme]);
-  
+
   const [doctorData, setDoctorData] = useState<DoctorData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -120,7 +123,6 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
-        
         {/* Profile Header Card */}
         <View style={styles.profileCard}>
           <View style={styles.profileHeader}>
@@ -261,7 +263,7 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar
         barStyle="light-content"
         backgroundColor="black"
@@ -269,10 +271,8 @@ const DoctorScreen: React.FC<DoctorScreenProps> = ({navigation, route}) => {
         animated={false}
       />
       <BackTabTop screenName="Doctor Profile" />
-      <View style={styles.container}>
-        {renderContent()}
-      </View>
-    </SafeAreaView>
+      <View style={styles.container}>{renderContent()}</View>
+    </View>
   );
 };
 

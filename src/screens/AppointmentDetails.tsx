@@ -17,16 +17,16 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
-import BackTabTop from './BackTopTab';
 import {useSession} from '../context/SessionContext';
 import axiosInstance from '../utils/axiosConfig';
 import {RootStackParamList} from '../types/types';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import SessionImageUploader from '../components/Sessionimageuploader'; // Import the image uploader
+
 interface AppointmentDetailsScreenProps {
   appointment: {
     plan_id: string;
@@ -51,7 +51,17 @@ interface AppointmentState {
   previousRemarks: string;
   postRemarks: string;
   isCompleted: boolean;
+  presessionImages: SessionImage[];
+  postsessionImages: SessionImage[];
 }
+
+interface SessionImage {
+  uri: string;
+  name: string;
+  type: string;
+  id: string;
+}
+
 const MAX_SESSION_TIME = 10800; // 3 hours in seconds
 
 const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
@@ -75,6 +85,14 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
   const [isModalVisible, setModalVisible] = useState(false);
   const [rotation] = useState(new Animated.Value(0));
   const [isCompleted, setIsCompleted] = useState(false);
+
+  // Image states
+  const [presessionImages, setPresessionImages] = useState<SessionImage[]>([]);
+  const [postsessionImages, setPostsessionImages] = useState<SessionImage[]>(
+    [],
+  );
+  const [imageUploading, setImageUploading] = useState(false);
+
   useEffect(() => {
     const checkTimeLimit = async () => {
       if (startTime) {
@@ -88,6 +106,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
     };
     checkTimeLimit();
   }, []);
+
   const handleTimeExceeded = async () => {
     setIsStarted(false);
     setStartTime(null);
@@ -98,6 +117,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
       'The session has exceeded the 3-hour limit and has been automatically ended.',
     );
   };
+
   // Load saved state on component mount
   useEffect(() => {
     loadAppointmentState();
@@ -106,7 +126,15 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
   // Save state when important values change
   useEffect(() => {
     saveAppointmentState();
-  }, [isStarted, startTime, elapsedTime, previousRemarks, postRemarks]);
+  }, [
+    isStarted,
+    startTime,
+    elapsedTime,
+    previousRemarks,
+    postRemarks,
+    presessionImages,
+    postsessionImages,
+  ]);
 
   // Handle back button
   useEffect(() => {
@@ -122,6 +150,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
     onClose();
     return true;
   };
+
   const handleJoinSession = async () => {
     if (!appointment.patientUser) {
       Alert.alert('Error', 'No patientUser ID in this appointment.');
@@ -173,6 +202,8 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
         setPreviousRemarks(state.previousRemarks);
         setPostRemarks(state.postRemarks);
         setIsCompleted(state.isCompleted);
+        setPresessionImages(state.presessionImages || []);
+        setPostsessionImages(state.postsessionImages || []);
       }
     } catch (error) {
       console.error('Error loading appointment state:', error);
@@ -189,6 +220,8 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
         previousRemarks,
         postRemarks,
         isCompleted,
+        presessionImages,
+        postsessionImages,
       };
       await AsyncStorage.setItem(
         `appointment_${appointment._id}`,
@@ -198,6 +231,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
       console.error('Error saving appointment state:', error);
     }
   };
+
   // Clear saved state
   const clearAppointmentState = async () => {
     try {
@@ -205,6 +239,22 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
     } catch (error) {
       console.error('Error clearing appointment state:', error);
     }
+  };
+
+  const handlePresessionImagesSelected = (images: SessionImage[]) => {
+    setPresessionImages(images);
+  };
+
+  const handlePresessionImageRemoved = (imageId: string) => {
+    setPresessionImages(prev => prev.filter(img => img.id !== imageId));
+  };
+
+  const handlePostsessionImagesSelected = (images: SessionImage[]) => {
+    setPostsessionImages(images);
+  };
+
+  const handlePostsessionImageRemoved = (imageId: string) => {
+    setPostsessionImages(prev => prev.filter(img => img.id !== imageId));
   };
 
   useEffect(() => {
@@ -235,14 +285,35 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
   const handleStart = useCallback(async () => {
     setLoading(true);
     try {
+      // Create FormData for the request
+      const formData = new FormData();
+
+      // Add presession remarks
+      if (previousRemarks) {
+        formData.append('presession_remarks', previousRemarks);
+      }
+
+      // Add presession images
+      // Add presession images
+      if (presessionImages.length > 0) {
+        presessionImages.forEach(image => {
+          formData.append('images', {
+            uri: image.uri,
+            name: image.name,
+            type: image.type,
+          } as any);
+        });
+      } else {
+        // Add an empty field to ensure Multer doesn't throw
+        formData.append('images', '');
+      }
+
       const response = await axiosInstance.post(
         `/therapy/start/${appointment._id}`,
-        {
-          presession_remarks: previousRemarks,
-        },
+        formData,
         {
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'multipart/form-data',
           },
         },
       );
@@ -259,11 +330,13 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [appointment._id, previousRemarks]);
+  }, [appointment._id, previousRemarks, presessionImages]);
 
   const handleCancel = () => {
     clearAppointmentState();
     setPreviousRemarks('');
+    setPresessionImages([]);
+    setPostsessionImages([]);
     onClose();
   };
 
@@ -274,14 +347,34 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
   const handleEnd = useCallback(async () => {
     setLoading(true);
     try {
+      // Create FormData for the request
+      const formData = new FormData();
+
+      // Add postsession remarks
+      if (postRemarks) {
+        formData.append('postsession_remarks', postRemarks);
+      }
+
+      // Add postsession images
+      if (postsessionImages.length > 0) {
+        postsessionImages.forEach(image => {
+          formData.append('images', {
+            uri: image.uri,
+            name: image.name,
+            type: image.type,
+          } as any);
+        });
+      } else {
+        // Add an empty field
+        formData.append('images', '');
+      }
+
       const response = await axiosInstance.post(
         `/therapy/end/${appointment._id}`,
-        {
-          postsession_remarks: postRemarks,
-        },
+        formData,
         {
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'multipart/form-data',
           },
         },
       );
@@ -294,7 +387,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
         navigation.navigate('payment', {
           planId: appointment.plan_id,
           patientId: appointment.patient_id,
-          therapyId: appointment._id
+          therapyId: appointment._id,
         });
       } else {
         Alert.alert('Error', 'Failed to end therapy session.');
@@ -305,7 +398,8 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [appointment._id, postRemarks]);
+  }, [appointment._id, postRemarks, postsessionImages, navigation]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isStarted && startTime) {
@@ -443,6 +537,16 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                 />
               </View>
 
+              {/* Pre-session Image Uploader */}
+              <SessionImageUploader
+                onImagesSelected={handlePresessionImagesSelected}
+                onImageRemoved={handlePresessionImageRemoved}
+                initialImages={presessionImages}
+                isUploading={imageUploading}
+                maxImages={5}
+                sessionType="presession"
+              />
+
               <View style={styles.actionButtonsContainer}>
                 <TouchableOpacity
                   style={[styles.actionButton, styles.cancelButton]}
@@ -490,7 +594,9 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
             animationType="slide">
             <View style={styles.modalContainer}>
               <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Post-Session Remarks</Text>
+                <Text style={styles.modalTitle}>Post-Session Details</Text>
+
+                <Text style={styles.detailTitle}>Post-Session Remarks</Text>
                 <TextInput
                   style={styles.remarksInput2}
                   multiline
@@ -499,6 +605,17 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                   value={postRemarks}
                   placeholder="Enter post session remarks"
                 />
+
+                {/* Post-session Image Uploader */}
+                <SessionImageUploader
+                  onImagesSelected={handlePostsessionImagesSelected}
+                  onImageRemoved={handlePostsessionImageRemoved}
+                  initialImages={postsessionImages}
+                  isUploading={imageUploading}
+                  maxImages={5}
+                  sessionType="postsession"
+                />
+
                 <TouchableOpacity
                   style={styles.modalButton}
                   onPress={handleEnd}>
@@ -518,6 +635,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
     </SafeAreaView>
   );
 };
+
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     dateIconContainer: {
@@ -602,7 +720,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       width: 40,
     },
     cancelButton: {
-      backgroundColor: 'gray', //theme.colors.card, // Set the color for cancel button
+      backgroundColor: 'gray',
       marginTop: 10,
       paddingVertical: 10,
       borderRadius: 10,
@@ -661,10 +779,9 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flex: 1,
       height: 48,
       borderRadius: 15,
-      justifyContent: 'center', // Center content vertically
+      justifyContent: 'center',
       alignItems: 'center',
       marginHorizontal: 10,
-      // Shadow for iOS
       shadowColor: '#000',
       shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.25,
@@ -672,7 +789,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       elevation: 5,
     },
     startButton: {
-      // backgroundColor: theme.colors.card, // Set the color for cancel button
       marginTop: 10,
       paddingVertical: 13,
       borderRadius: 10,
@@ -680,20 +796,19 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: '#007B8E',
     },
     buttonText: {
-      color: 'white', //theme.colors.text,
+      color: 'white',
       fontWeight: 'bold',
       fontSize: 16,
     },
     dateContainer: {
-      backgroundColor: theme.colors.inputBox, // Light neutral background
+      backgroundColor: theme.colors.inputBox,
       borderLeftWidth: 4,
-      borderLeftColor: '#119FB3', // Accent color matching header
+      borderLeftColor: '#119FB3',
       width: '90%',
       padding: 16,
       marginTop: 16,
       marginLeft: 20,
       borderRadius: 8,
-      // Enhanced shadow for depth
       shadowColor: '#000',
       shadowOffset: {
         width: 0,
@@ -702,49 +817,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       shadowOpacity: 0.1,
       shadowRadius: 3,
       elevation: 3,
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 16,
-    },
-    uploadButton: {
-      backgroundColor: '#90D5FF',
-      padding: 10,
-      borderRadius: 8,
-      flex: 1,
-      marginHorizontal: 4,
-    },
-
-    uploadButtonText: {
-      color: 'black',
-      textAlign: 'center',
-    },
-    timerLabel: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-      marginBottom: 8,
-    },
-    timerBox: {
-      backgroundColor: '#e0e0e0',
-      borderRadius: 15,
-      padding: 20,
-      elevation: 5,
-      shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-    },
-
-    headerText: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-      marginLeft: 16,
-      marginTop: 20,
-      marginBottom: 10,
-      textAlign: 'center',
     },
     detailsContainer: {
       padding: 16,
@@ -808,6 +880,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       padding: 20,
       borderRadius: 10,
       width: '90%',
+      maxHeight: '80%',
     },
     modalTitle: {
       fontSize: 18,

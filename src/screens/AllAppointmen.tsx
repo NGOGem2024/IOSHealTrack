@@ -25,6 +25,7 @@ import {RootStackParamList, RootTabParamList} from '../types/types';
 import LoadingScreen from '../components/loadingScreen';
 import {CompositeScreenProps} from '@react-navigation/native';
 import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
+import WhatsAppReminderButton from './WhatsappReminder';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<RootTabParamList, 'AllAppointments'>,
@@ -596,8 +597,21 @@ const AllAppointmentsPage: React.FC<Props> = ({navigation}) => {
             </View>
           </TouchableOpacity>
         )}
-        {(!item.status || item.status.toLowerCase() !== 'completed') &&
-          renderStartButton(item)}
+        {(!item.status || item.status.toLowerCase() !== 'completed') && (
+          <View style={styles.startButtonContainer}>
+            {renderStartButton(item)}
+            <WhatsAppReminderButton
+              sessionId={item._id}
+              patientName={item.patient_name || 'Patient'}
+              isDarkMode={isDarkMode}
+              size="medium"
+              onSuccess={() => {
+                // Optional: Refresh appointments or show success message
+                console.log('Reminder sent successfully');
+              }}
+            />
+          </View>
+        )}
       </View>
     </Animated.View>
   );

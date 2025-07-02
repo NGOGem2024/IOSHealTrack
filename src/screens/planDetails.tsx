@@ -35,6 +35,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {StackNavigationProp} from '@react-navigation/stack';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LoadingScreen from '../components/loadingScreen';
+import ImageGallery from './imageGallery';
 
 type TherapyPlanDetailsRouteProp = RouteProp<RootStackParamList, 'planDetails'>;
 
@@ -77,6 +78,12 @@ interface TherapyPlanDetails {
     }>;
   };
   patient_name: string;
+  images?: Array<{
+    _id: string;
+    sas_url: string;
+    session_type: string;
+    uploaded_at: string;
+  }>;
 }
 
 interface SkeletonPlaceholderProps {
@@ -706,7 +713,9 @@ const TherapyPlanDetails: React.FC = () => {
               </Text>
             </View>
           </View>
-
+          {planDetails?.images && planDetails.images.length > 0 && (
+            <ImageGallery images={planDetails.images} />
+          )}
           <View style={styles.card}>
             <View style={styles.notesContainer}>
               <Text style={styles.notesText}>Notes</Text>

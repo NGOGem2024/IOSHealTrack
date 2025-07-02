@@ -72,6 +72,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     payment_type: 'recurring',
     per_session_amount: '', // Added per session amount
     estimated_sessions: '', // Added estimated number of sessions
+    discount_percentage: '0', // Add this line
   });
   const {session} = useSession();
   const {patientId} = route.params;
@@ -310,6 +311,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
         payment_type: therapyPlan.payment_type,
         estimated_sessions: parseInt(therapyPlan.estimated_sessions),
         per_session_amount: parseFloat(therapyPlan.per_session_amount),
+        discount_percentage: parseFloat(therapyPlan.discount_percentage), // Add this line
       };
 
       const response = await axiosInstance.post(
@@ -391,6 +393,25 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     const balance = total - received;
     setTherapyPlan({...therapyPlan, balance: balance.toString()});
   }, [therapyPlan.total_amount, therapyPlan.received_amount]);
+  useEffect(() => {
+    const total = parseFloat(therapyPlan.total_amount) || 0;
+    const discount = parseFloat(therapyPlan.discount_percentage) || 0;
+    const received = parseFloat(therapyPlan.received_amount) || 0;
+
+    // Calculate discounted amount
+    const discountAmount = (total * discount) / 100;
+    const finalAmount = total - discountAmount;
+    const balance = finalAmount - received;
+
+    setTherapyPlan(prev => ({
+      ...prev,
+      balance: balance.toString(),
+    }));
+  }, [
+    therapyPlan.total_amount,
+    therapyPlan.received_amount,
+    therapyPlan.discount_percentage,
+  ]);
 
   return (
     <View style={styles.safeArea}>
@@ -694,6 +715,41 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           {errors.total_amount && (
             <Text style={styles.errorText}>{errors.total_amount}</Text>
           )}
+          <View style={styles.labeledInputContainer}>
+            <Text style={styles.inputLabel}>Discount Percentage</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                isDarkMode && styles.balanceContainerDark,
+              ]}>
+              <MaterialIcons
+                name="local-offer"
+                size={24}
+                color={isDarkMode ? '#66D9E8' : '#119FB3'}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter discount percentage"
+                value={therapyPlan.discount_percentage}
+                onChangeText={text => {
+                  // Ensure discount doesn't exceed 100%
+                  const value = parseFloat(text) || 0;
+                  if (value <= 100) {
+                    setTherapyPlan({...therapyPlan, discount_percentage: text});
+                  }
+                }}
+                keyboardType="numeric"
+                placeholderTextColor="#A0A0A0"
+              />
+              <Text
+                style={[
+                  styles.percentageSymbol,
+                  isDarkMode && styles.textDark,
+                ]}>
+                %
+              </Text>
+            </View>
+          </View>
 
           <View style={styles.labeledInputContainer}>
             <Text style={styles.inputLabel}>Received Amount</Text>
@@ -739,9 +795,48 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
               size={24}
               color={isDarkMode ? '#66D9E8' : '#119FB3'}
             />
-            <Text style={[styles.balanceValue, isDarkMode && styles.textDark]}>
-              Balance: {therapyPlan.balance} Rs
-            </Text>
+            <View style={styles.balanceDetails}>
+              {parseFloat(therapyPlan.discount_percentage) > 0 && (
+                <>
+                  <Text
+                    style={[
+                      styles.balanceValue,
+                      isDarkMode && styles.textDark,
+                    ]}>
+                    Original: ₹{therapyPlan.total_amount}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.discountText,
+                      isDarkMode && styles.textDark,
+                    ]}>
+                    Discount ({therapyPlan.discount_percentage}%): -₹
+                    {(
+                      ((parseFloat(therapyPlan.total_amount) || 0) *
+                        (parseFloat(therapyPlan.discount_percentage) || 0)) /
+                      100
+                    ).toFixed(2)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.finalAmountText,
+                      isDarkMode && styles.textDark,
+                    ]}>
+                    Final Amount: ₹
+                    {(
+                      (parseFloat(therapyPlan.total_amount) || 0) -
+                      ((parseFloat(therapyPlan.total_amount) || 0) *
+                        (parseFloat(therapyPlan.discount_percentage) || 0)) /
+                        100
+                    ).toFixed(2)}
+                  </Text>
+                </>
+              )}
+              <Text
+                style={[styles.balanceValue, isDarkMode && styles.textDark]}>
+                Balance: ₹{therapyPlan.balance}
+              </Text>
+            </View>
           </View>
 
           {errors.submit && (
@@ -772,6 +867,26 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
     saveButtonDark1: {
       backgroundColor: '#333333',
+    },
+    percentageSymbol: {
+      fontSize: 16,
+      color: '#119FB3',
+      fontWeight: 'bold',
+      marginRight: 5,
+    },
+    balanceDetails: {
+      marginLeft: 10,
+      flex: 1,
+    },
+    discountText: {
+      fontSize: 14,
+      color: '#FF6B6B',
+      fontStyle: 'italic',
+    },
+    finalAmountText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#4CAF50',
     },
     safeArea: {
       flex: 1,

@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useRef} from 'react';
 import {
   View,
   Image,
@@ -8,6 +8,8 @@ import {
   StyleSheet,
   Dimensions,
   Text,
+  ScrollView,
+  Animated,
 } from 'react-native';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
@@ -17,6 +19,7 @@ interface GalleryImage {
   _id: string;
   sas_url: string;
   session_type: string;
+  session_number: number;
   uploaded_at: string;
 }
 
@@ -24,7 +27,7 @@ interface ImageGalleryProps {
   images: GalleryImage[];
 }
 
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
+const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
 const ImageGallery: React.FC<ImageGalleryProps> = ({images}) => {
   const {theme} = useTheme();
@@ -42,10 +45,16 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({images}) => {
   );
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(true);
-  const [showAllPreImages, setShowAllPreImages] = useState(false);
-  const [showAllPostImages, setShowAllPostImages] = useState(false);
+  const [expandedSessions, setExpandedSessions] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [activeTab, setActiveTab] = useState<'pre' | 'post'>('pre');
 
-  // Group images by session_type
+  // Animation values
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Group images by session_type and session_number
   const preImages = useMemo(
     () => images.filter(img => img.session_type === 'presession'),
     [images],
@@ -55,13 +64,44 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({images}) => {
     [images],
   );
 
-  // Limit displayed images to 1 for the stack, others shown only when expanded
-  const displayedPreImages = showAllPreImages
-    ? preImages
-    : preImages.slice(0, 1);
-  const displayedPostImages = showAllPostImages
-    ? postImages
-    : postImages.slice(0, 1);
+  // Group images by session number within each type
+  const groupedPreImages = useMemo(() => {
+    const grouped: {[key: number]: GalleryImage[]} = {};
+    preImages.forEach(img => {
+      if (!grouped[img.session_number]) {
+        grouped[img.session_number] = [];
+      }
+      grouped[img.session_number].push(img);
+    });
+    return grouped;
+  }, [preImages]);
+
+  const groupedPostImages = useMemo(() => {
+    const grouped: {[key: number]: GalleryImage[]} = {};
+    postImages.forEach(img => {
+      if (!grouped[img.session_number]) {
+        grouped[img.session_number] = [];
+      }
+      grouped[img.session_number].push(img);
+    });
+    return grouped;
+  }, [postImages]);
+
+  // Get sorted session numbers for each type
+  const preSessionNumbers = useMemo(
+    () =>
+      Object.keys(groupedPreImages)
+        .map(Number)
+        .sort((a, b) => a - b),
+    [groupedPreImages],
+  );
+  const postSessionNumbers = useMemo(
+    () =>
+      Object.keys(groupedPostImages)
+        .map(Number)
+        .sort((a, b) => a - b),
+    [groupedPostImages],
+  );
 
   // Combine images for modal navigation (maintains order: pre then post)
   const allImages = useMemo(
@@ -69,12 +109,68 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({images}) => {
     [preImages, postImages],
   );
 
-  const openImage = (
-    index: number,
+  // Get session colors for differentiation
+  const getSessionColor = (
+    sessionNumber: number,
     sessionType: 'presession' | 'postsession',
   ) => {
-    const offset = sessionType === 'presession' ? 0 : preImages.length;
-    setSelectedImageIndex(index + offset);
+    const colors =
+      sessionType === 'presession'
+        ? ['#4caf4f', '#2e7d30', '#66bb6a', '#388e3c', '#81c784']
+        : ['#f48c36', '#d84315', '#ff9800', '#f57c00', '#ffb74d'];
+    return colors[sessionNumber % colors.length];
+  };
+
+  // Tab switching animation
+  const switchTab = (tab: 'pre' | 'post') => {
+    if (tab === activeTab) return;
+
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 0.3,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: tab === 'pre' ? 0 : 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setActiveTab(tab);
+  };
+
+  const toggleSessionExpansion = (
+    sessionType: 'presession' | 'postsession',
+    sessionNumber: number,
+  ) => {
+    const key = `${sessionType}_${sessionNumber}`;
+    setExpandedSessions(prev => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const openImage = (
+    imageIndex: number,
+    sessionType: 'presession' | 'postsession',
+    sessionNumber: number,
+  ) => {
+    // Find the global index of the image
+    const sessionImages =
+      sessionType === 'presession'
+        ? groupedPreImages[sessionNumber]
+        : groupedPostImages[sessionNumber];
+    const targetImage = sessionImages[imageIndex];
+    const globalIndex = allImages.findIndex(img => img._id === targetImage._id);
+
+    setSelectedImageIndex(globalIndex);
     setIsImageLoading(true);
     setIsModalVisible(true);
   };
@@ -117,36 +213,50 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({images}) => {
               </View>
             )}
             {selectedImageIndex !== null && (
-              <>
+              <View style={styles.imageContainer}>
                 <Image
                   source={{uri: allImages[selectedImageIndex].sas_url}}
                   style={styles.fullImage}
                   resizeMode="contain"
                   onLoad={() => setIsImageLoading(false)}
                 />
+
+                {/* Close button positioned over the image */}
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={closeImage}>
+                  <MaterialCommunityIcons
+                    name="close-circle"
+                    size={30}
+                    color="#FFFFFF"
+                  />
+                </TouchableOpacity>
+
+                {/* Session badge */}
                 <View
                   style={[
                     styles.sessionTypeBadge,
-                    allImages[selectedImageIndex].session_type === 'presession'
-                      ? styles.preSessionBadge
-                      : styles.postSessionBadge,
+                    {
+                      backgroundColor: getSessionColor(
+                        allImages[selectedImageIndex].session_number,
+                        allImages[selectedImageIndex].session_type as
+                          | 'presession'
+                          | 'postsession',
+                      ),
+                    },
                     styles.modalBadge,
                   ]}>
                   <Text style={styles.sessionTypeText}>
                     {allImages[selectedImageIndex].session_type === 'presession'
                       ? 'Pre'
-                      : 'Post'}
+                      : 'Post'}{' '}
+                    - Session {allImages[selectedImageIndex].session_number}
                   </Text>
                 </View>
-              </>
+              </View>
             )}
-            <TouchableOpacity style={styles.closeButton} onPress={closeImage}>
-              <MaterialCommunityIcons
-                name="close-circle"
-                size={30}
-                color="#FFFFFF"
-              />
-            </TouchableOpacity>
+
+            {/* Navigation buttons */}
             {allImages.length > 1 && (
               <>
                 {selectedImageIndex !== 0 && (
@@ -180,181 +290,181 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({images}) => {
     [isModalVisible, selectedImageIndex, isImageLoading, allImages, styles],
   );
 
-  const renderImageStack = (
-    imageList: GalleryImage[],
+  const renderSessionGroup = (
+    sessionNumber: number,
+    sessionImages: GalleryImage[],
     sessionType: 'presession' | 'postsession',
   ) => {
+    const expandedKey = `${sessionType}_${sessionNumber}`;
+    const isExpanded = expandedSessions[expandedKey];
+    const displayedImages = isExpanded
+      ? sessionImages
+      : sessionImages.slice(0, 3);
+    const sessionColor = getSessionColor(sessionNumber, sessionType);
+
     return (
-      <View style={styles.stackContainer}>
-        <Text style={styles.stackTitle}>
-          {sessionType === 'presession' ? 'Pre-session' : 'Post-session'} (
-          {imageList.length})
-        </Text>
-        {imageList.length > 0 ? (
-          <TouchableOpacity
-            onPress={() => openImage(0, sessionType)}
-            style={styles.imageStack}>
-            {imageList.slice(0, 1).map((image, index) => (
-              <View
-                key={image._id}
-                style={[
-                  styles.imageCard,
-                  {
-                    zIndex: 3 - index,
-                    transform: [
-                      {translateY: index * 6},
-                      {translateX: index * 6},
-                      {rotateZ: `${index * 2}deg`},
-                    ],
-                  },
-                ]}>
-                <Image
-                  source={{uri: image.sas_url}}
-                  style={styles.thumbnail}
-                  resizeMode="cover"
-                />
-                <View
-                  style={[
-                    styles.sessionTypeBadge,
-                    sessionType === 'presession'
-                      ? styles.preSessionBadge
-                      : styles.postSessionBadge,
-                  ]}>
-                  <Text style={styles.sessionTypeText}>
-                    {sessionType === 'presession' ? 'Pre' : 'Post'}
-                  </Text>
-                </View>
-              </View>
-            ))}
-            {/* Simulated stacked cards with enhanced effect */}
-            {imageList.length > 1 && (
-              <>
-                <View
-                  style={[
-                    styles.imageCard,
-                    {
-                      zIndex: 2,
-                      transform: [
-                        {translateY: 6},
-                        {translateX: 6},
-                        {rotateZ: '2deg'},
-                      ],
-                      backgroundColor: theme.colors.card,
-                      opacity: 0.7,
-                      shadowColor: '#000',
-                      shadowOffset: {width: 2, height: 2},
-                      shadowOpacity: 0.2,
-                      shadowRadius: 4,
-                    },
-                  ]}
-                />
-                {imageList.length > 2 && (
-                  <View
-                    style={[
-                      styles.imageCard,
-                      {
-                        zIndex: 1,
-                        transform: [
-                          {translateY: 12},
-                          {translateX: 12},
-                          {rotateZ: '4deg'},
-                        ],
-                        backgroundColor: theme.colors.card,
-                        opacity: 0.5,
-                        shadowColor: '#000',
-                        shadowOffset: {width: 4, height: 4},
-                        shadowOpacity: 0.2,
-                        shadowRadius: 6,
-                      },
-                    ]}
-                  />
-                )}
-              </>
-            )}
-          </TouchableOpacity>
-        ) : (
-          <Text style={styles.noImagesText}>
-            No {sessionType === 'presession' ? 'Pre' : 'Post'} images
+      <View key={`${sessionType}_${sessionNumber}`} style={styles.sessionGroup}>
+        <View style={styles.sessionHeader}>
+          <View
+            style={[styles.sessionIndicator, {backgroundColor: sessionColor}]}
+          />
+          <Text style={styles.sessionTitle}>
+            Session {sessionNumber} ({sessionImages.length}{' '}
+            {sessionImages.length === 1 ? 'image' : 'images'})
           </Text>
-        )}
-        {imageList.length > 1 &&
-          !(sessionType === 'presession'
-            ? showAllPreImages
-            : showAllPostImages) && (
+          {sessionImages.length > 3 && (
             <TouchableOpacity
-              style={styles.showMoreButton}
-              onPress={() =>
-                sessionType === 'presession'
-                  ? setShowAllPreImages(true)
-                  : setShowAllPostImages(true)
-              }>
-              <Text style={styles.showMoreText}>
-                Show More ({imageList.length - 1})
-              </Text>
+              onPress={() => toggleSessionExpansion(sessionType, sessionNumber)}
+              style={styles.expandButton}>
+              <MaterialCommunityIcons
+                name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color="#119FB3"
+              />
             </TouchableOpacity>
           )}
-        {(sessionType === 'presession'
-          ? showAllPreImages
-          : showAllPostImages) &&
-          imageList.length > 1 && (
-            <View style={styles.expandedImages}>
-              {imageList.slice(1).map((image, index) => (
-                <TouchableOpacity
-                  key={image._id}
-                  onPress={() => openImage(index + 1, sessionType)}
-                  style={styles.imageCard}>
-                  <Image
-                    source={{uri: image.sas_url}}
-                    style={styles.thumbnail}
-                    resizeMode="cover"
-                  />
-                  <View
-                    style={[
-                      styles.sessionTypeBadge,
-                      sessionType === 'presession'
-                        ? styles.preSessionBadge
-                        : styles.postSessionBadge,
-                    ]}>
-                    <Text style={styles.sessionTypeText}>
-                      {sessionType === 'presession' ? 'Pre' : 'Post'}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
+        </View>
+
+        <View style={styles.sessionImagesContainer}>
+          {displayedImages.map((image, index) => (
+            <TouchableOpacity
+              key={image._id}
+              onPress={() => openImage(index, sessionType, sessionNumber)}
+              style={[
+                styles.imageCard,
+                {borderColor: sessionColor, borderWidth: 2},
+              ]}>
+              <Image
+                source={{uri: image.sas_url}}
+                style={styles.thumbnail}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {!isExpanded && sessionImages.length > 3 && (
+          <TouchableOpacity
+            style={[styles.showMoreButton, {borderColor: sessionColor}]}
+            onPress={() => toggleSessionExpansion(sessionType, sessionNumber)}>
+            <Text style={[styles.showMoreText, {color: sessionColor}]}>
+              Show {sessionImages.length - 3} more images
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
+    );
+  };
+
+  const renderSessionTypeContent = (
+    sessionType: 'presession' | 'postsession',
+    groupedImages: {[key: number]: GalleryImage[]},
+    sessionNumbers: number[],
+  ) => {
+    return (
+      <ScrollView style={styles.sessionsScrollView} nestedScrollEnabled={true}>
+        {sessionNumbers.length > 0 ? (
+          sessionNumbers.map(sessionNumber =>
+            renderSessionGroup(
+              sessionNumber,
+              groupedImages[sessionNumber],
+              sessionType,
+            ),
+          )
+        ) : (
+          <View style={styles.emptyState}>
+            <MaterialCommunityIcons
+              name="image-off"
+              size={48}
+              color="#CCCCCC"
+            />
+            <Text style={styles.emptyStateText}>
+              No {sessionType === 'presession' ? 'pre-session' : 'post-session'}{' '}
+              images
+            </Text>
+            <Text style={styles.emptyStateSubtext}>
+              Images will appear here once uploaded
+            </Text>
+          </View>
+        )}
+      </ScrollView>
     );
   };
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <View style={styles.notesContainer}>
-          <View style={styles.headerContent}>
-            <MaterialCommunityIcons
-              name="image"
-              size={24}
-              color="#119FB3"
-              style={styles.imageIcon}
-            />
-            <View>
-              <View style={styles.titleContainer}>
-                <Text style={styles.sectionTitle}>Images</Text>
-                <Text style={styles.imageCount}>({images.length})</Text>
-              </View>
-              <Text style={styles.subTitle}>
-                {preImages.length} Pre-session • {postImages.length}{' '}
-                Post-session
-              </Text>
-            </View>
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.mainTitle}>Image Gallery</Text>
+            <Text style={styles.subTitle}>
+              {images.length} images • {preSessionNumbers.length} sessions
+            </Text>
           </View>
         </View>
       </View>
-      <View style={styles.stacksContainer}>
-        {renderImageStack(displayedPreImages, 'presession')}
-        {renderImageStack(displayedPostImages, 'postsession')}
+
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        <View style={styles.tabBackground}>
+          <Animated.View
+            style={[
+              styles.tabIndicator,
+              {
+                transform: [
+                  {
+                    translateX: slideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, SCREEN_WIDTH / 2 - 32],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          />
+
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'pre' && styles.activeTab]}
+            onPress={() => switchTab('pre')}>
+            <Text
+              style={[
+                styles.tabText,
+                {color: activeTab === 'pre' ? '#FFFFFF' : '#119FB3'},
+              ]}>
+              Pre-session ({preImages.length})
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'post' && styles.activeTab]}
+            onPress={() => switchTab('post')}>
+            <Text
+              style={[
+                styles.tabText,
+                {color: activeTab === 'post' ? '#FFFFFF' : '#119FB3'},
+              ]}>
+              Post-session ({postImages.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* Content Area */}
+      <Animated.View style={[styles.contentContainer, {opacity: fadeAnim}]}>
+        {activeTab === 'pre'
+          ? renderSessionTypeContent(
+              'presession',
+              groupedPreImages,
+              preSessionNumbers,
+            )
+          : renderSessionTypeContent(
+              'postsession',
+              groupedPostImages,
+              postSessionNumbers,
+            )}
+      </Animated.View>
+
       {renderImageModal}
     </View>
   );
@@ -365,7 +475,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     container: {
       backgroundColor: theme.colors.card,
       borderRadius: 12,
-      padding: 16,
       margin: 16,
       marginBottom: 8,
       elevation: 2,
@@ -373,121 +482,175 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       shadowOffset: {width: 0, height: 1},
       shadowOpacity: 0.05,
       shadowRadius: 2,
+      flex: 1,
     },
     header: {
-      marginBottom: 12,
-    },
-    notesContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: '#E5E7EB',
     },
     headerContent: {
       flexDirection: 'row',
       alignItems: 'center',
     },
     imageIcon: {
-      marginRight: 8,
+      marginRight: 16,
     },
-    titleContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    sectionTitle: {
-      fontSize: 18,
+    mainTitle: {
+      fontSize: 16,
       fontWeight: 'bold',
       color: theme.colors.text,
-    },
-    imageCount: {
-      fontSize: 14,
-      color: theme.colors.text,
-      opacity: 0.7,
-      marginLeft: 8,
+      marginBottom: 2,
     },
     subTitle: {
       fontSize: 14,
       color: theme.colors.text,
-      opacity: 0.7,
+      opacity: 0.6,
     },
-    stacksContainer: {
+    tabContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: theme.colors.card,
+    },
+    tabBackground: {
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgb(240, 246, 255)'
+          : 'rgba(17, 159, 179, 0.1)',
+      borderRadius: 12,
+      padding: 4,
+      position: 'relative',
       flexDirection: 'row',
-      justifyContent: 'space-between',
     },
-    stackContainer: {
+
+    tabIndicator: {
+      position: 'absolute',
+      top: 4,
+      left: 4,
+      width: SCREEN_WIDTH / 2 - 32,
+      height: 40,
+      backgroundColor: '#119FB3',
+      borderRadius: 8,
+    },
+    tab: {
       flex: 1,
-      marginHorizontal: 6,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 10,
+      borderRadius: 8,
+      gap: 6,
     },
-    stackTitle: {
+    activeTab: {
+      // Styling handled by indicator
+    },
+    tabText: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    contentContainer: {
+      flex: 1,
+      padding: 12,
+    },
+    sessionsScrollView: {
+      flex: 1,
+    },
+    sessionGroup: {
+      backgroundColor:  theme.colors.card === '#FFFFFF'
+          ? 'rgb(240, 246, 255)'
+          : 'rgba(17, 159, 179, 0.1)',
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 8,
+      elevation: 1,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 1},
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+    },
+    sessionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    sessionIndicator: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginRight: 8,
+    },
+    sessionTitle: {
       fontSize: 14,
       fontWeight: '600',
       color: theme.colors.text,
-      marginBottom: 6,
+      flex: 1,
     },
-    imageStack: {
-      position: 'relative',
-      height: (SCREEN_WIDTH - 88) / 4 + 18, // Adjusted for smaller size + enhanced stack effect
-      width: (SCREEN_WIDTH - 88) / 4,
+    expandButton: {
+      padding: 4,
+    },
+    sessionImagesContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
     },
     imageCard: {
-      position: 'absolute',
-      width: (SCREEN_WIDTH - 88) / 4,
+      width: (SCREEN_WIDTH - 120) / 3,
       aspectRatio: 1,
       borderRadius: 8,
-      elevation: 4,
+      elevation: 2,
       shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.15,
-      shadowRadius: 6,
+      shadowOffset: {width: 0, height: 1},
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
       backgroundColor: theme.colors.card,
       overflow: 'hidden',
     },
     thumbnail: {
       width: '100%',
       height: '100%',
-      borderRadius: 8,
+      borderRadius: 6,
     },
     sessionTypeBadge: {
       position: 'absolute',
-      bottom: 6,
-      left: 6,
-      paddingHorizontal: 5,
+      bottom: 4,
+      left: 4,
+      paddingHorizontal: 6,
       paddingVertical: 2,
       borderRadius: 4,
-    },
-    preSessionBadge: {
-      backgroundColor: '#4caf4f',
-    },
-    postSessionBadge: {
-      backgroundColor: '#f48c36',
     },
     sessionTypeText: {
       color: '#FFFFFF',
       fontSize: 10,
-      fontWeight: '500',
+      fontWeight: '600',
     },
-    noImagesText: {
-      fontSize: 12,
-      color: theme.colors.text,
-      opacity: 0.7,
-      marginVertical: 8,
+    emptyState: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 60,
+    },
+    emptyStateText: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: '#9CA3AF',
+      marginTop: 12,
+    },
+    emptyStateSubtext: {
+      fontSize: 14,
+      color: '#9CA3AF',
+      marginTop: 4,
     },
     showMoreButton: {
       alignItems: 'center',
-      paddingVertical: 6,
-      marginTop: 6,
+      paddingVertical: 8,
+      marginTop: 8,
       backgroundColor: 'rgba(17, 159, 179, 0.1)',
       borderRadius: 6,
+      borderWidth: 1,
     },
     showMoreText: {
       fontSize: 12,
       fontWeight: '600',
-      color: '#119FB3',
-    },
-    expandedImages: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
-      marginTop: 8,
     },
     modalOverlay: {
       flex: 1,
@@ -502,15 +665,26 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignItems: 'center',
       position: 'relative',
     },
+    imageContainer: {
+      width: SCREEN_WIDTH * 0.95,
+      height: SCREEN_HEIGHT * 0.7,
+      position: 'relative',
+      backgroundColor: '#000',
+      borderRadius: 12,
+      overflow: 'hidden',
+    },
     fullImage: {
-      width: SCREEN_WIDTH * 0.9,
-      height: SCREEN_WIDTH * 0.9,
+      width: '100%',
+      height: '100%',
       borderRadius: 12,
     },
     closeButton: {
       position: 'absolute',
-      top: 40,
-      right: 20,
+      top: 10,
+      right: 10,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      borderRadius: 15,
+      padding: 5,
     },
     navButtonLeft: {
       position: 'absolute',
@@ -529,15 +703,16 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      width: SCREEN_WIDTH * 0.9,
-      height: SCREEN_WIDTH * 0.9,
+      width: SCREEN_WIDTH * 0.95,
+      height: SCREEN_HEIGHT * 0.7,
       borderRadius: 12,
     },
     modalBadge: {
       position: 'absolute',
       bottom: 20,
       left: 20,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
     },
   });
-
 export default ImageGallery;

@@ -83,6 +83,7 @@ interface TherapyPlanDetails {
     sas_url: string;
     session_type: string;
     uploaded_at: string;
+    session_number: number;
   }>;
 }
 
@@ -203,7 +204,7 @@ const TherapyPlanDetails: React.FC = () => {
         }
 
         const completedSessions = therapyPlan.therapy_sessions.filter(
-          session => session && session.status === 'Completed',
+          session => session && session.status === 'completed',
         ).length;
 
         const progress =

@@ -7,11 +7,17 @@ import {
   StyleSheet,
   Alert,
   Text,
-  ScrollView,
   FlatList,
+  TextStyle,
+  ViewStyle,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ImagePicker from 'react-native-image-crop-picker';
+import {useTheme} from '../screens/ThemeContext';
+import {getTheme} from '../screens/Theme';
+
+const {width} = Dimensions.get('window');
 
 interface SessionImage {
   uri: string;
@@ -27,6 +33,8 @@ interface SessionImageUploaderProps {
   isUploading: boolean;
   maxImages?: number;
   sessionType: 'presession' | 'postsession';
+  titleStyle?: TextStyle;
+  containerStyle?: ViewStyle;
 }
 
 interface ImagePickerError {
@@ -41,9 +49,17 @@ const SessionImageUploader: React.FC<SessionImageUploaderProps> = ({
   isUploading,
   maxImages = 10,
   sessionType,
+  titleStyle,
+  containerStyle,
 }) => {
   const [localImages, setLocalImages] = React.useState<SessionImage[]>(
     initialImages || [],
+  );
+  const {theme} = useTheme();
+  const styles = getStyles(
+    getTheme(
+      theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
+    ),
   );
 
   const handleImagePick = async () => {
@@ -112,7 +128,7 @@ const SessionImageUploader: React.FC<SessionImageUploaderProps> = ({
         mediaType: 'photo',
         compressImageQuality: 0.8,
         maxFiles: remainingSlots,
-        cropping: false, // Disable cropping for multiple selection
+        cropping: false,
       });
 
       const newImages: SessionImage[] = images.map((image, index) => ({
@@ -170,7 +186,7 @@ const SessionImageUploader: React.FC<SessionImageUploaderProps> = ({
         <TouchableOpacity
           style={styles.removeButton}
           onPress={() => handleRemoveImage(item.id)}>
-          <Icon name="close-circle" size={20} color="#ff4444" />
+          <Icon name="close-circle" size={22} color="#ff4444" />
         </TouchableOpacity>
       )}
       {isUploading && (
@@ -181,140 +197,289 @@ const SessionImageUploader: React.FC<SessionImageUploaderProps> = ({
     </View>
   );
 
+  const renderEmptyState = () => (
+    <TouchableOpacity
+      style={styles.emptyStateContainer}
+      onPress={handleImagePick}
+      disabled={isUploading}
+      activeOpacity={0.7}>
+      <View style={styles.emptyStateContent}>
+        <View style={styles.emptyStateIconContainer}>
+          <Icon name="cloud-upload-outline" size={20} color="#007B8E" />
+        </View>
+        <Text style={styles.emptyStateTitle}>Add Images</Text>
+        <Text style={styles.emptyStateSubtitle}>
+          Tap to upload {sessionType === 'presession' ? 'pre-session' : 'post-session'} images
+        </Text>
+        <Text style={styles.emptyStateHint}>
+          Support: Camera, Gallery • Max {maxImages} images
+        </Text>
+      </View>
+      {isUploading && (
+        <View style={styles.uploadingOverlay}>
+          <ActivityIndicator size="small" color="#007B8E" />
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+
+  const renderAddMoreButton = () => (
+    <TouchableOpacity
+      style={styles.addMoreButton}
+      onPress={handleImagePick}
+      disabled={isUploading || localImages.length >= maxImages}
+      activeOpacity={0.7}>
+      <View style={styles.addMoreIconContainer}>
+        <Icon 
+          name="add-outline" 
+          size={24} 
+          color={localImages.length >= maxImages ? '#ccc' : '#007B8E'} 
+        />
+      </View>
+      <Text style={[
+        styles.addMoreText,
+        localImages.length >= maxImages && styles.addMoreTextDisabled
+      ]}>
+        Add More
+      </Text>
+    </TouchableOpacity>
+  );
+
   const getTitle = () => {
     return sessionType === 'presession'
       ? 'Pre-Session Images'
       : 'Post-Session Images';
   };
 
-  const getAddButtonText = () => {
-    if (localImages.length === 0) {
-      return 'Add Images';
-    }
-    return `Add More (${localImages.length}/${maxImages})`;
+  const getImageContainerWidth = () => {
+    const numColumns = Math.min(3, localImages.length + 1);
+    const totalPadding = 32; // Container padding
+    const totalGaps = (numColumns - 1) * 12; // Gaps between items
+    return (width - totalPadding - totalGaps) / numColumns;
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{getTitle()}</Text>
+    <View style={[styles.container, containerStyle]}>
+      {/* Header Section */}
+      <View style={styles.headerContainer}>
+        <View style={styles.titleContainer}>
+          <Text style={[styles.title, titleStyle]}>{getTitle()}</Text>
+        </View>
+        {localImages.length > 0 && (
+          <View style={styles.counterContainer}>
+            <Text style={styles.counterText}>
+              {localImages.length}/{maxImages}
+            </Text>
+          </View>
+        )}
+      </View>
 
-      {localImages.length > 0 && (
-        <FlatList
-          data={localImages}
-          renderItem={renderImageItem}
-          keyExtractor={item => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.imagesList}
-          contentContainerStyle={styles.imagesListContent}
-        />
-      )}
-
-      {localImages.length < maxImages && (
-        <TouchableOpacity
-          style={styles.uploadButton}
-          onPress={handleImagePick}
-          disabled={isUploading}>
-          <Icon
-            name={
-              localImages.length > 0 ? 'add-circle-outline' : 'camera-outline'
-            }
-            size={localImages.length > 0 ? 24 : 40}
-            color="#007B8E"
-          />
-          <Text style={styles.addImageText}>{getAddButtonText()}</Text>
-          {isUploading && (
-            <ActivityIndicator
-              size="small"
-              color="#007B8E"
-              style={styles.uploadingIndicator}
+      {/* Images Section */}
+      <View style={styles.imagesSection}>
+        {localImages.length === 0 ? (
+          renderEmptyState()
+        ) : (
+          <View style={styles.imagesGrid}>
+            <FlatList
+              data={localImages}
+              renderItem={renderImageItem}
+              keyExtractor={item => item.id}
+              numColumns={3}
+              scrollEnabled={false}
+              columnWrapperStyle={styles.row}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
             />
-          )}
-        </TouchableOpacity>
-      )}
+            
+            {/* Add More Button */}
+            {localImages.length < maxImages && (
+              <View style={styles.addMoreContainer}>
+                {renderAddMoreButton()}
+              </View>
+            )}
+          </View>
+        )}
+      </View>
 
+      {/* Status Text */}
       {localImages.length > 0 && (
-        <Text style={styles.imageCount}>
-          {localImages.length} of {maxImages} images selected
-        </Text>
+        <View style={styles.statusContainer}>
+          <Icon name="checkmark-circle-outline" size={16} color="#27ae60" />
+          <Text style={styles.statusText}>
+            {localImages.length} image{localImages.length !== 1 ? 's' : ''} selected
+          </Text>
+        </View>
       )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   container: {
     marginVertical: 16,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   title: {
     fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+  },
+  counterContainer: {
+    backgroundColor: '#007B8E',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  counterText: {
+    color: '#fff',
+    fontSize: 12,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 12,
+  },
+  imagesSection: {
+    backgroundColor: theme.colors.inputBox,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    overflow: 'hidden',
+  },
+  emptyStateContainer: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 180,
+  },
+  emptyStateContent: {
+    alignItems: 'center',
+  },
+  emptyStateIconContainer: {
+    width: 20,
+    height: 20,
+    borderRadius: 32,
+    backgroundColor: '#f0f9ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.colors.text,
+    marginBottom: 8,
+  },
+  emptyStateSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptyStateHint: {
+    fontSize: 12,
+    color: '#999',
     textAlign: 'center',
   },
-  imagesList: {
-    marginBottom: 12,
+  imagesGrid: {
+    padding: 16,
   },
-  imagesListContent: {
-    paddingHorizontal: 16,
+  row: {
+    justifyContent: 'space-between',
+  },
+  separator: {
+    height: 12,
   },
   imageContainer: {
     position: 'relative',
-    marginRight: 12,
-    borderRadius: 8,
+    width: (width - 80) / 3, // Dynamic width for 3 columns
+    aspectRatio: 1,
+    borderRadius: 12,
     overflow: 'hidden',
+    backgroundColor: '#f5f5f5',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   imagePreview: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
   },
   removeButton: {
     position: 'absolute',
-    top: 4,
-    right: 4,
+    top: 8,
+    right: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 10,
-    padding: 2,
+    borderRadius: 11,
+    width: 22,
+    height: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   uploadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 12,
   },
-  uploadButton: {
-    justifyContent: 'center',
+  addMoreContainer: {
+    marginTop: 16,
     alignItems: 'center',
-    alignSelf: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderWidth: 2,
+  },
+  addMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f9ff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 25,
+    borderWidth: 1,
     borderColor: '#007B8E',
     borderStyle: 'dashed',
-    borderRadius: 12,
-    backgroundColor: '#f8f9fa',
-    minWidth: 200,
   },
-  addImageText: {
-    marginTop: 8,
+  addMoreIconContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  addMoreText: {
     fontSize: 14,
     color: '#007B8E',
+    fontWeight: '600',
+  },
+  addMoreTextDisabled: {
+    color: '#ccc',
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    gap: 6,
+  },
+  statusText: {
+    fontSize: 12,
+    color: '#27ae60',
     fontWeight: '500',
   },
-  uploadingIndicator: {
-    marginTop: 8,
-  },
-  imageCount: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 8,
-  },
 });
-
 export default SessionImageUploader;

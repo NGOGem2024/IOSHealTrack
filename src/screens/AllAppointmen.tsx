@@ -873,8 +873,8 @@ const getStyles = (
 
     startButtonContainer: {
       backgroundColor: '#aeebbd',
-      paddingHorizontal: 10,
-      paddingVertical: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 6,
       borderRadius: 8,
       flexDirection: 'row',
       alignItems: 'center',

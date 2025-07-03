@@ -545,8 +545,8 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                 isUploading={imageUploading}
                 maxImages={5}
                 sessionType="presession"
+                titleStyle={styles.detailTitle} // Use the same style as other titles
               />
-
               <View style={styles.actionButtonsContainer}>
                 <TouchableOpacity
                   style={[styles.actionButton, styles.cancelButton]}
@@ -614,6 +614,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                   isUploading={imageUploading}
                   maxImages={5}
                   sessionType="postsession"
+                  titleStyle={styles.detailTitle} // Use the same style as other titles
                 />
 
                 <TouchableOpacity
@@ -674,7 +675,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginBottom: 8,
     },
     remarksSection: {
-      marginTop: 16,
+      marginTop: 0.5,
       marginBottom: 16,
     },
     container: {
@@ -853,7 +854,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       height: 100,
       color: theme.colors.text,
       textAlignVertical: 'top',
-      marginBottom: 16,
+      marginBottom: -10,
       borderColor: theme.colors.border,
       borderWidth: 1,
       backgroundColor: theme.colors.inputBox,
@@ -864,7 +865,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       height: 100,
       color: theme.colors.text,
       textAlignVertical: 'top',
-      marginBottom: 16,
+      marginBottom: -8,
       borderColor: theme.colors.border,
       borderWidth: 1,
       backgroundColor: theme.colors.inputBox,

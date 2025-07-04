@@ -77,7 +77,7 @@ const WhatsAppReminderButton: React.FC<WhatsAppReminderProps> = ({
       case 'large':
         return 24;
       default:
-        return 20;
+        return 18;
     }
   };
 
@@ -139,7 +139,7 @@ const WhatsAppReminderButton: React.FC<WhatsAppReminderProps> = ({
 };
 
 const getStyles = (isDarkMode: boolean, size: 'small' | 'medium' | 'large') => {
-  const buttonSize = size === 'small' ? 32 : size === 'large' ? 44 : 38;
+  const buttonSize = size === 'small' ? 32 : size === 'large' ? 44 : 30;
 
   return StyleSheet.create({
     reminderButton: {

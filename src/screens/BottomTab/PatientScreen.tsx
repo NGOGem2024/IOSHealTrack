@@ -42,6 +42,7 @@ import {getTheme} from '../Theme';
 import {useTheme} from '../ThemeContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PatientDocumentUploader from '../../components/documentsupload';
+import DocumentDeleteDialog from '../../components/DocumentDelete';
 //import LoadingScreen from '../../components/loadingScreen';
 
 type PatientScreenProps = StackScreenProps<RootStackParamList, 'Patient'>;
@@ -695,44 +696,57 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
           {patientData?.documents && patientData.documents.length > 0 ? (
             <View style={styles.documentsContainer}>
               {patientData.documents.map((document, index) => (
-                <TouchableOpacity
+                <View
                   key={document._id || index}
-                  style={styles.documentItem}
-                  onPress={() =>
-                    handleDocumentDownload(
-                      document.document_url,
-                      document.document_name,
-                    )
-                  }>
-                  <View style={styles.documentIconContainer}>
-                    <MaterialIcons
-                      name={
-                        document.file_extension === 'pdf'
-                          ? 'picture-as-pdf'
-                          : 'description'
-                      }
-                      size={24}
-                      color="#119FB3"
-                    />
-                  </View>
-                  <View style={styles.documentDetails}>
-                    <Text style={styles.documentName} numberOfLines={2}>
-                      {document.document_name}
-                    </Text>
-                    <Text style={styles.documentInfo}>
-                      {document.document_type} •{' '}
-                      {new Date(
-                        document.document_upload_date,
-                      ).toLocaleDateString()}
-                    </Text>
-                    {document.file_size && (
-                      <Text style={styles.documentSize}>
-                        {(document.file_size / 1024).toFixed(1)} KB
+                  style={styles.documentItemWrapper}>
+                  <TouchableOpacity
+                    style={styles.documentItem}
+                    onPress={() =>
+                      handleDocumentDownload(
+                        document.document_url,
+                        document.document_name,
+                      )
+                    }>
+                    <View style={styles.documentIconContainer}>
+                      <MaterialIcons
+                        name={
+                          document.file_extension === 'pdf'
+                            ? 'picture-as-pdf'
+                            : 'description'
+                        }
+                        size={24}
+                        color="#119FB3"
+                      />
+                    </View>
+                    <View style={styles.documentDetails}>
+                      <Text style={styles.documentName} numberOfLines={2}>
+                        {document.document_name}
                       </Text>
-                    )}
-                  </View>
-                  <MaterialIcons name="download" size={20} color="#119FB3" />
-                </TouchableOpacity>
+                      <Text style={styles.documentInfo}>
+                        {document.document_type} •{' '}
+                        {new Date(
+                          document.document_upload_date,
+                        ).toLocaleDateString()}
+                      </Text>
+                      {document.file_size && (
+                        <Text style={styles.documentSize}>
+                          {(document.file_size / 1024).toFixed(1)} KB
+                        </Text>
+                      )}
+                    </View>
+                    <MaterialIcons name="download" size={20} color="#119FB3" />
+                  </TouchableOpacity>
+
+                  {/* Delete button */}
+                  <DocumentDeleteDialog
+                    document={document}
+                    patientId={patientId}
+                    onDeleteSuccess={fetchPatientData}>
+                    <View style={styles.deleteButton}>
+                      <MaterialIcons name="delete" size={20} color="#FF6B6B" />
+                    </View>
+                  </DocumentDeleteDialog>
+                </View>
               ))}
             </View>
           ) : (
@@ -750,8 +764,10 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
-    documentsContainer: {
-      marginBottom: 16,
+    documentItemWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
     },
     documentItem: {
       flexDirection: 'row',
@@ -762,9 +778,25 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
           : 'rgba(17, 159, 179, 0.1)',
       borderRadius: 8,
       padding: 12,
-      marginBottom: 8,
       borderWidth: 1,
       borderColor: 'rgba(17, 159, 179, 0.2)',
+      flex: 1,
+      marginRight: 8,
+    },
+    deleteButton: {
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgba(255, 107, 107, 0.1)'
+          : 'rgba(255, 107, 107, 0.2)',
+      borderRadius: 8,
+      padding: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: 'rgba(255, 107, 107, 0.3)',
+    },
+    documentsContainer: {
+      marginBottom: 16,
     },
     documentIconContainer: {
       width: 40,

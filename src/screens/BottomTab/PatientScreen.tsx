@@ -13,6 +13,9 @@ import {
   Dimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Alert,
+  Linking,
+  Platform,
 } from 'react-native';
 import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../../types/types';
@@ -38,12 +41,21 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getTheme} from '../Theme';
 import {useTheme} from '../ThemeContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import PatientDocumentUploader from '../../components/documentsupload';
 //import LoadingScreen from '../../components/loadingScreen';
 
 type PatientScreenProps = StackScreenProps<RootStackParamList, 'Patient'>;
 interface TherapySession {
   _id: string;
   status: string;
+}
+interface DocumentInfo {
+  uri: string;
+  name: string;
+  type: string;
+  size?: number | null;
+  document_name?: string;
+  document_type?: string;
 }
 
 // New Consultation interface to match your requirements
@@ -192,8 +204,18 @@ interface PatientData {
   patient_address1: string;
   therapy_plans: TherapyPlan[];
   consultations?: Consultation[]; // Add consultations to the patient data
+  documents?: PatientDocument[];
 }
-
+interface PatientDocument {
+  _id: string;
+  document_name: string;
+  document_url: string;
+  document_upload_date: string;
+  document_type: string;
+  uploaded_by: string;
+  file_size: number;
+  file_extension: string;
+}
 const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
   const {session} = useSession();
   const {patientId} = route.params;
@@ -208,6 +230,11 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentConsultationIndex, setCurrentConsultationIndex] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<DocumentInfo | null>(
+    null,
+  );
+
   const fetchPatientData = async () => {
     if (!session.idToken) return;
     setIsRefreshing(true); // Show loading indicator during refresh
@@ -225,6 +252,67 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
     } finally {
       setIsRefreshing(false); // Hide loading indicator after refresh
     }
+  };
+  const handleDocumentDownload = async (
+    documentUrl: string,
+    documentName: string,
+  ) => {
+    try {
+      const supported = await Linking.canOpenURL(documentUrl);
+      if (supported) {
+        await Linking.openURL(documentUrl);
+      } else {
+        Alert.alert('Error', 'Cannot open this document');
+      }
+    } catch (error) {
+      console.error('Error opening document:', error);
+      Alert.alert('Error', 'Failed to open document');
+    }
+  };
+  const handleDocumentSelected = async (document: DocumentInfo) => {
+    setSelectedDocument(document);
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+
+      // Add file to form data
+      formData.append('file', {
+        uri: document.uri,
+        type: document.type,
+        name: document.name,
+      } as any);
+
+      // Add other required fields
+      formData.append('document_name', document.name);
+      formData.append('document_type', document.document_type || 'Other');
+      const response = await axiosInstance.post(
+        `/upload-document/${patientId}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: 'Bearer ' + session.idToken,
+          },
+        },
+      );
+
+      if (response.status === 200) {
+        Alert.alert('Success', 'Document uploaded successfully');
+        await fetchPatientData(); // Refresh patient data to show the new document
+        setSelectedDocument(null);
+      }
+    } catch (error) {
+      console.error('Document upload error:', error);
+      Alert.alert('Error', 'Failed to upload document');
+      setSelectedDocument(null);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDocumentRemoved = () => {
+    setSelectedDocument(null);
   };
 
   const handleScroll = (event: {
@@ -594,6 +682,67 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
               })}
           </View>
         )}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Documents</Text>
+          <PatientDocumentUploader
+            onDocumentSelected={handleDocumentSelected}
+            onDocumentRemoved={handleDocumentRemoved}
+            initialDocument={selectedDocument}
+            isUploading={isUploading}
+            documentType="Medical Report"
+            patientId={patientId}
+          />
+          {patientData?.documents && patientData.documents.length > 0 ? (
+            <View style={styles.documentsContainer}>
+              {patientData.documents.map((document, index) => (
+                <TouchableOpacity
+                  key={document._id || index}
+                  style={styles.documentItem}
+                  onPress={() =>
+                    handleDocumentDownload(
+                      document.document_url,
+                      document.document_name,
+                    )
+                  }>
+                  <View style={styles.documentIconContainer}>
+                    <MaterialIcons
+                      name={
+                        document.file_extension === 'pdf'
+                          ? 'picture-as-pdf'
+                          : 'description'
+                      }
+                      size={24}
+                      color="#119FB3"
+                    />
+                  </View>
+                  <View style={styles.documentDetails}>
+                    <Text style={styles.documentName} numberOfLines={2}>
+                      {document.document_name}
+                    </Text>
+                    <Text style={styles.documentInfo}>
+                      {document.document_type} •{' '}
+                      {new Date(
+                        document.document_upload_date,
+                      ).toLocaleDateString()}
+                    </Text>
+                    {document.file_size && (
+                      <Text style={styles.documentSize}>
+                        {(document.file_size / 1024).toFixed(1)} KB
+                      </Text>
+                    )}
+                  </View>
+                  <MaterialIcons name="download" size={20} color="#119FB3" />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.noDocumentsContainer}>
+              <Text style={styles.noDocumentsText}>
+                No documents uploaded yet
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -601,6 +750,68 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
+    documentsContainer: {
+      marginBottom: 16,
+    },
+    documentItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgba(17, 159, 179, 0.05)'
+          : 'rgba(17, 159, 179, 0.1)',
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: 'rgba(17, 159, 179, 0.2)',
+    },
+    documentIconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(17, 159, 179, 0.1)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    documentDetails: {
+      flex: 1,
+    },
+    documentName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 4,
+    },
+    documentInfo: {
+      fontSize: 12,
+      color: theme.colors.text + '99',
+      marginBottom: 2,
+    },
+    documentSize: {
+      fontSize: 11,
+      color: theme.colors.text + '66',
+    },
+    noDocumentsContainer: {
+      padding: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 8,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: 'rgba(17, 159, 179, 0.3)',
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgba(245, 250, 255, 0.5)'
+          : 'rgba(17, 159, 179, 0.05)',
+      marginBottom: 16,
+    },
+    noDocumentsText: {
+      fontSize: 14,
+      color: theme.colors.text + '99',
+      textAlign: 'center',
+    },
     causeContainer: {
       flex: 1,
       flexDirection: 'column',

@@ -116,7 +116,7 @@ const ActiveTherapyPlans: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.sectionTitle}>Active Therapy Plans</Text>
+        <Text style={styles.sectionTitle}>Active Plans</Text>
         <TouchableOpacity
           style={styles.refreshButton}
           onPress={fetchTherapyPlans}>
@@ -128,7 +128,7 @@ const ActiveTherapyPlans: React.FC = () => {
       {therapyPlans.length > 0 ? (
         <View>{therapyPlans.map(plan => renderTherapyPlan(plan))}</View>
       ) : (
-        <Text style={styles.emptyText}>No active therapy plans found</Text>
+        <Text style={styles.emptyText}>No active plans found</Text>
       )}
     </View>
   );

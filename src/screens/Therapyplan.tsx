@@ -92,16 +92,6 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(-100));
 
-  const categories = [
-    'Musculoskeletal',
-    'Neurological',
-    'Cardiorespiratory',
-    'Paediatrics',
-    "Women's Health",
-    'Geriatrics',
-    'Post surgical rehabilitation',
-  ];
-
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   // Add this useEffect
@@ -386,6 +376,103 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
       )}
     </View>
   );
+  useEffect(() => {
+    const industryCategories = getCategoriesByIndustry();
+    setCategories(industryCategories);
+  }, [session.organization_industry]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const getCategoriesByIndustry = () => {
+    const industry = session.organization_industry?.toLowerCase();
+
+    switch (industry) {
+      case 'physiotherapy':
+        return [
+          'Musculoskeletal',
+          'Neurological',
+          'Cardiorespiratory',
+          'Paediatrics',
+          "Women's Health",
+          'Geriatrics',
+          'Post surgical rehabilitation',
+        ];
+
+      case 'dentistry':
+      case 'dental':
+        return [
+          'Orthodontics',
+          'Periodontics',
+          'Endodontics',
+          'Prosthodontics',
+          'Oral Surgery',
+          'Pediatric Dentistry',
+          'Cosmetic Dentistry',
+          'Preventive Dentistry',
+        ];
+
+      case 'Gynacologist':
+      case 'Gynacologist':
+        return [
+          'Pregnancy & Antenatal Care',
+          'Menstrual Disorders',
+          'Infertility Treatment',
+          'PCOS/PCOD Management',
+          'Menopause Management',
+          'Gynecologic Oncology',
+          'Urogynecology',
+          'Contraception & Family Planning',
+        ];
+
+      case 'ayurveda':
+        return [
+          'Panchakarma Therapy',
+          'Digestive Disorders',
+          'Joint & Bone Disorders',
+          'Skin Diseases',
+          'Respiratory Disorders',
+          'Stress & Mental Wellness',
+          'Detoxification Programs',
+          'Chronic Pain Management',
+        ];
+
+      case 'homeopathy':
+        return [
+          'Allergy & Immunity',
+          'Skin & Hair Disorders',
+          'Chronic Illness Management',
+          'Stress & Anxiety',
+          'Hormonal Imbalance',
+          "Women's Health",
+          'Child Health',
+          'Respiratory Conditions',
+        ];
+
+      case 'pediatrics':
+      case 'paediatrics':
+        return [
+          'Newborn Care',
+          'Vaccination & Immunization',
+          'Nutrition & Growth Monitoring',
+          'Common Infections',
+          'Developmental Delays',
+          'Pediatric Allergy & Asthma',
+          'Adolescent Health',
+          'Behavioral Issues',
+        ];
+
+      default:
+        // Default to general medical categories if industry not recognized
+        return [
+          'General Medicine',
+          'Preventive Care',
+          'Chronic Disease Management',
+          'Health Screening',
+          'Follow-up Care',
+          'Emergency Care',
+          'Rehabilitation',
+          'Wellness Programs',
+        ];
+    }
+  };
 
   useEffect(() => {
     const total = parseFloat(therapyPlan.total_amount) || 0;
@@ -444,7 +531,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
             },
           ]}>
           <Text style={[styles.title, isDarkMode && styles.titleDark]}>
-            Create Therapy Plan
+            Create Treatment Plan
           </Text>
           <TherapyCategoryDropdown
             value={therapyPlan.therapy_category}
@@ -468,7 +555,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
             />
             <TextInput
               style={styles.input}
-              placeholder="Therapy Name"
+              placeholder="Plan Name"
               value={therapyPlan.therapy_name}
               onChangeText={text =>
                 setTherapyPlan({...therapyPlan, therapy_name: text})

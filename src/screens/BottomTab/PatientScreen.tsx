@@ -446,7 +446,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
                 })
               }>
               <Ionicons name="clipboard" size={24} color="#6A0DAD" />
-              <Text style={styles.quickActionText}>Create Therapy</Text>
+              <Text style={styles.quickActionText}>Create Plan</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -619,7 +619,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
         {/* Therapy Plans Card */}
         {patientData?.therapy_plans && patientData.therapy_plans.length > 0 && (
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Therapy Plans</Text>
+            <Text style={styles.sectionTitle}>All Plans</Text>
             {patientData.therapy_plans
               .slice()
               .reverse()

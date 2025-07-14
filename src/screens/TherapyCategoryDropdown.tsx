@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { useColorScheme } from 'react-native';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  Modal, 
-  FlatList, 
-  StyleSheet, 
-  Dimensions 
+import React, {useState} from 'react';
+import {useColorScheme} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  FlatList,
+  StyleSheet,
+  Dimensions,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const { width, height } = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 
 interface TherapyCategoryDropdownProps {
   value: string;
@@ -19,13 +19,13 @@ interface TherapyCategoryDropdownProps {
   items: string[];
 }
 
-const TherapyCategoryDropdown: React.FC<TherapyCategoryDropdownProps> = ({ 
-  value, 
-  onValueChange, 
-  items 
+const TherapyCategoryDropdown: React.FC<TherapyCategoryDropdownProps> = ({
+  value,
+  onValueChange,
+  items,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const colorScheme = useColorScheme(); 
+  const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
 
   const handleSelectCategory = (category: string) => {
@@ -33,56 +33,73 @@ const TherapyCategoryDropdown: React.FC<TherapyCategoryDropdownProps> = ({
     setModalVisible(false);
   };
 
-  const CategoryItem = ({ item }: { item: string }) => (
-    <TouchableOpacity 
+  const CategoryItem = ({item}: {item: string}) => (
+    <TouchableOpacity
       style={styles.categoryItem}
-      onPress={() => handleSelectCategory(item)}
-    >
-      <Text style={[styles.categoryItemText, isDarkMode && styles.textDark]}>{item}</Text>
+      onPress={() => handleSelectCategory(item)}>
+      <Text style={[styles.categoryItemText, isDarkMode && styles.textDark]}>
+        {item}
+      </Text>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[
           styles.inputContainer,
           isDarkMode && styles.balanceContainerDark,
         ]}
-        onPress={() => setModalVisible(true)}
-      >
-        <MaterialIcons name="category" size={24} color={isDarkMode ? '#66D9E8' : '#119FB3'} />
-        <Text style={[
-          styles.dropdownButtonText, 
-          !value && styles.placeholderText,
-          isDarkMode && styles.textDark
-        ]}>
-          {value || 'Select Therapy Category'}
+        onPress={() => setModalVisible(true)}>
+        <MaterialIcons
+          name="category"
+          size={24}
+          color={isDarkMode ? '#66D9E8' : '#119FB3'}
+        />
+        <Text
+          style={[
+            styles.dropdownButtonText,
+            !value && styles.placeholderText,
+            isDarkMode && styles.textDark,
+          ]}>
+          {value || 'Select Plan Category'}
         </Text>
-        <MaterialIcons name="arrow-drop-down" size={24} color={isDarkMode ? '#66D9E8' : '#119FB3'} />
+        <MaterialIcons
+          name="arrow-drop-down"
+          size={24}
+          color={isDarkMode ? '#66D9E8' : '#119FB3'}
+        />
       </TouchableOpacity>
 
       <Modal
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
+        onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, isDarkMode && styles.balanceContainerDark]}>
+          <View
+            style={[
+              styles.modalContainer,
+              isDarkMode && styles.balanceContainerDark,
+            ]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, isDarkMode && styles.textDark]}>Select Therapy Category</Text>
-              <TouchableOpacity 
+              <Text style={[styles.modalTitle, isDarkMode && styles.textDark]}>
+                Select Plan Category
+              </Text>
+              <TouchableOpacity
                 onPress={() => setModalVisible(false)}
-                style={styles.closeButton}
-              >
-                <MaterialIcons name="close" size={24} color={isDarkMode ? '#66D9E8' : '#119FB3'} />
+                style={styles.closeButton}>
+                <MaterialIcons
+                  name="close"
+                  size={24}
+                  color={isDarkMode ? '#66D9E8' : '#119FB3'}
+                />
               </TouchableOpacity>
             </View>
             <FlatList
               data={items}
-              renderItem={({ item }) => <CategoryItem item={item} />}
-              keyExtractor={(item) => item}
+              renderItem={({item}) => <CategoryItem item={item} />}
+              keyExtractor={item => item}
               style={styles.categoryList}
             />
           </View>

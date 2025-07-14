@@ -115,7 +115,10 @@ const AuthModal: React.FC<AuthModalProps> = ({
           JSON.stringify(response.data.is_admin),
         );
         await AsyncStorage.setItem('doctor_id', response.data.doctor_id);
-
+        await AsyncStorage.setItem(
+          'organization_industry',
+          response.data.organization_industry,
+        );
         // Download and store image if available
         if (response.data.doctor_photo) {
           try {
@@ -155,6 +158,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
           accessToken: null,
           is_admin: response.data.is_admin,
           doctor_id: response.data.doctor_id,
+          organization_industry: response.data.organization_industry,
         };
         setSession(newSession);
         onLoginSuccess();
@@ -177,13 +181,16 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
       if (response.data.token) {
         // Store token and other basic info
-       await Keychain.setGenericPassword('auth', response.data.token);
+        await Keychain.setGenericPassword('auth', response.data.token);
         await AsyncStorage.setItem(
           'is_admin',
           JSON.stringify(response.data.is_admin),
         );
         await AsyncStorage.setItem('doctor_id', response.data.doctor_id);
-
+        await AsyncStorage.setItem(
+          'organization_industry',
+          response.data.organization_industry,
+        );
         // Download and store image if available
         if (response.data.doctor_photo) {
           try {
@@ -222,6 +229,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
           accessToken: null,
           is_admin: response.data.is_admin,
           doctor_id: response.data.doctor_id,
+          organization_industry: response.data.organization_industry,
         };
         setSession(newSession);
         onLoginSuccess();
@@ -322,7 +330,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                       />
                       <TouchableOpacity onPress={togglePasswordVisibility}>
                         <Icon
-                          name={isPasswordVisible ? "eye-off" : "eye"}
+                          name={isPasswordVisible ? 'eye-off' : 'eye'}
                           size={20}
                           style={styles.iconStyle}
                         />

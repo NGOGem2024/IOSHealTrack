@@ -15,6 +15,8 @@ interface Session {
   accessToken: string | null;
   is_admin: boolean;
   doctor_id: string | null;
+
+  organization_industry: string | null;
 }
 
 interface SessionContextType {
@@ -36,67 +38,72 @@ export const SessionProvider: React.FC<{children: ReactNode}> = ({
     accessToken: null,
     is_admin: false,
     doctor_id: null,
+    organization_industry: null,
   });
   const [isLoading, setIsLoading] = useState(true);
 
- useEffect(() => {
-  const loadSession = async () => {
-    try {
-      const keychainResult = await Keychain.getGenericPassword();
-      const accessToken = await AsyncStorage.getItem('googleAccessToken');
-      const isadmin = await AsyncStorage.getItem('is_admin');
-      const doctor_id = await AsyncStorage.getItem('doctor_id');
-      const is_admin = isadmin === 'true';
+  useEffect(() => {
+    const loadSession = async () => {
+      try {
+        const keychainResult = await Keychain.getGenericPassword();
+        const accessToken = await AsyncStorage.getItem('googleAccessToken');
+        const isadmin = await AsyncStorage.getItem('is_admin');
+        const doctor_id = await AsyncStorage.getItem('doctor_id');
+        const is_admin = isadmin === 'true';
+        const organization_industry = await AsyncStorage.getItem(
+          'organization_industry',
+        );
 
-      if (keychainResult) {
-        const idToken = keychainResult.password; // ← token is stored here
-        setSession({
-          isLoggedIn: true,
-          idToken,
-          accessToken,
-          is_admin,
-          doctor_id,
-        });
-      } else {
+        if (keychainResult) {
+          const idToken = keychainResult.password; // ← token is stored here
+          setSession({
+            isLoggedIn: true,
+            idToken,
+            accessToken,
+            is_admin,
+            doctor_id,
+            organization_industry,
+          });
+        } else {
+          setSession(prev => ({...prev, isLoggedIn: false}));
+        }
+      } catch (error) {
+        console.error('Error loading session:', error);
         setSession(prev => ({...prev, isLoggedIn: false}));
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error loading session:', error);
-      setSession(prev => ({...prev, isLoggedIn: false}));
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
-  loadSession();
-}, []);
-
+    loadSession();
+  }, []);
 
   const logout = async () => {
-  try {
-    // Remove token stored in Keychain
-    await Keychain.resetGenericPassword();
+    try {
+      // Remove token stored in Keychain
+      await Keychain.resetGenericPassword();
 
-    // Remove other data from AsyncStorage
-    await AsyncStorage.removeItem('is_admin');
-    await AsyncStorage.removeItem('doctor_id');
-    await AsyncStorage.removeItem('googleAccessToken');
-    await AsyncStorage.removeItem('LiveTokens');
-    await AsyncStorage.removeItem('doctor_photo');
-    await AsyncStorage.removeItem('expires_in');
+      // Remove other data from AsyncStorage
+      await AsyncStorage.removeItem('is_admin');
+      await AsyncStorage.removeItem('doctor_id');
+      await AsyncStorage.removeItem('googleAccessToken');
+      await AsyncStorage.removeItem('LiveTokens');
+      await AsyncStorage.removeItem('doctor_photo');
+      await AsyncStorage.removeItem('expires_in');
 
-    // Reset session state
-    setSession({
-      isLoggedIn: false,
-      idToken: null,
-      accessToken: null,
-      is_admin: false,
-      doctor_id: null,
-    });
-  } catch (error) {
-    console.error('Error during logout:', error);
-  }
-};
+      // Reset session state
+      setSession({
+        isLoggedIn: false,
+        idToken: null,
+        accessToken: null,
+        is_admin: false,
+        doctor_id: null,
+        organization_industry: null,
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
   const updateAccessToken = async (newAccessToken: string) => {
     await AsyncStorage.setItem('googleAccessToken', newAccessToken);
     setSession(prevSession => ({

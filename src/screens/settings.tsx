@@ -70,7 +70,6 @@ const SettingsScreen: React.FC = () => {
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.log('Error fetching status:', error.response?.status);
         setSessionInfo(null);
       } else {
         handleError(error);
@@ -104,7 +103,6 @@ const SettingsScreen: React.FC = () => {
 
       // Perform sign-in
       const userInfo = (await GoogleSignin.signIn()) as unknown as ExtendedUser;
-      console.log(userInfo);
       // Ensure serverAuthCode is available
       if (!userInfo.data.serverAuthCode) {
         throw new Error('Failed to retrieve serverAuthCode. Please try again.');
@@ -120,8 +118,6 @@ const SettingsScreen: React.FC = () => {
       // Store the access token and update the session
       await updateAccessToken(accessToken);
       await fetchSessionStatus();
-
-      console.log('Google Sign-In successful');
     } catch (error) {
       let errorMessage = 'Failed to sign in with Google. Please try again.';
 

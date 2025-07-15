@@ -30,8 +30,7 @@ interface IndustryDropdownProps {
 const industries: Industry[] = [
   {id: 'physiotherapy', name: 'Physiotherapy'},
   {id: 'dentistry', name: 'Dentistry'},
-  {id: 'dental', name: 'Dental'},
-  {id: 'gynacologist', name: 'Gynecologist'},
+  {id: 'Gynacologist', name: 'Gynecologist'},
   {id: 'ayurveda', name: 'Ayurveda'},
   {id: 'homeopathy', name: 'Homeopathy'},
   {id: 'pediatrics', name: 'Pediatrics'},

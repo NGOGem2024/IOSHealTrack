@@ -45,6 +45,7 @@ type DatePickerFieldProps = {
   onPress: () => void;
   onChange: (event: any, selectedDate?: Date) => void;
   disabled?: boolean;
+  minimumDate?: Date;
 };
 
 type DropdownProps = {
@@ -120,16 +121,98 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(-100));
+  const [categories, setCategories] = useState<string[]>([]);
 
-  const categories = [
-    'Musculoskeletal',
-    'Neurological',
-    'Cardiorespiratory',
-    'Paediatrics',
-    "Women's Health",
-    'Geriatrics',
-    'Post surgical rehabilitation',
-  ];
+  useEffect(() => {
+    const industryCategories = getCategoriesByIndustry();
+    setCategories(industryCategories);
+  }, [session.organization_industry]);
+
+  const getCategoriesByIndustry = () => {
+    const industry = session.organization_industry?.toLowerCase();
+
+    switch (industry) {
+      case 'physiotherapy':
+        return [
+          'Musculoskeletal',
+          'Neurological',
+          'Cardiorespiratory',
+          'Paediatrics',
+          "Women's Health",
+          'Geriatrics',
+          'Post surgical rehabilitation',
+        ];
+      case 'dentistry':
+      case 'dental':
+        return [
+          'Orthodontics',
+          'Periodontics',
+          'Endodontics',
+          'Prosthodontics',
+          'Oral Surgery',
+          'Pediatric Dentistry',
+          'Cosmetic Dentistry',
+          'Preventive Dentistry',
+        ];
+      case 'Gynacologist':
+      case 'Gynacologist':
+        return [
+          'Pregnancy & Antenatal Care',
+          'Menstrual Disorders',
+          'Infertility Treatment',
+          'PCOS/PCOD Management',
+          'Menopause Management',
+          'Gynecologic Oncology',
+          'Urogynecology',
+          'Contraception & Family Planning',
+        ];
+      case 'ayurveda':
+        return [
+          'Panchakarma Therapy',
+          'Digestive Disorders',
+          'Joint & Bone Disorders',
+          'Skin Diseases',
+          'Respiratory Disorders',
+          'Stress & Mental Wellness',
+          'Detoxification Programs',
+          'Chronic Pain Management',
+        ];
+      case 'homeopathy':
+        return [
+          'Allergy & Immunity',
+          'Skin & Hair Disorders',
+          'Chronic Illness Management',
+          'Stress & Anxiety',
+          'Hormonal Imbalance',
+          "Women's Health",
+          'Child Health',
+          'Respiratory Conditions',
+        ];
+      case 'pediatrics':
+      case 'paediatrics':
+        return [
+          'Newborn Care',
+          'Vaccination & Immunization',
+          'Nutrition & Growth Monitoring',
+          'Common Infections',
+          'Developmental Delays',
+          'Pediatric Allergy & Asthma',
+          'Adolescent Health',
+          'Behavioral Issues',
+        ];
+      default:
+        return [
+          'Musculoskeletal',
+          'Neurological',
+          'Cardiorespiratory',
+          'Paediatrics',
+          "Women's Health",
+          'Geriatrics',
+          'Post surgical rehabilitation',
+          
+        ];
+    }
+  };
 
   useEffect(() => {
     fetchTherapyPlan();
@@ -236,7 +319,6 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
   const onChangeEndDate = (event: any, selectedDate?: Date) => {
     setShowEndDatePicker(false);
     if (selectedDate) {
-      // If selected date is on or before start date, don't update
       if (selectedDate <= startDate) {
         Alert.alert('Invalid Date', 'End date must be after start date');
         return;
@@ -261,7 +343,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     }
     if (!session.is_admin) {
       if (!therapyPlan.patient_symptoms.trim()) {
-        newErrors.patient_symptoms = 'Patient symptoms are required';
+        newErrors.patient_symptoms = 'Patient symptoms is required';
       }
       if (!therapyPlan.patient_diagnosis.trim()) {
         newErrors.patient_diagnosis = 'Patient diagnosis is required';
@@ -321,7 +403,6 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     }
   }, [therapyPlan, startDate, endDate, initialTherapyPlan, initialDates]);
 
-  // Add navigation prevention
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', e => {
       if (!hasUnsavedChanges) {
@@ -371,7 +452,6 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
     );
   };
 
-  // Replace the existing save button with a button row
   const renderButtons = () => (
     <View style={styles.buttonRow}>
       <TouchableOpacity
@@ -562,7 +642,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
               showDatePicker={showStartDatePicker}
               onPress={showStartDatepicker}
               onChange={onChangeStartDate}
-              disabled={true} // Start date is disabled as per your requirement
+              disabled={true}
             />
 
             <DatePickerField
@@ -571,7 +651,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
               showDatePicker={showEndDatePicker}
               onPress={showEndDatepicker}
               onChange={onChangeEndDate}
-              minimumDate={new Date(startDate.getTime() + 86400000)} // Add one day to start date (86400000 ms = 1 day)
+              minimumDate={new Date(startDate.getTime() + 86400000)}
             />
           </View>
           {errors.date && <Text style={styles.errorText}>{errors.date}</Text>}
@@ -738,7 +818,7 @@ const InputField: React.FC<InputFieldProps> = ({
     </View>
   );
 };
-// In your DatePickerField component, modify it to accept a minimumDate prop
+
 const DatePickerField: React.FC<
   DatePickerFieldProps & {minimumDate?: Date}
 > = ({
@@ -957,10 +1037,10 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       marginTop: 10,
     },
     disabledDateContainer: {
-      backgroundColor: isDarkMode ? colors.card : '#FFFFFF', // Light background to indicate disabled state
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
     },
     disabledDateText: {
-      color: '#A0A0A0', // Grayed out text
+      color: '#A0A0A0',
     },
     containerDark: {
       backgroundColor: '#1A1A1A',
@@ -1057,8 +1137,8 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       color: '#333333',
     },
     disabledInput: {
-      color: '#666666', // Slightly grayed out to indicate it's not editable
-      backgroundColor: '#f0f0f0', // Light background to further indicate disabled state
+      color: '#666666',
+      backgroundColor: '#f0f0f0',
     },
   });
 

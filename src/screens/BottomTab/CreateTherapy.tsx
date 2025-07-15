@@ -134,7 +134,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
       setSelectedPlan(latestPlan);
     }
   }, [therapyPlans]);
-  
+
   useEffect(() => {
     checkLiveSwitchAccess();
   }, [session.accessToken]);
@@ -144,7 +144,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
     setHasLiveSwitchAccess(!!liveTokens);
     setShowLiveSwitchLogin(appointmentType === 'Liveswitch' && !liveTokens);
   };
-  
+
   const renderSlotDurationPicker = () => {
     if (Platform.OS === 'ios') {
       return (
@@ -208,7 +208,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
       </View>
     );
   };
-  
+
   const handleLiveSwitchLoginSuccess = async () => {
     await checkLiveSwitchAccess();
     showSuccessToast('Signed in with LiveSwitch successfully');
@@ -248,15 +248,14 @@ const CreateTherapy = ({route, navigation}: Props) => {
 
   const fetchTherapyPlans = async () => {
     try {
-      
       const response = await axiosinstance.get(`/get/plans/${patientId}`, {
         headers: {
           Authorization: `Bearer ${session.idToken}`,
         },
       });
-      
+
       setTherapyPlans(response.data.therapy_plans);
-      
+
       if (
         !response.data.therapy_plans ||
         response.data.therapy_plans.length === 0
@@ -270,7 +269,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
       handleError(error);
     }
   };
-  
+
   if (isLoading) {
     return (
       <View style={styles.safeArea}>
@@ -305,14 +304,12 @@ const CreateTherapy = ({route, navigation}: Props) => {
     setShowDatePicker(Platform.OS === 'ios');
     setSelectedDate(currentDate);
   };
-  
+
   const handleCreatePlan = () => {
     setShowNoPlanPopup(false);
     navigation.navigate('CreateTherapyPlan', {
       patientId,
-      onPlanCreated: () => {
-      
-      },
+      onPlanCreated: () => {},
     });
   };
 
@@ -367,29 +364,32 @@ const CreateTherapy = ({route, navigation}: Props) => {
     );
   };
 
-  const generateAvailableSlots = (slotDuration: number = 30, selectedDate?: Date) => {
+  const generateAvailableSlots = (
+    slotDuration: number = 30,
+    selectedDate?: Date,
+  ) => {
     const now = moment.tz('Asia/Kolkata');
     const today = moment(now).startOf('day');
-    
+
     // Check if the selected date is today or a future date
-    const isToday = selectedDate ? 
-      moment(selectedDate).format('YYYY-MM-DD') === today.format('YYYY-MM-DD') : 
-      true;
-  
+    const isToday = selectedDate
+      ? moment(selectedDate).format('YYYY-MM-DD') === today.format('YYYY-MM-DD')
+      : true;
+
     const workingHours = {
       start: moment(today).hour(9).minute(0),
       end: moment(today).hour(21).minute(0),
     };
-  
+
     const slots = [];
     let currentSlotTime = moment(workingHours.start);
-  
+
     while (currentSlotTime.isBefore(workingHours.end)) {
       const slotStart = moment(currentSlotTime);
       const slotEnd = moment(currentSlotTime).add(slotDuration, 'minutes');
-  
+
       if (slotEnd.isAfter(workingHours.end)) break;
-  
+
       // For today, only show future slots
       // For future days, show all slots
       if (!isToday || slotEnd.isAfter(now)) {
@@ -400,10 +400,10 @@ const CreateTherapy = ({route, navigation}: Props) => {
           status: 'free',
         });
       }
-  
+
       currentSlotTime.add(slotDuration >= 60 ? 30 : slotDuration, 'minutes');
     }
-  
+
     return slots;
   };
 
@@ -498,7 +498,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
           <View style={styles.modalContainer}>
             <View style={styles.pickerContainer}>
               <View style={styles.pickerHeader}>
-                <Text style={styles.pickerTitle}>Select Therapy Plan</Text>
+                <Text style={styles.pickerTitle}>Select Plan</Text>
                 <TouchableOpacity
                   onPress={() => setShowTherapyPicker(false)}
                   style={styles.doneButton}>
@@ -617,7 +617,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Select Therapy Plan</Text>
+            <Text style={styles.sectionTitle}>Select Plan</Text>
             {renderTherapyPicker()}
           </View>
           <View style={styles.section}>

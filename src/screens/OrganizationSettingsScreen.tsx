@@ -16,6 +16,7 @@ import {
   Keyboard,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import IndustryDropdown from './industrydropdown';
 import axiosInstance from '../utils/axiosConfig';
 import {handleError} from '../utils/errorHandler';
 import BackTabTop from '../screens/BackTopTab';
@@ -510,60 +511,62 @@ const OrganizationSettingsScreen: React.FC = () => {
     );
   };
 
-const SocialMediaDropdown = () => {
-  return (
-    <Modal
-      animationType="fade"
-      transparent={true}
-      visible={showSocialMediaDropdown}
-      onRequestClose={() => setShowSocialMediaDropdown(false)}>
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setShowSocialMediaDropdown(false)}>
-        <View style={styles.dropdownContainer} onStartShouldSetResponder={() => true}>
-          {socialMediaPlatforms.map(platform => (
-            <TouchableOpacity
-              key={platform.id}
-              style={styles.dropdownItem}
-              onPress={() => {
-                const isSelected = selectedPlatforms.includes(platform.id);
-                const newPlatforms = isSelected
-                  ? selectedPlatforms.filter(p => p !== platform.id)
-                  : [...selectedPlatforms, platform.id];
-                setSelectedPlatforms(newPlatforms);
-                // Don't close the modal when selecting items
-              }}>
-              <Icon
-                name={
-                  selectedPlatforms.includes(platform.id)
-                    ? 'checkbox-marked'
-                    : 'checkbox-blank-outline'
-                }
-                size={24}
-                color="#007B8E"
-              />
-              <Icon
-                name={platform.icon}
-                size={24}
-                color="#007B8E"
-                style={styles.platformIcon}
-              />
-              <Text style={styles.dropdownItemText}>{platform.name}</Text>
-            </TouchableOpacity>
-          ))}
-          <View style={styles.dropdownButtonContainer}>
-            <TouchableOpacity
-              style={styles.dropdownDoneButton}
-              onPress={() => setShowSocialMediaDropdown(false)}>
-              <Text style={styles.dropdownDoneButtonText}>Done</Text>
-            </TouchableOpacity>
+  const SocialMediaDropdown = () => {
+    return (
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showSocialMediaDropdown}
+        onRequestClose={() => setShowSocialMediaDropdown(false)}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSocialMediaDropdown(false)}>
+          <View
+            style={styles.dropdownContainer}
+            onStartShouldSetResponder={() => true}>
+            {socialMediaPlatforms.map(platform => (
+              <TouchableOpacity
+                key={platform.id}
+                style={styles.dropdownItem}
+                onPress={() => {
+                  const isSelected = selectedPlatforms.includes(platform.id);
+                  const newPlatforms = isSelected
+                    ? selectedPlatforms.filter(p => p !== platform.id)
+                    : [...selectedPlatforms, platform.id];
+                  setSelectedPlatforms(newPlatforms);
+                  // Don't close the modal when selecting items
+                }}>
+                <Icon
+                  name={
+                    selectedPlatforms.includes(platform.id)
+                      ? 'checkbox-marked'
+                      : 'checkbox-blank-outline'
+                  }
+                  size={24}
+                  color="#007B8E"
+                />
+                <Icon
+                  name={platform.icon}
+                  size={24}
+                  color="#007B8E"
+                  style={styles.platformIcon}
+                />
+                <Text style={styles.dropdownItemText}>{platform.name}</Text>
+              </TouchableOpacity>
+            ))}
+            <View style={styles.dropdownButtonContainer}>
+              <TouchableOpacity
+                style={styles.dropdownDoneButton}
+                onPress={() => setShowSocialMediaDropdown(false)}>
+                <Text style={styles.dropdownDoneButtonText}>Done</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
-};
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
 
   const handleEditVideo = (video: YouTubeVideo) => {
     setNewVideoTitle(video.title);
@@ -741,7 +744,7 @@ const SocialMediaDropdown = () => {
     );
   };
   const handleSave = async () => {
-      Keyboard.dismiss();
+    Keyboard.dismiss();
     if (
       !organizationInfo.organization_name ||
       !organizationInfo.organization_email
@@ -774,8 +777,9 @@ const SocialMediaDropdown = () => {
   return (
     <View style={styles.safeArea}>
       <BackTabTop screenName="Update Organization" />
-      <ScrollView style={styles.container}
-      keyboardShouldPersistTaps={'handled'}>
+      <ScrollView
+        style={styles.container}
+        keyboardShouldPersistTaps={'handled'}>
         <View style={styles.content}>
           <View style={styles.profileSection}>
             <View style={styles.bannerContainer}>
@@ -1024,17 +1028,15 @@ const SocialMediaDropdown = () => {
               </View>
               <View style={styles.halfInput}>
                 <Text style={styles.label}>Industry</Text>
-                <TextInput
-                  style={styles.input}
-                  value={organizationInfo.organization_industry}
-                  onChangeText={text =>
+                <IndustryDropdown
+                  selectedValue={organizationInfo.organization_industry}
+                  onValueChange={value =>
                     setOrganizationInfo({
                       ...organizationInfo,
-                      organization_industry: text,
+                      organization_industry: value,
                     })
                   }
-                  placeholder="Enter industry"
-                  placeholderTextColor="#999"
+                  placeholder="Select Industry"
                 />
               </View>
             </View>
@@ -1299,23 +1301,23 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       justifyContent: 'space-between',
       marginTop: 10,
     },
-     dropdownButtonContainer: {
-    marginTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    paddingTop: 15,
-  },
-  dropdownDoneButton: {
-    backgroundColor: '#007B8E',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  dropdownDoneButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+    dropdownButtonContainer: {
+      marginTop: 15,
+      borderTopWidth: 1,
+      borderTopColor: '#E2E8F0',
+      paddingTop: 15,
+    },
+    dropdownDoneButton: {
+      backgroundColor: '#007B8E',
+      borderRadius: 8,
+      paddingVertical: 10,
+      alignItems: 'center',
+    },
+    dropdownDoneButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
+    },
     videoDescriptionInput: {
       height: 80,
       textAlignVertical: 'top',

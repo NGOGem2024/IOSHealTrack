@@ -271,46 +271,46 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
     }
   };
   const handleDocumentSelected = async (document: DocumentInfo) => {
-    setSelectedDocument(document);
-    setIsUploading(true);
+  setSelectedDocument(document);
+  setIsUploading(true);
 
-    try {
-      const formData = new FormData();
+  try {
+    const formData = new FormData();
 
-      // Add file to form data
-      formData.append('file', {
-        uri: document.uri,
-        type: document.type,
-        name: document.name,
-      } as any);
+    // Add file to form data
+    formData.append('file', {
+      uri: document.uri,
+      type: document.type,
+      name: document.name,
+    } as any);
 
-      // Add other required fields
-      formData.append('document_name', document.name);
-      formData.append('document_type', document.document_type || 'Other');
-      const response = await axiosInstance.post(
-        `/upload-document/${patientId}`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: 'Bearer ' + session.idToken,
-          },
+    // Add other required fields
+    formData.append('document_name', document.document_name || document.name); // Use document_name
+    formData.append('document_type', document.document_type || 'Other');
+    const response = await axiosInstance.post(
+      `/upload-document/${patientId}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: 'Bearer ' + session.idToken,
         },
-      );
+      },
+    );
 
-      if (response.status === 200) {
-        Alert.alert('Success', 'Document uploaded successfully');
-        await fetchPatientData(); // Refresh patient data to show the new document
-        setSelectedDocument(null);
-      }
-    } catch (error) {
-      console.error('Document upload error:', error);
-      Alert.alert('Error', 'Failed to upload document');
-      setSelectedDocument(null);
-    } finally {
-      setIsUploading(false);
+    if (response.status === 200) {
+      Alert.alert('Success', 'Document uploaded successfully');
+      await fetchPatientData(); // Refresh patient data to show the new document
+      setSelectedDocument(null); // Clear selected document
     }
-  };
+  } catch (error) {
+    console.error('Document upload error:', error);
+    Alert.alert('Error', 'Failed to upload document');
+    setSelectedDocument(null); // Clear on error as well
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   const handleDocumentRemoved = () => {
     setSelectedDocument(null);

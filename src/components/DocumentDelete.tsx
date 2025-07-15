@@ -81,19 +81,9 @@ const DocumentDeleteDialog: React.FC<DocumentDeleteDialogProps> = ({
     }
   };
 
-  const showDeleteConfirmation = () => {
-    setIsDialogVisible(true);
-  };
-
-  const hideDeleteConfirmation = () => {
-    if (!isDeleting) {
-      setIsDialogVisible(false);
-    }
-  };
-
   return (
     <>
-      <TouchableOpacity onPress={showDeleteConfirmation}>
+      <TouchableOpacity onPress={() => setIsDialogVisible(true)}>
         {children}
       </TouchableOpacity>
 
@@ -101,50 +91,41 @@ const DocumentDeleteDialog: React.FC<DocumentDeleteDialogProps> = ({
         visible={isDialogVisible}
         transparent={true}
         animationType="fade"
-        onRequestClose={hideDeleteConfirmation}>
+        onRequestClose={() => setIsDialogVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <MaterialIcons
-                name="warning"
-                size={24}
-                color="#FF6B6B"
-                style={styles.warningIcon}
-              />
-              <Text style={styles.modalTitle}>Delete Document</Text>
+            
+            {/* Header */}
+            <View style={styles.header}>
+              <MaterialIcons name="delete" size={24} color="#FF4757" />
+              <Text style={styles.title}>Delete Document</Text>
             </View>
 
-            <View style={styles.modalContent}>
-              <Text style={styles.modalMessage}>
-                Are you sure you want to delete this document?
-              </Text>
-              <Text style={styles.documentName}>
-                "{document.document_name}"
-              </Text>
-              <Text style={styles.warningText}>
-                This action cannot be undone.
-              </Text>
-            </View>
+            {/* Document name */}
+            <Text style={styles.documentName}>{document.document_name}</Text>
+            
+            {/* Warning */}
+            <Text style={styles.warning}>
+              This action cannot be undone.
+            </Text>
 
-            <View style={styles.modalButtons}>
+            {/* Buttons */}
+            <View style={styles.buttons}>
               <TouchableOpacity
                 style={styles.cancelButton}
-                onPress={hideDeleteConfirmation}
+                onPress={() => setIsDialogVisible(false)}
                 disabled={isDeleting}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[
-                  styles.deleteButton,
-                  isDeleting && styles.deleteButtonDisabled,
-                ]}
+                style={[styles.deleteButton, isDeleting && styles.deleteButtonDisabled]}
                 onPress={handleDeleteDocument}
                 disabled={isDeleting}>
                 {isDeleting ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.deleteButtonText}>Delete</Text>
+                  <Text style={styles.deleteText}>Delete</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -168,86 +149,62 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: theme.colors.card,
       borderRadius: 12,
       padding: 20,
-      width: '100%',
+      width: '90%',
       maxWidth: 400,
-      elevation: 5,
-      shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
     },
-    modalHeader: {
+    header: {
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 16,
     },
-    warningIcon: {
-      marginRight: 12,
-    },
-    modalTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
+    title: {
+      fontSize: 18,
+      fontWeight: '600',
       color: theme.colors.text,
-    },
-    modalContent: {
-      marginBottom: 24,
-    },
-    modalMessage: {
-      fontSize: 16,
-      color: theme.colors.text,
-      marginBottom: 12,
-      lineHeight: 24,
+      marginLeft: 8,
     },
     documentName: {
       fontSize: 16,
-      fontWeight: '600',
-      color: '#119FB3',
+      color: theme.colors.text,
       marginBottom: 12,
-      textAlign: 'center',
-      paddingHorizontal: 8,
+      fontWeight: '500',
     },
-    warningText: {
+    warning: {
       fontSize: 14,
-      color: '#FF6B6B',
-      fontStyle: 'italic',
-      textAlign: 'center',
+      color: '#666',
+      marginBottom: 24,
     },
-    modalButtons: {
+    buttons: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       gap: 12,
     },
     cancelButton: {
       flex: 1,
-      backgroundColor: theme.colors.card === '#FFFFFF' ? '#F5F5F5' : '#444444',
+      backgroundColor: '#F0F0F0',
       borderRadius: 8,
       paddingVertical: 12,
-      paddingHorizontal: 16,
       alignItems: 'center',
-      borderWidth: 1,
-      borderColor: theme.colors.text + '30',
     },
-    cancelButtonText: {
+    cancelText: {
       fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.text,
+      fontWeight: '500',
+      color: '#333',
     },
     deleteButton: {
       flex: 1,
-      backgroundColor: '#FF6B6B',
+      backgroundColor: '#FF4757',
       borderRadius: 8,
       paddingVertical: 12,
-      paddingHorizontal: 16,
       alignItems: 'center',
       justifyContent: 'center',
-      minHeight: 48,
+      minHeight: 44,
     },
     deleteButtonDisabled: {
-      backgroundColor: '#FF6B6B80',
+      backgroundColor: '#FF4757A0',
     },
-    deleteButtonText: {
+    deleteText: {
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: '500',
       color: '#FFFFFF',
     },
   });

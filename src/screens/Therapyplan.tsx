@@ -310,19 +310,19 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
       );
 
       if (response.status === 200 || response.status === 201) {
-        showSuccessToast('Therapy plan created successfully');
+        showSuccessToast('Plan created successfully');
         navigation.goBack();
       } else {
         setErrors({
           ...errors,
-          submit: 'Failed to create therapy plan. Please try again.',
+          submit: 'Failed to create plan. Please try again.',
         });
       }
     } catch (error) {
       handleError(error);
       setErrors({
         ...errors,
-        submit: 'An error occurred while creating therapy plan.',
+        submit: 'An error occurred while creating plan.',
       });
       console.error(error);
     } finally {

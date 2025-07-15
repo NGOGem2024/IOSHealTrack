@@ -40,8 +40,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 //import UpdateTherapySkeleton from '../../components/UpdateTherapySkeleton';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import UpdateTherapySkeleton from '../components/UpdateTherapySkeleton';
-import { useTheme } from './ThemeContext';
-import { getTheme } from './Theme';
+import {useTheme} from './ThemeContext';
+import {getTheme} from './Theme';
 interface Therapy {
   _id: string;
   plan_id: string;
@@ -54,7 +54,7 @@ interface Therapy {
   therepy_start_time: string;
   therepy_end_time?: string;
   status?: string;
-  doctor_id : string;
+  doctor_id: string;
   therepy_cost?: string;
   doctor_name?: string;
 }
@@ -64,7 +64,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TherapyHistory'>;
 const TherapyHistory: React.FC<Props> = ({navigation, route}) => {
   const {session} = useSession();
   const patientId = route.params?.patientId;
-const {theme} = useTheme();
+  const {theme} = useTheme();
   const styles = getStyles(
     getTheme(
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
@@ -462,7 +462,7 @@ const {theme} = useTheme();
               onPress={() => handleShowAppointmentDetails(item)}
               disabled={!canStart}>
               <Text style={styles.buttonText}>
-                {canStart ? 'Start Therapy' : 'Upcoming'}
+                {canStart ? 'Start' : 'Upcoming'}
               </Text>
             </TouchableOpacity>
           )}
@@ -478,14 +478,14 @@ const {theme} = useTheme();
     );
   };
 
-if (isLoading) {
-  return (
-    <View style={{flex: 1}}>
+  if (isLoading) {
+    return (
+      <View style={{flex: 1}}>
         <BackTabTop screenName="Appointments" />
-      <UpdateTherapySkeleton />
-    </View>
-  );
-}
+        <UpdateTherapySkeleton />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.safeArea}>
@@ -560,22 +560,20 @@ if (isLoading) {
           </View>
         )}
 
-        
-        
-          <FlatList
-            data={getDisplayedTherapies()}
-            keyExtractor={item => item._id}
-            renderItem={renderTherapyItem}
-            ListEmptyComponent={
-              <Text style={styles.noTherapyText}>
-                No {selectedView === 'all' ? '' : selectedView} Appointments
-                available
-              </Text>
-            }
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          />
+        <FlatList
+          data={getDisplayedTherapies()}
+          keyExtractor={item => item._id}
+          renderItem={renderTherapyItem}
+          ListEmptyComponent={
+            <Text style={styles.noTherapyText}>
+              No {selectedView === 'all' ? '' : selectedView} Appointments
+              available
+            </Text>
+          }
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        />
       </View>
       {editingTherapy && (
         <EditTherapy
@@ -591,7 +589,7 @@ if (isLoading) {
         onRequestClose={() => setShowRemarksPopup(false)}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Therapy Ended</Text>
+            <Text style={styles.modalTitle}>Appointment Ended</Text>
 
             <Text style={styles.inputLabel}>Remarks:</Text>
             <TextInput
@@ -637,7 +635,7 @@ if (isLoading) {
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>Confirm Deletion</Text>
             <Text style={styles.modalText}>
-              Are you sure you want to delete this therapy?
+              Are you sure you want to delete this Appointment?
             </Text>
             <View style={styles.buttonContainer}>
               <TouchableOpacity
@@ -668,7 +666,7 @@ if (isLoading) {
           <Animated.View style={[styles.newUserPopup, animatedStyles]}>
             <Text style={styles.newUserTitle}>Welcome!</Text>
             <Text style={styles.newUserText}>
-              The patient is new here. Create your first therapy session to get
+              The patient is new here. Create your first Appointment to get
               started!
             </Text>
             <TouchableOpacity
@@ -681,7 +679,7 @@ if (isLoading) {
                 });
               }}>
               <Text style={styles.createTherapyButtonText}>
-                Create First Therapy
+                Create First Appointment
               </Text>
             </TouchableOpacity>
           </Animated.View>
@@ -701,290 +699,291 @@ if (isLoading) {
 
 const windowWidth = Dimensions.get('window').width;
 
-const getStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
-  selectedDropdownItem: {
-    backgroundColor: 'rgba(17, 159, 179, 0.1)',
-  },
-  therapyCard: {
-    backgroundColor: theme.colors.card, // Changed from rgba to solid color
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 4,
-    shadowColor: '#000000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-
-  modalView: {
-    backgroundColor: '#FFFFFF', // Changed from white to solid color
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+const getStyles = (theme: ReturnType<typeof getTheme>) =>
+  StyleSheet.create({
+    selectedDropdownItem: {
+      backgroundColor: 'rgba(17, 159, 179, 0.1)',
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    width: '85%',
-    maxWidth: 400,
-  },
-
-  newUserPopup: {
-    backgroundColor: '#FFFFFF', // Changed from white to solid color
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+    therapyCard: {
+      backgroundColor: theme.colors.card, // Changed from rgba to solid color
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 16,
+      elevation: 4,
+      shadowColor: '#000000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    width: '85%',
-    maxWidth: 400,
-  },
 
-  dropdownButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: theme.colors.border,
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  selectedDropdownText: {
-    color: '#007B8E',
-    fontWeight: 'bold',
-  },
-  dropdownText: {
-    color: theme.colors.text,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'black',
-  },
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#007B8E',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 10,
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: {width: 1, height: 1},
-    textShadowRadius: 2,
-    marginTop: 20,
-  },
-  fullScreenModal: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'white',
-    zIndex: 1000,
-  },
-  error: {
-    color: '#FF6B6B',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  actionButtonsContainer: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    flexDirection: 'row',
-    zIndex: 1,
-  },
-  editButton: {
-    marginRight: 10,
-  },
-  deleteButton: {
-    marginLeft: 10,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  buttonDelete: {
-    backgroundColor: 'red',
-  },
-  doneButton: {
-    backgroundColor: '#007B8E',
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  newUserTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#007B8E',
-    marginBottom: 15,
-  },
-  newUserText: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#333',
-  },
-  createTherapyButton: {
-    backgroundColor: '#007B8E',
-    borderRadius: 10,
-    padding: 10,
-    elevation: 2,
-  },
-  createTherapyButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  loadingText: {
-    color: '#FFFFFF',
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  buttonSave: {
-    backgroundColor: '#007B8E',
-  },
-  inputLabel: {
-    alignSelf: 'flex-start',
-    marginBottom: 5,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#007B8E',
-    borderRadius: 5,
-    height: 40,
-    marginBottom: 20,
-    width: '100%',
-    padding: 10,
-    textAlignVertical: 'top',
-  },
+    modalView: {
+      backgroundColor: '#FFFFFF', // Changed from white to solid color
+      borderRadius: 20,
+      padding: 35,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+      width: '85%',
+      maxWidth: 400,
+    },
 
-  therapyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  therapyType: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#007B8E',
-    marginLeft: 8,
-  },
-  therapyDetails: {
-    marginBottom: 12,
-  },
-  therapyText: {
-    fontSize: 14,
-    color: theme.colors.text,
-    marginBottom: 4,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-  },
-  actionButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    width: windowWidth > 360 ? 150 : '50%',
-    elevation: 2,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  joinButton: {
-    backgroundColor: '#007B8E',
-  },
-  recordButton: {
-    backgroundColor: '#2596be',
-  },
-  disabledButton: {
-    backgroundColor: '#A0A0A0',
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: windowWidth > 360 ? 16 : 14,
-  },
-  noTherapyText: {
-    color: '#FFFFFF',
-    textAlign: 'center',
-    fontSize: 16,
-    marginTop: 20,
-  },
-  dropdownButtonText: {
-    color: '#007B8E',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  dropdownContent: {
-    backgroundColor: theme.colors.border,
-    borderRadius: 5,
-    overflow: 'hidden',
-    marginBottom: 10,
-  },
-  dropdownItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#007B8E',
-  },
-  modalText: {
-    marginBottom: 10,
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  remarksText: {
-    marginBottom: 15,
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#333',
-  },
-  button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-    minWidth: 100,
-  },
-  buttonClose: {
-    backgroundColor: '#007B8E',
-  },
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-});
+    newUserPopup: {
+      backgroundColor: '#FFFFFF', // Changed from white to solid color
+      borderRadius: 20,
+      padding: 35,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+      width: '85%',
+      maxWidth: 400,
+    },
+
+    dropdownButton: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: theme.colors.border,
+      padding: 10,
+      borderRadius: 5,
+      marginBottom: 10,
+    },
+    selectedDropdownText: {
+      color: '#007B8E',
+      fontWeight: 'bold',
+    },
+    dropdownText: {
+      color: theme.colors.text,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: 'black',
+    },
+    backgroundImage: {
+      flex: 1,
+      resizeMode: 'cover',
+    },
+    container: {
+      flex: 1,
+      padding: 16,
+      backgroundColor: '#007B8E',
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      marginBottom: 10,
+      textAlign: 'center',
+      textShadowColor: 'rgba(0, 0, 0, 0.5)',
+      textShadowOffset: {width: 1, height: 1},
+      textShadowRadius: 2,
+      marginTop: 20,
+    },
+    fullScreenModal: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'white',
+      zIndex: 1000,
+    },
+    error: {
+      color: '#FF6B6B',
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+    actionButtonsContainer: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      flexDirection: 'row',
+      zIndex: 1,
+    },
+    editButton: {
+      marginRight: 10,
+    },
+    deleteButton: {
+      marginLeft: 10,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    buttonDelete: {
+      backgroundColor: 'red',
+    },
+    doneButton: {
+      backgroundColor: '#007B8E',
+    },
+    centeredView: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    newUserTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: '#007B8E',
+      marginBottom: 15,
+    },
+    newUserText: {
+      fontSize: 16,
+      textAlign: 'center',
+      marginBottom: 20,
+      color: '#333',
+    },
+    createTherapyButton: {
+      backgroundColor: '#007B8E',
+      borderRadius: 10,
+      padding: 10,
+      elevation: 2,
+    },
+    createTherapyButtonText: {
+      color: 'white',
+      fontWeight: 'bold',
+      textAlign: 'center',
+      fontSize: 16,
+    },
+    loadingText: {
+      color: '#FFFFFF',
+      textAlign: 'center',
+      fontSize: 16,
+    },
+    buttonSave: {
+      backgroundColor: '#007B8E',
+    },
+    inputLabel: {
+      alignSelf: 'flex-start',
+      marginBottom: 5,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: '#007B8E',
+      borderRadius: 5,
+      height: 40,
+      marginBottom: 20,
+      width: '100%',
+      padding: 10,
+      textAlignVertical: 'top',
+    },
+
+    therapyHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    therapyType: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#007B8E',
+      marginLeft: 8,
+    },
+    therapyDetails: {
+      marginBottom: 12,
+    },
+    therapyText: {
+      fontSize: 14,
+      color: theme.colors.text,
+      marginBottom: 4,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      width: '100%',
+    },
+    actionButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 10,
+      width: windowWidth > 360 ? 150 : '50%',
+      elevation: 2,
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    joinButton: {
+      backgroundColor: '#007B8E',
+    },
+    recordButton: {
+      backgroundColor: '#2596be',
+    },
+    disabledButton: {
+      backgroundColor: '#A0A0A0',
+      opacity: 0.7,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+      textAlign: 'center',
+      fontSize: windowWidth > 360 ? 16 : 14,
+    },
+    noTherapyText: {
+      color: '#FFFFFF',
+      textAlign: 'center',
+      fontSize: 16,
+      marginTop: 20,
+    },
+    dropdownButtonText: {
+      color: '#007B8E',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    dropdownContent: {
+      backgroundColor: theme.colors.border,
+      borderRadius: 5,
+      overflow: 'hidden',
+      marginBottom: 10,
+    },
+    dropdownItem: {
+      padding: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginBottom: 15,
+      color: '#007B8E',
+    },
+    modalText: {
+      marginBottom: 10,
+      textAlign: 'center',
+      fontSize: 16,
+    },
+    remarksText: {
+      marginBottom: 15,
+      textAlign: 'center',
+      fontSize: 14,
+      color: '#333',
+    },
+    button: {
+      borderRadius: 20,
+      padding: 10,
+      elevation: 2,
+      minWidth: 100,
+    },
+    buttonClose: {
+      backgroundColor: '#007B8E',
+    },
+    textStyle: {
+      color: 'white',
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+  });
 
 export default TherapyHistory;
 function showErrorToast(arg0: string) {

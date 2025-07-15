@@ -209,7 +209,6 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
           "Women's Health",
           'Geriatrics',
           'Post surgical rehabilitation',
-          
         ];
     }
   };
@@ -270,7 +269,7 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
       setPatientName(patient_name);
     } catch (error) {
       handleError(error);
-      Alert.alert('Error', 'Failed to fetch therapy plan details');
+      Alert.alert('Error', 'Failed to fetch plan details');
       navigation.goBack();
     } finally {
       setIsLoading(false);
@@ -521,19 +520,19 @@ const EditTherapyPlan: React.FC<EditTherapyPlanScreenProps> = ({
 
       if (response.status === 200) {
         setHasUnsavedChanges(false);
-        showSuccessToast('Therapy plan updated successfully');
+        showSuccessToast('Plan updated successfully');
         navigation.goBack();
       } else {
         setErrors({
           ...errors,
-          submit: 'Failed to update therapy plan. Please try again.',
+          submit: 'Failed to update plan. Please try again.',
         });
       }
     } catch (error) {
       handleError(error);
       setErrors({
         ...errors,
-        submit: 'An error occurred while updating therapy plan.',
+        submit: 'An error occurred while updating plan.',
       });
       console.error(error);
     } finally {

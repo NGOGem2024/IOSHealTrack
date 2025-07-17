@@ -277,7 +277,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
           backgroundColor={theme.colors.background}
           barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         />
-        <BackTabTop screenName="Therapy" />
+        <BackTabTop screenName="Appointment" />
         <BookAppSkeletonLoader theme={theme} isDarkMode={isDarkMode} />
       </View>
     );
@@ -607,7 +607,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
   return (
     <View style={styles.safeArea}>
       <View style={styles.container}>
-        <BackTabTop screenName="Therapy" />
+        <BackTabTop screenName="Appointment" />
         <ScrollView>
           <Text style={styles.title}>Book Appointment</Text>
 

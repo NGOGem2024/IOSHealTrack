@@ -507,7 +507,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
               <View style={styles.card}>
                 <View style={styles.cardHeader}>
                   <Ionicons name="medical" style={styles.icondesign} />
-                  <Text style={styles.detailTitle}>Therapy Type</Text>
+                  <Text style={styles.detailTitle}>Appointment Type</Text>
                 </View>
                 <Text style={styles.detailText}>
                   {appointment.therepy_type}
@@ -517,7 +517,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
               <View style={styles.card}>
                 <View style={styles.cardHeader}>
                   <Ionicons name="time" style={styles.icondesign} />
-                  <Text style={styles.detailTitle}>Therapy Start Time</Text>
+                  <Text style={styles.detailTitle}>Appointment Start Time</Text>
                 </View>
                 <Text style={styles.detailText}>
                   {appointment.therepy_start_time}
@@ -559,7 +559,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
                   {loading ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                   ) : (
-                    <Text style={styles.buttonText}>Start Therapy</Text>
+                    <Text style={styles.buttonText}>Start</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -584,7 +584,7 @@ const AppointmentDetailsScreen: React.FC<AppointmentDetailsScreenProps> = ({
               <TouchableOpacity
                 style={styles.endButton}
                 onPress={handleShowEndModal}>
-                <Text style={styles.buttonText}>End Therapy</Text>
+                <Text style={styles.buttonText}>End Appointment</Text>
               </TouchableOpacity>
             </View>
           )}

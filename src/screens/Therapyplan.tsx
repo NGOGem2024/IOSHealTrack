@@ -383,7 +383,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
   const [categories, setCategories] = useState<string[]>([]);
   const getCategoriesByIndustry = () => {
     const industry = session.organization_industry?.toLowerCase();
-
+console.log(industry)
     switch (industry) {
       case 'physiotherapy':
         return [
@@ -409,8 +409,8 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           'Preventive Dentistry',
         ];
 
-      case 'Gynacologist':
-      case 'Gynacologist':
+      case 'gynacologist':
+      case 'gynacologist':
         return [
           'Pregnancy & Antenatal Care',
           'Menstrual Disorders',
@@ -462,14 +462,13 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
       default:
         // Default to general medical categories if industry not recognized
         return [
-          'General Medicine',
-          'Preventive Care',
-          'Chronic Disease Management',
-          'Health Screening',
-          'Follow-up Care',
-          'Emergency Care',
-          'Rehabilitation',
-          'Wellness Programs',
+         'Musculoskeletal',
+          'Neurological',
+          'Cardiorespiratory',
+          'Paediatrics',
+          "Women's Health",
+          'Geriatrics',
+          'Post surgical rehabilitation',
         ];
     }
   };

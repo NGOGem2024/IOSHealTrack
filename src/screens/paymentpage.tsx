@@ -231,6 +231,7 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
 
       if (response.status === 200) {
         showSuccessToast('Payment Recorded Successfully');
+        navigation.setParams({therapyId: undefined});
         await fetchPaymentInfo(); // Refresh payment info
         await fetchPlanDetails(); // Refresh session data
       } else {
@@ -345,9 +346,9 @@ const PaymentDetailsScreen: React.FC<Props> = ({navigation, route}) => {
           onPress={() => setIsSessionDropdownVisible(true)}>
           <Text style={styles.dropdownButtonText}>
             {selectedSession
-              ? `Session ${selectedSession.session_number}            ${formatDate(
-                  selectedSession.date,
-                )}`
+              ? `Session ${
+                  selectedSession.session_number
+                }            ${formatDate(selectedSession.date)}`
               : 'Select a session'}
           </Text>
           <Text style={styles.dropdownArrow}>▼</Text>

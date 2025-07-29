@@ -29,6 +29,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import {Platform} from 'react-native';
 import {useSession} from '../context/SessionContext';
 import OrganizationSkeletonLoader from '../components/OrganizationSkeletonLoader';
+import OrganizationLocations from './OrganizationLocations';
 const defaultOrgLogo = require('../assets/profile.png');
 const defaultOrgBanner = require('../assets/banner.jpg');
 
@@ -38,7 +39,12 @@ interface YouTubeVideo {
   url: string;
   description: string;
 }
-
+interface Location {
+  id: string;
+  name: string;
+  locationId: string;
+  address: string;
+}
 interface OrganizationInfo {
   organization_name: string;
   organization_photo: string;
@@ -62,6 +68,7 @@ interface OrganizationInfo {
     [key: string]: string;
   };
   youtube_videos: YouTubeVideo[];
+  organization_locations: Location[];
 }
 const {width} = Dimensions.get('window');
 const socialMediaPlatforms = [
@@ -92,6 +99,9 @@ const OrganizationSettingsScreen: React.FC = () => {
   const [newVideoUrl, setNewVideoUrl] = useState('');
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
+  const [organizationLocations, setOrganizationLocations] = useState<
+    Location[]
+  >([]);
 
   const [organizationInfo, setOrganizationInfo] = useState<OrganizationInfo>({
     organization_name: '',
@@ -114,6 +124,7 @@ const OrganizationSettingsScreen: React.FC = () => {
     organization_operating_hours: '',
     organization_social_media: {},
     youtube_videos: [],
+    organization_locations: [],
   });
 
   const [showSocialMediaDropdown, setShowSocialMediaDropdown] = useState(false);
@@ -155,6 +166,7 @@ const OrganizationSettingsScreen: React.FC = () => {
           orgData.organization_operating_hours || '',
         organization_social_media: orgData.organization_social_media || {},
         youtube_videos: orgData.youtube_videos || [],
+        organization_locations: orgData.organization_locations || [],
       });
 
       // Ensure existing social media links are included in selectedPlatforms
@@ -205,7 +217,12 @@ const OrganizationSettingsScreen: React.FC = () => {
       </Modal>
     );
   };
-
+  const handleLocationsChange = (newLocations: Location[]) => {
+    setOrganizationInfo(prev => ({
+      ...prev,
+      organization_locations: newLocations,
+    }));
+  };
   const handleImagePick = async () => {
     Alert.alert('Organization Logo', 'Choose a photo from:', [
       {
@@ -753,6 +770,16 @@ const OrganizationSettingsScreen: React.FC = () => {
       return;
     }
 
+    // ADD: Optional validation for locations
+    const locationIds = organizationInfo.organization_locations.map(
+      loc => loc.locationId,
+    );
+    const uniqueLocationIds = new Set(locationIds);
+    if (locationIds.length !== uniqueLocationIds.size) {
+      Alert.alert('Error', 'Location IDs must be unique');
+      return;
+    }
+
     setSaving(true);
     try {
       await axiosInstance.post('/update/org', organizationInfo);
@@ -969,7 +996,10 @@ const OrganizationSettingsScreen: React.FC = () => {
                 />
               </View>
             </View>
-
+            <OrganizationLocations
+              locations={organizationInfo.organization_locations}
+              onLocationsChange={handleLocationsChange}
+            />
             <View style={styles.row}>
               <View style={styles.halfInput}>
                 <Text style={styles.label}>ZIP Code</Text>
@@ -1027,7 +1057,7 @@ const OrganizationSettingsScreen: React.FC = () => {
                 />
               </View>
               <View style={styles.halfInput}>
-                <Text style={styles.label}>Industry</Text>
+                <Text style={styles.label}>Speciality</Text>
                 <IndustryDropdown
                   selectedValue={organizationInfo.organization_industry}
                   onValueChange={value =>
@@ -1036,7 +1066,7 @@ const OrganizationSettingsScreen: React.FC = () => {
                       organization_industry: value,
                     })
                   }
-                  placeholder="Select Industry"
+                  placeholder="Select Speciality"
                 />
               </View>
             </View>

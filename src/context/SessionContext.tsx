@@ -15,7 +15,7 @@ interface Session {
   accessToken: string | null;
   is_admin: boolean;
   doctor_id: string | null;
-
+  preferred_location: string | null;
   organization_industry: string | null;
 }
 
@@ -38,6 +38,7 @@ export const SessionProvider: React.FC<{children: ReactNode}> = ({
     accessToken: null,
     is_admin: false,
     doctor_id: null,
+    preferred_location: null,
     organization_industry: null,
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -53,7 +54,9 @@ export const SessionProvider: React.FC<{children: ReactNode}> = ({
         const organization_industry = await AsyncStorage.getItem(
           'organization_industry',
         );
-
+        const preferred_location = await AsyncStorage.getItem(
+          'preferred_location',
+        );
         if (keychainResult) {
           const idToken = keychainResult.password; // ← token is stored here
           setSession({
@@ -62,6 +65,7 @@ export const SessionProvider: React.FC<{children: ReactNode}> = ({
             accessToken,
             is_admin,
             doctor_id,
+            preferred_location,
             organization_industry,
           });
         } else {
@@ -90,7 +94,8 @@ export const SessionProvider: React.FC<{children: ReactNode}> = ({
       await AsyncStorage.removeItem('LiveTokens');
       await AsyncStorage.removeItem('doctor_photo');
       await AsyncStorage.removeItem('expires_in');
-
+      await AsyncStorage.removeItem('organization_industry');
+      await AsyncStorage.removeItem('preferred_location');
       // Reset session state
       setSession({
         isLoggedIn: false,
@@ -98,6 +103,7 @@ export const SessionProvider: React.FC<{children: ReactNode}> = ({
         accessToken: null,
         is_admin: false,
         doctor_id: null,
+        preferred_location: null,
         organization_industry: null,
       });
     } catch (error) {

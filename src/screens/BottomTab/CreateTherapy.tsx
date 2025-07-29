@@ -16,7 +16,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ConfirmationPopup from './confirmationpopup';
 import {useFocusEffect} from '@react-navigation/native'; // Import useFocusEffect
-
+import LocationPicker from './HospitalLocation'; // Adjust path as needed
 import moment from 'moment-timezone';
 import {useSession} from '../../context/SessionContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -37,6 +37,15 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CreateTherapy'>;
 interface PickerItem {
   _id: string;
   label: string;
+}
+interface Location {
+  _id: string;
+  id: string;
+  name: string;
+  locationId: string;
+  address: string;
+  createdAt: string;
+  updatedAt: string;
 }
 const SLOT_DURATION_OPTIONS = [
   {value: 30, label: '30 minutes'},
@@ -64,7 +73,7 @@ const CreateTherapy = ({route, navigation}: Props) => {
   const [therapyPlans, setTherapyPlans] = useState<any[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
   const [selectedSlotDuration, setSelectedSlotDuration] = useState(30);
-
+  const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
   const [hasLiveSwitchAccess, setHasLiveSwitchAccess] =
     useState<boolean>(false);
   const [slotDuration, setSlotDuration] = useState<number>(30);
@@ -313,57 +322,6 @@ const CreateTherapy = ({route, navigation}: Props) => {
     });
   };
 
-  const isSlotDisabled = (slot: any) => {
-    const now = new Date();
-    const slotDate = new Date(selectedDate);
-    const [hours, minutes] = slot.start.split(':').map(Number);
-    slotDate.setHours(hours, minutes, 0, 0);
-
-    return slotDate < now || slot.status === 'occupied';
-  };
-
-  const renderIOSPicker = (
-    isVisible: boolean,
-    onClose: () => void,
-    onSelect: (value: string) => void,
-    selectedValue: string | undefined,
-    items: PickerItem[],
-    title: string,
-  ) => {
-    return (
-      <Modal visible={isVisible} transparent={true} animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.pickerContainer}>
-            <View style={styles.pickerHeader}>
-              <Text style={styles.pickerTitle}>{title}</Text>
-              <TouchableOpacity onPress={onClose} style={styles.doneButton}>
-                <Text style={styles.doneButtonText}>Done</Text>
-              </TouchableOpacity>
-            </View>
-            <Picker
-              selectedValue={selectedValue ?? ''}
-              onValueChange={(itemValue: string) => {
-                if (itemValue !== '') {
-                  onSelect(itemValue);
-                  onClose();
-                }
-              }}
-              style={styles.iosPicker}>
-              <Picker.Item label={`Select a ${title.toLowerCase()}`} value="" />
-              {items.map(item => (
-                <Picker.Item
-                  key={item._id}
-                  label={item.label}
-                  value={item._id}
-                />
-              ))}
-            </Picker>
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
   const generateAvailableSlots = (
     slotDuration: number = 30,
     selectedDate?: Date,
@@ -555,7 +513,9 @@ const CreateTherapy = ({route, navigation}: Props) => {
       if (!selectedPlan) {
         throw new Error('Please select a therapy plan for the appointment.');
       }
-
+      if (!selectedLocation) {
+        throw new Error('Please select a location for the appointment.');
+      }
       setIsBooking(true);
       setError('');
 
@@ -578,6 +538,9 @@ const CreateTherapy = ({route, navigation}: Props) => {
         doctor_name: `${selectedDoctor.doctor_first_name} ${selectedDoctor.doctor_last_name}`,
         plan_id: selectedPlan._id,
         doctor_email: selectedDoctor.doctor_email,
+        location_id: selectedLocation?._id,
+        location_name: selectedLocation?.name,
+        location_address: selectedLocation?.address,
       };
 
       const response = await axiosinstance.post(
@@ -658,7 +621,16 @@ const CreateTherapy = ({route, navigation}: Props) => {
               />
             </View>
           )}
-
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Select Location</Text>
+            <LocationPicker
+              selectedLocation={selectedLocation}
+              onLocationSelect={location => setSelectedLocation(location)}
+              disabled={false}
+              showSetAsDefault={true} // Shows star button to set as default
+              autoSelectPreferred={true} // Auto-selects preferred location on load
+            />
+          </View>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Select Date</Text>
             <View style={styles.dateSelector}>
@@ -797,6 +769,21 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       fontWeight: '600',
       color: colors.text,
     },
+    infoSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 12,
+      backgroundColor: '#007B8E10',
+      marginHorizontal: 16,
+      marginBottom: 8,
+      borderRadius: 8,
+    },
+    infoText: {
+      marginLeft: 8,
+      color: '#007B8E',
+      fontSize: 14,
+      flex: 1,
+    },
     doneButton: {
       padding: 8,
     },
@@ -831,11 +818,6 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    infoText: {
-      color: isDarkMode ? `${colors.text}99` : '#666666',
-      textAlign: 'center',
-      marginTop: 10,
     },
     title: {
       fontSize: 28,

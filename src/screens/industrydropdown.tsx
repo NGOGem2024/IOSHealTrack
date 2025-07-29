@@ -30,7 +30,7 @@ interface IndustryDropdownProps {
 const industries: Industry[] = [
   {id: 'physiotherapy', name: 'Physiotherapy'},
   {id: 'dentistry', name: 'Dentistry'},
-  {id: 'Gynacologist', name: 'Gynecologist'},
+  {id: 'gynacologist', name: 'Gynecologist'},
   {id: 'ayurveda', name: 'Ayurveda'},
   {id: 'homeopathy', name: 'Homeopathy'},
   {id: 'pediatrics', name: 'Pediatrics'},
@@ -39,7 +39,7 @@ const industries: Industry[] = [
 const IndustryDropdown: React.FC<IndustryDropdownProps> = ({
   selectedValue,
   onValueChange,
-  placeholder = 'Select Industry',
+  placeholder = 'Select Speciality',
 }) => {
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const {theme} = useTheme();
@@ -86,7 +86,7 @@ const IndustryDropdown: React.FC<IndustryDropdownProps> = ({
         style={styles.selector}
         onPress={() => setIsVisible(true)}>
         <Text style={styles.selectorText}>
-          {selectedIndustry ? selectedIndustry.name : 'Select Industry'}
+          {selectedIndustry ? selectedIndustry.name : 'Select Speciality'}
         </Text>
         <Icon name="chevron-down" size={24} color="#007B8E" />
       </TouchableOpacity>
@@ -102,7 +102,7 @@ const IndustryDropdown: React.FC<IndustryDropdownProps> = ({
           onPress={() => setIsVisible(false)}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Industry</Text>
+              <Text style={styles.modalTitle}>Select Speciality</Text>
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setIsVisible(false)}>

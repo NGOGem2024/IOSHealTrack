@@ -18,6 +18,7 @@ import {handleError, showSuccessToast} from '../../utils/errorHandler';
 import {useSession} from '../../context/SessionContext';
 import axiosinstance from '../../utils/axiosConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useNavigation} from '@react-navigation/native';
 
 interface Location {
   _id: string;
@@ -37,6 +38,55 @@ interface LocationPickerProps {
   autoSelectPreferred?: boolean; // New prop to auto-select preferred location
 }
 
+// No Locations Popup Component
+const NoLocationsPopup: React.FC<{
+  visible: boolean;
+  onClose: () => void;
+  onNavigateToOrganization: () => void;
+  theme: any;
+  isDarkMode: boolean;
+}> = ({visible, onClose, onNavigateToOrganization, theme, isDarkMode}) => {
+  const styles = createNoLocationPopupStyles(theme.colors, isDarkMode);
+
+  return (
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.popupContainer}>
+          <View style={styles.iconContainer}>
+            <Icon name="location-off" size={60} color="#FF6B6B" />
+          </View>
+          
+          <Text style={styles.title}>No Locations Available</Text>
+          
+          <Text style={styles.message}>
+            No locations have been configured for your organization yet. 
+            Please contact your administrator or add locations through the Organization settings.
+          </Text>
+          
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, styles.secondaryButton]}
+              onPress={onClose}>
+              <Text style={styles.secondaryButtonText}>Close</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.button, styles.primaryButton]}
+              onPress={onNavigateToOrganization}>
+              <Icon name="business" size={18} color="white" style={styles.buttonIcon} />
+              <Text style={styles.primaryButtonText}>Organization Settings</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 const LocationPicker: React.FC<LocationPickerProps> = ({
   selectedLocation,
   onLocationSelect,
@@ -46,10 +96,12 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 }) => {
   const {theme, isDarkMode} = useTheme();
   const {session, setSession} = useSession();
+  const navigation = useNavigation();
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showLocationPicker, setShowLocationPicker] = useState<boolean>(false);
   const [isSettingPreferred, setIsSettingPreferred] = useState<boolean>(false);
+  const [showNoLocationsPopup, setShowNoLocationsPopup] = useState<boolean>(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const styles = createStyles(theme.colors, isDarkMode);
@@ -91,9 +143,20 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
       if (response.data && response.data.locations) {
         setLocations(response.data.locations);
+        
+        // Check if no locations are available
+        if (response.data.locations.length === 0) {
+          setShowNoLocationsPopup(true);
+        }
+      } else {
+        // Handle case where response doesn't have locations
+        setLocations([]);
+        setShowNoLocationsPopup(true);
       }
     } catch (error) {
       handleError(error);
+      setLocations([]);
+      setShowNoLocationsPopup(true);
     } finally {
       setIsLoading(false);
     }
@@ -145,6 +208,10 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
   const openLocationPicker = () => {
     if (!disabled) {
+      if (locations.length === 0) {
+        setShowNoLocationsPopup(true);
+        return;
+      }
       setShowLocationPicker(true);
       resetScrollPosition();
     }
@@ -166,6 +233,13 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
   const isPreferredLocation = (locationId: string) => {
     return session.preferred_location === locationId;
+  };
+
+  const handleNavigateToOrganization = () => {
+    setShowNoLocationsPopup(false);
+    // Navigate to Organization screen
+    // Adjust the navigation route name according to your navigation structure
+    navigation.navigate('OrganizationSettings' as never);
   };
 
   const renderPickerField = () => {
@@ -243,6 +317,14 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                 {locations.length === 0 ? (
                   <View style={styles.emptyContainer}>
                     <Text style={styles.emptyText}>No locations available</Text>
+                    <TouchableOpacity
+                      style={styles.addLocationButton}
+                      onPress={handleNavigateToOrganization}>
+                      <Icon name="add-location" size={20} color="#007B8E" />
+                      <Text style={styles.addLocationButtonText}>
+                        Add Locations
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 ) : (
                   locations.map(location => (
@@ -327,6 +409,13 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
       <View>
         {renderPickerField()}
         {renderLocationModal()}
+        <NoLocationsPopup
+          visible={showNoLocationsPopup}
+          onClose={() => setShowNoLocationsPopup(false)}
+          onNavigateToOrganization={handleNavigateToOrganization}
+          theme={theme}
+          isDarkMode={isDarkMode}
+        />
       </View>
     );
   }
@@ -346,7 +435,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         }}
         style={styles.picker}
         dropdownIconColor="#007b8e"
-        enabled={!disabled}>
+        enabled={!disabled && locations.length > 0}>
         <Picker.Item label="Select a location" value="" />
         {locations.map(location => (
           <Picker.Item
@@ -358,6 +447,21 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
           />
         ))}
       </Picker>
+      
+      {locations.length === 0 && (
+        <View style={styles.androidEmptyContainer}>
+          <Text style={styles.androidEmptyText}>No locations available</Text>
+          <TouchableOpacity
+            style={styles.androidAddLocationButton}
+            onPress={handleNavigateToOrganization}>
+            <Icon name="business" size={18} color="#007B8E" />
+            <Text style={styles.androidAddLocationButtonText}>
+              Organization Settings
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      
       <View style={styles.androidButtonsContainer}>
         {selectedLocation && (
           <TouchableOpacity
@@ -387,6 +491,14 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
             </TouchableOpacity>
           )}
       </View>
+      
+      <NoLocationsPopup
+        visible={showNoLocationsPopup}
+        onClose={() => setShowNoLocationsPopup(false)}
+        onNavigateToOrganization={handleNavigateToOrganization}
+        theme={theme}
+        isDarkMode={isDarkMode}
+      />
     </View>
   );
 };
@@ -525,6 +637,49 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       color: colors.text,
       fontSize: 16,
       textAlign: 'center',
+      marginBottom: 16,
+    },
+    addLocationButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#007B8E10',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: '#007B8E40',
+    },
+    addLocationButtonText: {
+      color: '#007B8E',
+      fontSize: 14,
+      fontWeight: '500',
+      marginLeft: 8,
+    },
+    androidEmptyContainer: {
+      padding: 16,
+      alignItems: 'center',
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    androidEmptyText: {
+      color: colors.text,
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 12,
+    },
+    androidAddLocationButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#007B8E10',
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 6,
+    },
+    androidAddLocationButtonText: {
+      color: '#007B8E',
+      fontSize: 12,
+      fontWeight: '500',
+      marginLeft: 6,
     },
     locationItemWrapper: {
       // Container for each location item
@@ -615,6 +770,89 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
       color: '#B8860B',
       fontSize: 14,
       fontWeight: '500',
+    },
+  });
+
+const createNoLocationPopupStyles = (colors: any, isDarkMode: boolean) =>
+  StyleSheet.create({
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    popupContainer: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 24,
+      width: '90%',
+      maxWidth: 400,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 8,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 16,
+      elevation: 8,
+    },
+    iconContainer: {
+      marginBottom: 16,
+      padding: 16,
+      backgroundColor: '#FF6B6B20',
+      borderRadius: 50,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: 12,
+    },
+    message: {
+      fontSize: 16,
+      color: `${colors.text}CC`,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: 24,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      width: '100%',
+      gap: 12,
+    },
+    button: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+    },
+    primaryButton: {
+      backgroundColor: '#007B8E',
+    },
+    secondaryButton: {
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: `${colors.text}40`,
+    },
+    primaryButtonText: {
+      color: 'white',
+      fontSize: 14,
+      fontWeight: '600',
+      marginLeft: 4,
+    },
+    secondaryButtonText: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    buttonIcon: {
+      marginRight: 4,
     },
   });
 

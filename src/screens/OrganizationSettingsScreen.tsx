@@ -1,3 +1,4 @@
+
 import React, {useEffect, useState} from 'react';
 import {
   View,
@@ -92,6 +93,10 @@ const OrganizationSettingsScreen: React.FC = () => {
   const {session} = useSession();
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
   const [showBannerOptions, setShowBannerOptions] = useState(false);
+  
+  // Admin check state
+  const [showAdminCheckModal, setShowAdminCheckModal] = useState(false);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [newVideoTitle, setNewVideoTitle] = useState('');
@@ -131,8 +136,61 @@ const OrganizationSettingsScreen: React.FC = () => {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchOrganizationInfo();
+    checkAdminAccess();
   }, []);
+
+  useEffect(() => {
+    if (hasAdminAccess) {
+      fetchOrganizationInfo();
+    }
+  }, [hasAdminAccess]);
+
+  const checkAdminAccess = () => {
+    if (session.is_admin) {
+      setHasAdminAccess(true);
+      setIsLoading(false);
+    } else {
+      setShowAdminCheckModal(true);
+      setIsLoading(false);
+    }
+  };
+
+  const handleAdminAccessDenied = () => {
+    setShowAdminCheckModal(false);
+    navigation.goBack();
+  };
+
+  const renderAdminCheckModal = () => {
+    return (
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showAdminCheckModal}
+        onRequestClose={handleAdminAccessDenied}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.adminModalContent}>
+            <View style={styles.adminModalHeader}>
+              <Icon name="shield-alert" size={50} color="#DC2626" />
+              <Text style={styles.adminModalTitle}>Access Restricted</Text>
+            </View>
+            
+            <Text style={styles.adminModalMessage}>
+              You need administrator privileges to access Organization Settings. 
+              Only admin users can modify organization information.
+            </Text>
+            
+            <View style={styles.adminModalButtons}>
+              <TouchableOpacity
+                style={styles.adminModalButton}
+                onPress={handleAdminAccessDenied}>
+                <Text style={styles.adminModalButtonText}>Go Back</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
 
   const fetchOrganizationInfo = async () => {
     setIsLoading(true);
@@ -178,6 +236,7 @@ const OrganizationSettingsScreen: React.FC = () => {
       setIsLoading(false);
     }
   };
+
   const renderBannerOptionsModal = () => {
     return (
       <Modal
@@ -801,6 +860,16 @@ const OrganizationSettingsScreen: React.FC = () => {
     );
   }
 
+  // If user is not admin, show the admin check modal
+  if (!hasAdminAccess) {
+    return (
+      <View style={styles.safeArea}>
+        <BackTabTop screenName="Update Organization" />
+        {renderAdminCheckModal()}
+      </View>
+    );
+  }
+
   return (
     <View style={styles.safeArea}>
       <BackTabTop screenName="Update Organization" />
@@ -860,21 +929,6 @@ const OrganizationSettingsScreen: React.FC = () => {
               <Text style={styles.sectionTitle}>Basic Information</Text>
             </View>
 
-            <View style={styles.inputSection}>
-              <Text style={styles.label}>Organization Name *</Text>
-              <TextInput
-                style={styles.input}
-                value={organizationInfo.organization_name}
-                onChangeText={text =>
-                  setOrganizationInfo({
-                    ...organizationInfo,
-                    organization_name: text,
-                  })
-                }
-                placeholder="Enter organization name"
-                placeholderTextColor="#999"
-              />
-            </View>
             <View style={styles.inputSection}>
               <Text style={styles.label}>Email *</Text>
               <TextInput
@@ -1292,6 +1346,48 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     content1: {
       paddingHorizontal: 20,
       paddingVertical: 15,
+    },
+    // Admin Modal Styles
+    adminModalContent: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 20,
+      padding: 25,
+      width: width * 0.85,
+      maxWidth: 350,
+      alignItems: 'center',
+    },
+    adminModalHeader: {
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    adminModalTitle: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: '#DC2626',
+      marginTop: 15,
+      textAlign: 'center',
+    },
+    adminModalMessage: {
+      fontSize: 16,
+      color: '#4B5563',
+      textAlign: 'center',
+      lineHeight: 24,
+      marginBottom: 25,
+    },
+    adminModalButtons: {
+      width: '100%',
+    },
+    adminModalButton: {
+      backgroundColor: '#007B8E',
+      borderRadius: 12,
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      alignItems: 'center',
+    },
+    adminModalButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
     },
     videoModalContent: {
       backgroundColor: '#FFFFFF',
@@ -1759,4 +1855,4 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
   });
 
-export default OrganizationSettingsScreen;
+export default OrganizationSettingsScreen;  

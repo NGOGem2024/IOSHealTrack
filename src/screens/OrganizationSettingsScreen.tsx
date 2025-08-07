@@ -41,10 +41,15 @@ interface YouTubeVideo {
   description: string;
 }
 interface Location {
-  id: string;
+ id: string;
   name: string;
   locationId: string;
-  address: string;
+  street: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country: string;
+  addressLink?: string; 
 }
 interface OrganizationInfo {
   organization_name: string;

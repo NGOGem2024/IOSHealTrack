@@ -9,6 +9,7 @@ import {
   Modal,
   FlatList,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
@@ -20,7 +21,12 @@ interface Location {
   id: string;
   name: string;
   locationId: string;
-  address: string;
+  street: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country: string;
+  addressLink?: string; // Added address link field
 }
 
 interface OrganizationLocationsProps {
@@ -42,21 +48,89 @@ const OrganizationLocations: React.FC<OrganizationLocationsProps> = ({
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [newLocationName, setNewLocationName] = useState('');
   const [newLocationId, setNewLocationId] = useState('');
-  const [newLocationAddress, setNewLocationAddress] = useState('');
+  const [newStreet, setNewStreet] = useState('');
+  const [newCity, setNewCity] = useState('');
+  const [newState, setNewState] = useState('');
+  const [newPincode, setNewPincode] = useState('');
+  const [newCountry, setNewCountry] = useState('India'); // Default to India
+  const [newLandmark, setNewLandmark] = useState('');
+  const [newAddressLink, setNewAddressLink] = useState(''); // Added address link state
   const [editingLocationId, setEditingLocationId] = useState<string | null>(
     null,
   );
 
+  const validatePincode = (pincode: string) => {
+    // Indian pincode validation (6 digits)
+    const indianPincodeRegex = /^[1-9][0-9]{5}$/;
+    return indianPincodeRegex.test(pincode);
+  };
+
+  const validateURL = (url: string) => {
+    if (!url.trim()) return true; // Empty URL is valid (optional field)
+    
+    // Basic URL validation
+    const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+    return urlRegex.test(url.trim());
+  };
+
+  const formatAddress = (location: Location) => {
+    const addressParts = [
+      location.street,
+      location.city,
+      location.state,
+      location.pincode,
+      location.country,
+    ].filter(part => part && part.trim()); // Added null check before trim
+    
+    return addressParts.join(', ');
+  };
+
   const handleAddLocation = () => {
-    // Simple validation
+    // Safe trim function to handle undefined values
+    const safeTrim = (value: string | undefined) => (value || '').trim();
+    
+    // Get trimmed values safely
+    const trimmedName = safeTrim(newLocationName);
+    const trimmedLocationId = safeTrim(newLocationId);
+    const trimmedStreet = safeTrim(newStreet);
+    const trimmedCity = safeTrim(newCity);
+    const trimmedState = safeTrim(newState);
+    const trimmedPincode = safeTrim(newPincode);
+    const trimmedCountry = safeTrim(newCountry);
+    const trimmedLandmark = safeTrim(newLandmark);
+    const trimmedAddressLink = safeTrim(newAddressLink); // Added address link validation
+
+    // Comprehensive validation
     if (
-      !newLocationName.trim() ||
-      !newLocationId.trim() ||
-      !newLocationAddress.trim()
+      !trimmedName ||
+      !trimmedLocationId ||
+      !trimmedStreet ||
+      !trimmedCity ||
+      !trimmedState ||
+      !trimmedPincode ||
+      !trimmedCountry
     ) {
       Alert.alert(
         'Invalid Input',
-        'Please fill in all fields for the location',
+        'Please fill in all required fields (Name, ID, Street, City, State, Pincode, Country)',
+      );
+      return;
+    }
+
+    // Validate pincode format
+    if (!validatePincode(trimmedPincode)) {
+      Alert.alert(
+        'Invalid Pincode',
+        'Please enter a valid 6-digit pincode (e.g., 413001)',
+      );
+      return;
+    }
+
+    // Validate address link format (if provided)
+    if (trimmedAddressLink && !validateURL(trimmedAddressLink)) {
+      Alert.alert(
+        'Invalid Address Link',
+        'Please enter a valid URL (e.g., https://maps.google.com/...) or leave it empty',
       );
       return;
     }
@@ -64,7 +138,7 @@ const OrganizationLocations: React.FC<OrganizationLocationsProps> = ({
     // Check if location ID already exists (only when adding new)
     if (
       !editingLocationId &&
-      locations.some(loc => loc.locationId === newLocationId.trim())
+      locations.some(loc => loc.locationId === trimmedLocationId)
     ) {
       Alert.alert(
         'Duplicate Location ID',
@@ -79,9 +153,15 @@ const OrganizationLocations: React.FC<OrganizationLocationsProps> = ({
         location.id === editingLocationId
           ? {
               ...location,
-              name: newLocationName.trim(),
-              locationId: newLocationId.trim(),
-              address: newLocationAddress.trim(),
+              name: trimmedName,
+              locationId: trimmedLocationId,
+              street: trimmedStreet,
+              city: trimmedCity,
+              state: trimmedState,
+              pincode: trimmedPincode,
+              country: trimmedCountry,
+              landmark: trimmedLandmark,
+              addressLink: trimmedAddressLink || undefined, // Added address link
             }
           : location,
       );
@@ -91,9 +171,14 @@ const OrganizationLocations: React.FC<OrganizationLocationsProps> = ({
       // Add new location
       const newLocation: Location = {
         id: Date.now().toString(),
-        name: newLocationName.trim(),
-        locationId: newLocationId.trim(),
-        address: newLocationAddress.trim(),
+        name: trimmedName,
+        locationId: trimmedLocationId,
+        street: trimmedStreet,
+        city: trimmedCity,
+        state: trimmedState,
+        pincode: trimmedPincode,
+        country: trimmedCountry,
+        ...(trimmedAddressLink && { addressLink: trimmedAddressLink }), // Added address link conditionally
       };
 
       onLocationsChange([...locations, newLocation]);
@@ -104,9 +189,14 @@ const OrganizationLocations: React.FC<OrganizationLocationsProps> = ({
   };
 
   const handleEditLocation = (location: Location) => {
-    setNewLocationName(location.name);
-    setNewLocationId(location.locationId);
-    setNewLocationAddress(location.address);
+    setNewLocationName(location.name || '');
+    setNewLocationId(location.locationId || '');
+    setNewStreet(location.street || '');
+    setNewCity(location.city || '');
+    setNewState(location.state || '');
+    setNewPincode(location.pincode || '');
+    setNewCountry(location.country || 'India');
+    setNewAddressLink(location.addressLink || ''); // Added address link
     setEditingLocationId(location.id);
     setShowLocationModal(true);
   };
@@ -137,7 +227,13 @@ const OrganizationLocations: React.FC<OrganizationLocationsProps> = ({
   const clearInputs = () => {
     setNewLocationName('');
     setNewLocationId('');
-    setNewLocationAddress('');
+    setNewStreet('');
+    setNewCity('');
+    setNewState('');
+    setNewPincode('');
+    setNewCountry('India');
+    setNewLandmark('');
+    setNewAddressLink(''); // Added address link clear
     setEditingLocationId(null);
     setShowLocationModal(false);
   };
@@ -153,63 +249,140 @@ const OrganizationLocations: React.FC<OrganizationLocationsProps> = ({
           style={styles.modalOverlay}
           activeOpacity={1}
           onPress={clearInputs}>
-          <View style={styles.locationModalContent}>
-            <Text style={styles.locationModalTitle}>
-              {editingLocationId ? 'Edit Location' : 'Add New Location'}
-            </Text>
+          <TouchableOpacity 
+            style={styles.locationModalContent}
+            activeOpacity={1}
+            onPress={() => {}} // Prevent modal from closing when tapping inside
+          >
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.locationModalTitle}>
+                {editingLocationId ? 'Edit Location' : 'Add New Location'}
+              </Text>
 
-            <View style={styles.locationInputGroup}>
-              <Text style={styles.locationInputLabel}>Location Name</Text>
-              <TextInput
-                style={styles.locationInput}
-                value={newLocationName}
-                onChangeText={setNewLocationName}
-                placeholder="Enter location name"
-                placeholderTextColor="#999"
-              />
-            </View>
+              {/* Basic Information */}
+              <View style={styles.sectionContainer}>
+                <Text style={styles.sectionHeaderText}>Basic Information</Text>
+                
+                <View style={styles.locationInputGroup}>
+                  <TextInput
+                    style={styles.locationInput}
+                    value={newLocationName || ''} // Added fallback
+                    onChangeText={setNewLocationName}
+                    placeholder="Clinic Name"
+                    placeholderTextColor="#999"
+                  />
+                </View>
 
-            <View style={styles.locationInputGroup}>
-              <Text style={styles.locationInputLabel}>Location ID</Text>
-              <TextInput
-                style={styles.locationInput}
-                value={newLocationId}
-                onChangeText={setNewLocationId}
-                placeholder="Enter unique location ID"
-                placeholderTextColor="#999"
-                autoCapitalize="none"
-              />
-            </View>
+                <View style={styles.locationInputGroup}>
+                  <TextInput
+                    style={styles.locationInput}
+                    value={newLocationId || ''} // Added fallback
+                    onChangeText={setNewLocationId}
+                    placeholder="Clinic ID"
+                    placeholderTextColor="#999"
+                    autoCapitalize="characters"
+                  />
+                </View>
+              </View>
 
-            <View style={styles.locationInputGroup}>
-              <Text style={styles.locationInputLabel}>Address</Text>
-              <TextInput
-                style={[styles.locationInput, styles.locationAddressInput]}
-                value={newLocationAddress}
-                onChangeText={setNewLocationAddress}
-                placeholder="Enter complete address"
-                placeholderTextColor="#999"
-                multiline={true}
-                numberOfLines={3}
-              />
-            </View>
+              {/* Address Information */}
+              <View style={styles.sectionContainer}>
+                <Text style={styles.sectionHeaderText}>Address Details</Text>
+                
+                <View style={styles.locationInputGroup}>
+                  <TextInput
+                    style={[styles.locationInput, styles.multilineInput]}
+                    value={newStreet || ''} // Added fallback
+                    onChangeText={setNewStreet}
+                    placeholder="Street Address"
+                    placeholderTextColor="#999"
+                    multiline={true}
+                    numberOfLines={2}
+                  />
+                </View>
 
-            <View style={styles.locationModalButtonsRow}>
-              <TouchableOpacity
-                style={styles.locationModalCancelButton}
-                onPress={clearInputs}>
-                <Text style={styles.locationModalCancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
+                <View style={styles.rowContainer}>
+                  <View style={[styles.locationInputGroup, styles.halfWidth]}>
+                    <TextInput
+                      style={styles.locationInput}
+                      value={newCity || ''} // Added fallback
+                      onChangeText={setNewCity}
+                      placeholder="City"
+                      placeholderTextColor="#999"
+                      autoCapitalize="words"
+                    />
+                  </View>
 
-              <TouchableOpacity
-                style={styles.locationModalSaveButton}
-                onPress={handleAddLocation}>
-                <Text style={styles.locationModalSaveButtonText}>
-                  {editingLocationId ? 'Update' : 'Add'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+                  <View style={[styles.locationInputGroup, styles.halfWidth]}>
+                    <TextInput
+                      style={styles.locationInput}
+                      value={newState || ''} // Added fallback
+                      onChangeText={setNewState}
+                      placeholder="State"
+                      placeholderTextColor="#999"
+                      autoCapitalize="words"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.rowContainer}>
+                  <View style={[styles.locationInputGroup, styles.halfWidth]}>
+                    <TextInput
+                      style={styles.locationInput}
+                      value={newPincode || ''} // Added fallback
+                      onChangeText={setNewPincode}
+                      placeholder="Pincode "
+                      placeholderTextColor="#999"
+                      keyboardType="numeric"
+                      maxLength={6}
+                    />
+                  </View>
+
+                  <View style={[styles.locationInputGroup, styles.halfWidth]}>
+                    <TextInput
+                      style={styles.locationInput}
+                      value={newCountry || ''} // Added fallback
+                      onChangeText={setNewCountry}
+                      placeholder="Country"
+                      placeholderTextColor="#999"
+                      autoCapitalize="words"
+                    />
+                  </View>
+                </View>
+
+                {/* Address Link Field */}
+                <View style={styles.locationInputGroup}>
+                  <TextInput
+                    style={styles.locationInput}
+                    value={newAddressLink || ''}
+                    onChangeText={setNewAddressLink}
+                    placeholder="Address Link"
+                    placeholderTextColor="#999"
+                    keyboardType="url"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+
+              </View>
+
+              <View style={styles.locationModalButtonsRow}>
+                <TouchableOpacity
+                  style={styles.locationModalCancelButton}
+                  onPress={clearInputs}>
+                  <Text style={styles.locationModalCancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.locationModalSaveButton}
+                  onPress={handleAddLocation}>
+                  <Text style={styles.locationModalSaveButtonText}>
+                    {editingLocationId ? 'Update' : 'Add Location'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
     );
@@ -225,13 +398,16 @@ const OrganizationLocations: React.FC<OrganizationLocationsProps> = ({
       <View style={styles.card}>
         <Text style={styles.locationsDescription}>
           Add multiple locations for your organization. Each location should
-          have a unique ID for identification purposes.
+          have a unique ID and complete address details for better searchability.
         </Text>
 
         {locations.length === 0 ? (
           <View style={styles.noLocationsContainer}>
             <Icon1 name="location-outline" size={40} color="#CBD5E0" />
             <Text style={styles.noLocationsText}>No locations added yet</Text>
+            <Text style={styles.noLocationsSubText}>
+              Add your first location to get started
+            </Text>
           </View>
         ) : (
           <FlatList
@@ -254,9 +430,23 @@ const OrganizationLocations: React.FC<OrganizationLocationsProps> = ({
                     <Text style={styles.locationId} numberOfLines={1}>
                       ID: {item.locationId}
                     </Text>
-                    <Text style={styles.locationAddress} numberOfLines={2}>
-                      {item.address}
+                    <Text style={styles.locationAddress} numberOfLines={3}>
+                      {formatAddress(item)}
                     </Text>
+                    {/* Display address link if available */}
+                    {item.addressLink && (
+                      <TouchableOpacity 
+                        style={styles.addressLinkContainer}
+                        onPress={() => {
+                          // Here you can add logic to open the link
+                          // For example: Linking.openURL(item.addressLink)
+                        }}>
+                        <Icon1 name="link" size={14} color="#007B8E" />
+                        <Text style={styles.addressLinkText} numberOfLines={1}>
+                          View on Map
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
                 <View style={styles.locationActions}>
@@ -343,12 +533,18 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: '#94A3B8',
       fontSize: 16,
       marginTop: 10,
+      fontWeight: '600',
+    },
+    noLocationsSubText: {
+      color: '#CBD5E0',
+      fontSize: 14,
+      marginTop: 5,
     },
     locationItem: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: 12,
+      alignItems: 'flex-start',
+      padding: 14,
       backgroundColor: theme.colors.secondary,
       borderRadius: 10,
     },
@@ -358,7 +554,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignItems: 'flex-start',
     },
     locationIcon: {
-      marginRight: 10,
+      marginRight: 12,
       marginTop: 2,
     },
     locationTextContainer: {
@@ -381,9 +577,28 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginTop: 4,
       lineHeight: 18,
     },
-    locationActions: {
+    locationLandmark: {
+      fontSize: 12,
+      color: '#94A3B8',
+      marginTop: 4,
+      fontStyle: 'italic',
+    },
+    // Added styles for address link
+    addressLinkContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      marginTop: 6,
+    },
+    addressLinkText: {
+      fontSize: 12,
+      color: '#007B8E',
+      marginLeft: 4,
+      textDecorationLine: 'underline',
+    },
+    locationActions: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginTop: 2,
     },
     locationEditButton: {
       padding: 8,
@@ -423,24 +638,31 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor: '#FFFFFF',
       borderRadius: 15,
       padding: 20,
-      width: width * 0.9,
-      maxWidth: 400,
+      width: width * 0.95,
+      maxWidth: 450,
+      maxHeight: '90%',
     },
     locationModalTitle: {
-      fontSize: 18,
+      fontSize: 20,
       fontWeight: '700',
       color: '#007B8E',
       marginBottom: 20,
       textAlign: 'center',
     },
-    locationInputGroup: {
-      marginBottom: 16,
+    sectionContainer: {
+      marginBottom: 20,
     },
-    locationInputLabel: {
-      fontSize: 14,
+    sectionHeaderText: {
+      fontSize: 16,
       fontWeight: '600',
       color: '#2C3E50',
-      marginBottom: 8,
+      marginBottom: 15,
+      paddingBottom: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: '#E2E8F0',
+    },
+    locationInputGroup: {
+      marginBottom: 16,
     },
     locationInput: {
       backgroundColor: '#F8FAFC',
@@ -452,10 +674,17 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 16,
       color: '#2C3E50',
     },
-    locationAddressInput: {
-      height: 80,
+    multilineInput: {
+      height: 70,
       textAlignVertical: 'top',
       paddingTop: 12,
+    },
+    rowContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    halfWidth: {
+      flex: 0.48,
     },
     locationModalButtonsRow: {
       flexDirection: 'row',
@@ -490,4 +719,4 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
   });
 
-export default OrganizationLocations;
+  export default OrganizationLocations;

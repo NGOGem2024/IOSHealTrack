@@ -383,7 +383,6 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
   const [categories, setCategories] = useState<string[]>([]);
   const getCategoriesByIndustry = () => {
     const industry = session.organization_industry?.toLowerCase();
-console.log(industry)
     switch (industry) {
       case 'physiotherapy':
         return [

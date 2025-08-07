@@ -25,7 +25,7 @@ interface Location {
   id: string;
   name: string;
   locationId: string;
-  address: string;
+  addressLink: string; // Updated from 'address' to 'address_link'
   createdAt: string;
   updatedAt: string;
 }
@@ -222,9 +222,10 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
     setShowLocationPicker(false);
   };
 
-  const openLocationInMaps = (address: string) => {
-    if (address) {
-      Linking.openURL(address).catch(err => {
+  const openLocationInMaps = (addressLink: string) => {
+    if (addressLink) {
+
+      Linking.openURL(addressLink).catch(err => {
         console.error('Failed to open maps:', err);
         handleError(new Error('Failed to open location in maps'));
       });
@@ -272,7 +273,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
           {selectedLocation && (
             <TouchableOpacity
               style={styles.mapButton}
-              onPress={() => openLocationInMaps(selectedLocation.address)}>
+              onPress={() => openLocationInMaps(selectedLocation.addressLink)}>
               <Icon name="map" size={20} color="#007B8E" />
             </TouchableOpacity>
           )}
@@ -366,7 +367,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                             <TouchableOpacity
                               style={styles.mapIconButton}
                               onPress={() =>
-                                openLocationInMaps(location.address)
+                                openLocationInMaps(location.addressLink)
                               }>
                               <Icon name="map" size={20} color="#007B8E" />
                             </TouchableOpacity>
@@ -466,7 +467,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         {selectedLocation && (
           <TouchableOpacity
             style={styles.androidMapButton}
-            onPress={() => openLocationInMaps(selectedLocation.address)}>
+            onPress={() => openLocationInMaps(selectedLocation.addressLink)}>
             <Icon name="map" size={20} color="#007B8E" />
             <Text style={styles.mapButtonText}>View on Map</Text>
           </TouchableOpacity>

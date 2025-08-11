@@ -351,77 +351,6 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
     );
   };
 
-  const renderTherapyPicker = () => {
-    return (
-      <>
-        {renderPickerField(
-          selectedPlan?.therapy_name,
-          () => setShowTherapyPicker(true),
-          'Select a therapy plan (Optional)',
-        )}
-        <Modal
-          visible={showTherapyPicker}
-          transparent={true}
-          animationType="slide">
-          <View style={styles.modalContainer}>
-            <View style={styles.pickerContainer}>
-              <View style={styles.pickerHeader}>
-                <Text style={styles.pickerTitle}>Select Plan</Text>
-                <TouchableOpacity
-                  onPress={() => setShowTherapyPicker(false)}
-                  style={styles.doneButton}>
-                  <Text style={styles.doneButtonText}>Done</Text>
-                </TouchableOpacity>
-              </View>
-              <ScrollView
-                style={styles.iosPickerContainer}
-                contentContainerStyle={styles.scrollContentContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.doctorItem,
-                    !selectedPlan && styles.selectedDoctorItem,
-                  ]}
-                  onPress={() => {
-                    setSelectedPlan(null);
-                    setShowTherapyPicker(false);
-                  }}>
-                  <Text
-                    style={[
-                      styles.doctorItemText,
-                      !selectedPlan && styles.selectedDoctorItemText,
-                    ]}>
-                    No Plan Selected
-                  </Text>
-                </TouchableOpacity>
-                {therapyPlans.map(plan => (
-                  <TouchableOpacity
-                    key={plan._id}
-                    style={[
-                      styles.doctorItem,
-                      selectedPlan?._id === plan._id &&
-                        styles.selectedDoctorItem,
-                    ]}
-                    onPress={() => {
-                      setSelectedPlan(plan);
-                      setShowTherapyPicker(false);
-                    }}>
-                    <Text
-                      style={[
-                        styles.doctorItemText,
-                        selectedPlan?._id === plan._id &&
-                          styles.selectedDoctorItemText,
-                      ]}>
-                      {plan.therapy_name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
-      </>
-    );
-  };
 
   const handleBookConsultation = async () => {
     try {
@@ -519,10 +448,6 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
               {renderDoctorPicker()}
             </View>
 
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Select Plan (Optional)</Text>
-              {renderTherapyPicker()}
-            </View>
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Consultation Type</Text>

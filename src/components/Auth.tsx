@@ -159,6 +159,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
           is_admin: response.data.is_admin,
           doctor_id: response.data.doctor_id,
           organization_industry: response.data.organization_industry,
+          preferred_location: null,
         };
         setSession(newSession);
         onLoginSuccess();
@@ -230,6 +231,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
           is_admin: response.data.is_admin,
           doctor_id: response.data.doctor_id,
           organization_industry: response.data.organization_industry,
+          preferred_location: null,
         };
         setSession(newSession);
         onLoginSuccess();

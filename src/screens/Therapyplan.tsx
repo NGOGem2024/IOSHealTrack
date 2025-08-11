@@ -22,6 +22,7 @@ import {handleError, showSuccessToast} from '../utils/errorHandler';
 import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
 import TherapyCategoryDropdown from './TherapyCategoryDropdown';
+import LocationPicker from './BottomTab/HospitalLocation'; 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -29,16 +30,29 @@ import {useSession} from '../context/SessionContext';
 import {useTheme} from './ThemeContext';
 import {getTheme} from './Theme';
 
+// Add Location interface if not already imported
+interface Location {
+  _id: string;
+  id: string;
+  name: string;
+  locationId: string;
+  addressLink: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 type CreateTherapyPlanProps = NativeStackScreenProps<
   RootStackParamList,
   'CreateTherapyPlan'
 >;
+
 type InputFieldProps = {
   icon: React.ReactNode;
   placeholder: string;
   value: string;
   onChangeText: (text: string) => void;
 };
+
 type DatePickerFieldProps = {
   label: string;
   date: Date;
@@ -70,13 +84,17 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     therapy_name: '',
     balance: '',
     payment_type: 'recurring',
-    per_session_amount: '', // Added per session amount
-    estimated_sessions: '', // Added estimated number of sessions
-    discount_percentage: '0', // Add this line
+    per_session_amount: '',
+    estimated_sessions: '',
+    discount_percentage: '0',
   });
+  
+  // Add selectedLocation state
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  
   const {session} = useSession();
   const {patientId} = route.params;
-  const colorScheme = useColorScheme(); // Get current color scheme
+  const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
@@ -103,7 +121,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
       },
     );
     const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide', // Corrected event name
+      'keyboardDidHide',
       () => {
         setKeyboardVisible(false);
       },
@@ -130,11 +148,11 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
       }),
     ]).start();
   }, []);
+  
   useEffect(() => {
     if (startDate && endDate) {
       const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      // Estimate 2 sessions per week
       const estimatedSessions = Math.ceil((diffDays / 7) * 2);
       setTherapyPlan(prev => ({
         ...prev,
@@ -147,23 +165,18 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
   const onChangeStartDate = (event: any, selectedDate?: Date) => {
     setShowStartDatePicker(false);
     if (selectedDate) {
-      // Get today's date at midnight to compare only the date, not time
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Check if selected date is today or in the future
       if (selectedDate >= today) {
         setStartDate(selectedDate);
 
-        // Automatically adjust end date if it's before the new start date
         if (endDate < selectedDate) {
-          // Set end date to 7 days after start date by default
           const defaultEndDate = new Date(selectedDate);
           defaultEndDate.setDate(selectedDate.getDate() + 7);
           setEndDate(defaultEndDate);
         }
       } else {
-        // Show an alert if a past date is selected
         Alert.alert(
           'Invalid Date',
           'Please select today or a future date for the start of therapy.',
@@ -171,6 +184,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
       }
     }
   };
+  
   useEffect(() => {
     if (
       therapyPlan.payment_type === 'recurring' &&
@@ -195,11 +209,9 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
   const onChangeEndDate = (event: any, selectedDate?: Date) => {
     setShowEndDatePicker(false);
     if (selectedDate) {
-      // Ensure end date is not before start date
       if (selectedDate >= startDate) {
         setEndDate(selectedDate);
       } else {
-        // Show an alert if a past date is selected
         Alert.alert(
           'Invalid Date',
           'End date cannot be before the start date. Please select a date on or after the start date.',
@@ -222,8 +234,13 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     if (!therapyPlan.therapy_name.trim()) {
       newErrors.therapy_name = 'Therapy name is required';
     }
+    
+    // Add location validation
+    if (!selectedLocation) {
+      newErrors.location = 'Location is required';
+    }
+    
     if (!session.is_admin) {
-      // Only validate these fields if the user is not an admin
       if (!therapyPlan.patient_symptoms.trim()) {
         newErrors.patient_symptoms = 'Patient symptoms are required';
       }
@@ -270,6 +287,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+  
   const paymentTypes = [
     {label: 'Recurring Payment', value: 'recurring'},
     {label: 'One-time Payment', value: 'one-time'},
@@ -301,7 +319,11 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
         payment_type: therapyPlan.payment_type,
         estimated_sessions: parseInt(therapyPlan.estimated_sessions),
         per_session_amount: parseFloat(therapyPlan.per_session_amount),
-        discount_percentage: parseFloat(therapyPlan.discount_percentage), // Add this line
+        discount_percentage: parseFloat(therapyPlan.discount_percentage),
+        // Add location data to the request body
+        location_id: selectedLocation?._id,
+        location_name: selectedLocation?.name,
+        location_address: selectedLocation?.addressLink,
       };
 
       const response = await axiosInstance.post(
@@ -376,11 +398,14 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
       )}
     </View>
   );
+  
   useEffect(() => {
     const industryCategories = getCategoriesByIndustry();
     setCategories(industryCategories);
   }, [session.organization_industry]);
+  
   const [categories, setCategories] = useState<string[]>([]);
+  
   const getCategoriesByIndustry = () => {
     const industry = session.organization_industry?.toLowerCase();
     switch (industry) {
@@ -459,7 +484,6 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
         ];
 
       default:
-        // Default to general medical categories if industry not recognized
         return [
          'Musculoskeletal',
           'Neurological',
@@ -478,12 +502,12 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     const balance = total - received;
     setTherapyPlan({...therapyPlan, balance: balance.toString()});
   }, [therapyPlan.total_amount, therapyPlan.received_amount]);
+  
   useEffect(() => {
     const total = parseFloat(therapyPlan.total_amount) || 0;
     const discount = parseFloat(therapyPlan.discount_percentage) || 0;
     const received = parseFloat(therapyPlan.received_amount) || 0;
 
-    // Calculate discounted amount
     const discountAmount = (total * discount) / 100;
     const finalAmount = total - discountAmount;
     const balance = finalAmount - received;
@@ -498,6 +522,18 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     therapyPlan.discount_percentage,
   ]);
 
+  // Add handler for location selection
+  const handleLocationSelect = (location: Location) => {
+    setSelectedLocation(location);
+    // Clear location error if it exists
+    if (errors.location) {
+      setErrors(prev => ({
+        ...prev,
+        location: '',
+      }));
+    }
+  };
+
   return (
     <View style={styles.safeArea}>
       <BackTabTop screenName="Plan" />
@@ -505,32 +541,36 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
         enableOnAndroid={true}
         enableAutomaticScroll={true}
         keyboardShouldPersistTaps="handled"
-        extraScrollHeight={50} // Adjust this value as needed
-        extraHeight={100} // Add this prop
+        extraScrollHeight={50}
+        extraHeight={100}
         enableResetScrollToCoords={false}
         scrollEnabled={true}
-        bounces={false} // Changed from true to false
+        bounces={false}
         keyboardOpeningTime={0}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="never"
         style={[styles.scrollView, isDarkMode && styles.scrollViewDark]}
         contentContainerStyle={[
           styles.scrollContainer,
-          keyboardVisible && {paddingBottom: -30}, // Reduced padding when keyboard is visible
+          keyboardVisible && {paddingBottom: -30},
         ]}>
         <Animated.View
           style={[
             styles.container,
             isDarkMode && styles.containerDark,
-            keyboardVisible && {paddingBottom: -350}, // Reduce padding when keyboard is visible
+            keyboardVisible && {paddingBottom: -350},
             {
               opacity: fadeAnim,
               transform: [{translateY: slideAnim}],
             },
           ]}>
           <Text style={[styles.title, isDarkMode && styles.titleDark]}>
-            Create Treatment Plan
+            Create Therapy Plan
           </Text>
+
+          {/* Add Location Picker Section */}
+          
+
           <TherapyCategoryDropdown
             value={therapyPlan.therapy_category}
             onValueChange={itemValue =>
@@ -541,6 +581,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           {errors.therapy_category && (
             <Text style={styles.errorText}>{errors.therapy_category}</Text>
           )}
+          
           <View
             style={[
               styles.inputContainer,
@@ -566,6 +607,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           {errors.therapy_name && (
             <Text style={styles.errorText}>{errors.therapy_name}</Text>
           )}
+          
           <View
             style={[
               styles.inputContainer,
@@ -579,7 +621,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
             <TextInput
               style={styles.input}
               placeholder="Patient Symptoms"
-              value={therapyPlan.patient_symptoms} // Corrected here
+              value={therapyPlan.patient_symptoms}
               onChangeText={text =>
                 setTherapyPlan({...therapyPlan, patient_symptoms: text})
               }
@@ -590,6 +632,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           {errors.patient_symptoms && (
             <Text style={styles.errorText}>{errors.patient_symptoms}</Text>
           )}
+          
           <View
             style={[
               styles.inputContainer,
@@ -603,10 +646,10 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
             <TextInput
               style={styles.input}
               placeholder="Patient Diagnosis"
-              value={therapyPlan.patient_diagnosis} // Corrected here
+              value={therapyPlan.patient_diagnosis}
               onChangeText={
                 text =>
-                  setTherapyPlan({...therapyPlan, patient_diagnosis: text}) // Updates patient_diagnosis
+                  setTherapyPlan({...therapyPlan, patient_diagnosis: text})
               }
               keyboardType="default"
               placeholderTextColor="#A0A0A0"
@@ -615,6 +658,21 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           {errors.patient_diagnosis && (
             <Text style={styles.errorText}>{errors.patient_diagnosis}</Text>
           )}
+
+          <View style={styles.locationSection}>
+            <Text style={[styles.inputLabel, isDarkMode && styles.labelDark]}>
+              Select Location
+            </Text>
+            <LocationPicker
+              selectedLocation={selectedLocation}
+              onLocationSelect={handleLocationSelect}
+              showSetAsDefault={false}
+              autoSelectPreferred={true}
+            />
+            {errors.location && (
+              <Text style={styles.errorText}>{errors.location}</Text>
+            )}
+          </View>
 
           <View style={styles.dateTimeRow}>
             <DatePickerField
@@ -651,6 +709,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
               Duration: {therapyPlan.therapy_duration}
             </Text>
           </View>
+          
           <View style={styles.paymentTypeContainer}>
             <Text style={[styles.inputLabel, isDarkMode && styles.labelDark]}>
               Payment Type
@@ -800,6 +859,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           {errors.total_amount && (
             <Text style={styles.errorText}>{errors.total_amount}</Text>
           )}
+          
           <View style={styles.labeledInputContainer}>
             <Text style={styles.inputLabel}>Discount Percentage</Text>
             <View
@@ -817,7 +877,6 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
                 placeholder="Enter discount percentage"
                 value={therapyPlan.discount_percentage}
                 onChangeText={text => {
-                  // Ensure discount doesn't exceed 100%
                   const value = parseFloat(text) || 0;
                   if (value <= 100) {
                     setTherapyPlan({...therapyPlan, discount_percentage: text});
@@ -932,7 +991,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
             style={[
               styles.saveButton,
               isDarkMode && styles.saveButtonDark,
-              keyboardVisible && {marginTop: 5, marginBottom: -250}, // Dynamic adjustment
+              keyboardVisible && {marginTop: 5, marginBottom: -250},
             ]}
             onPress={handleCreateTherapyPlan}
             disabled={isLoading}>
@@ -950,6 +1009,9 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
+    locationSection: {
+      marginBottom: 20,
+    },
     saveButtonDark1: {
       backgroundColor: '#333333',
     },
@@ -1158,7 +1220,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontSize: 13,
       color: '#333333',
     },
-
     container: {
       flex: 1,
       paddingHorizontal: '5%',

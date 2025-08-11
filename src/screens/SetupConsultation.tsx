@@ -441,14 +441,6 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
         throw new Error('Please select a location for the consultation.');
       }
 
-      if (!patientSymptoms.trim()) {
-        throw new Error('Patient symptoms are required');
-      }
-
-      if (!therapyReason.trim()) {
-        throw new Error('Therapy reason is required');
-      }
-
       setIsBooking(true);
 
       const slots = availableSlots.length

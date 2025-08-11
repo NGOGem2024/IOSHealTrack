@@ -33,7 +33,7 @@ import BookAppSkeletonLoader from '../components/BookAppSkeletonLoader';
 
 type CreateConsultationScreenProps = StackScreenProps<
   RootStackParamList,
-  'CreateConsultation'
+  'SetupConsultation'
 >;
 
 const SLOT_DURATION_OPTIONS = [

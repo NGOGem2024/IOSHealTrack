@@ -44,6 +44,7 @@ export type RootStackParamList = {
   SearchPatients: undefined;
   MyPatient: undefined;
   Settings: undefined;
+  SetupConsultation: {patientId: string; appointmentId: string};
   Main: undefined;
   planDetails: {planId: string};
   AdminReport: undefined;

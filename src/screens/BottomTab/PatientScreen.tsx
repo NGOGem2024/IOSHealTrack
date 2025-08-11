@@ -480,9 +480,9 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             <TouchableOpacity
               style={styles.addButton}
               onPress={() =>
-                navigation.navigate('CreateConsultation', {
+                navigation.navigate('SetupConsultation', {
                   patientId: patientId,
-                  appointmentId: '',
+                  appointmentId: ""
                 })
               }>
               <MaterialIcons name="add" size={22} color="#FFFFFF" />

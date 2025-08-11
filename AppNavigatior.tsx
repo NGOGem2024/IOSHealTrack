@@ -45,6 +45,7 @@ import UpdateBlogScreen from './src/screens/UpdateBlogScreen';
 import PaymentHistory from './src/screens/PaymentHistory';
 import NotificationDetailScreen from './src/screens/NotificationDetailsScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
+import SetupConsultationScreen from './src/screens/SetupConsultation';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -100,6 +101,11 @@ const HomeStackNavigator = () => (
     <Stack.Screen
       name="AllDoctors"
       component={AllDoctors}
+      options={{headerShown: false}}
+    />
+    <Stack.Screen
+      name="SetupConsultation"
+      component={SetupConsultationScreen}
       options={{headerShown: false}}
     />
     <Stack.Screen
@@ -251,6 +257,7 @@ const AllAppointmentsStack = () => (
       component={TherapyHistory}
       options={{headerShown: false}}
     />
+    
     {/* Add more screens here if you want to navigate deeper from AllAppointments */}
   </Stack.Navigator>
 );

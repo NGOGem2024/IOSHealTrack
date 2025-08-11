@@ -461,9 +461,9 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
         location_name: selectedLocation?.name,
         location_address: selectedLocation?.address,
         appointmentId: appointmentId || null,
-        // Consultation-specific fields
-        patientSymptoms: patientSymptoms,
-        therapy_reason: therapyReason,
+        // Consultation-specific fields (now optional)
+        patientSymptoms: patientSymptoms.trim() || '',
+        therapy_reason: therapyReason.trim() || '',
       };
 
       const response = await axiosInstance.post(
@@ -616,13 +616,13 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                Patient Symptoms <Text style={styles.required}>*</Text>
+                Patient Symptoms 
               </Text>
               <TextInput
                 style={[styles.input, styles.multilineInput]}
                 value={patientSymptoms}
                 onChangeText={setPatientSymptoms}
-                placeholder="Describe patient symptoms"
+                placeholder="Describe patient symptoms (optional)"
                 placeholderTextColor={`${theme.colors.text}80`}
                 multiline
                 numberOfLines={4}
@@ -631,13 +631,13 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                Therapy Reason <Text style={styles.required}>*</Text>
+                Therapy Reason
               </Text>
               <TextInput
                 style={[styles.input, styles.multilineInput]}
                 value={therapyReason}
                 onChangeText={setTherapyReason}
-                placeholder="Describe the reason for therapy"
+                placeholder="Describe the reason for therapy (optional)"
                 placeholderTextColor={`${theme.colors.text}80`}
                 multiline
                 numberOfLines={4}
@@ -703,6 +703,11 @@ const createStyles = (colors: any, isDarkMode: boolean) =>
     },
     required: {
       color: '#FF0000',
+    },
+    optional: {
+      color: '#888888',
+      fontWeight: 'normal',
+      fontSize: 14,
     },
     modalContainer: {
       flex: 1,

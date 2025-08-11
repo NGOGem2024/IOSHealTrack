@@ -279,7 +279,7 @@ const CreateConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
       };
 
       const response = await axiosInstance.post<ConsultationResponseType>(
-        `/patient/${patientId}/consultations`,
+        `/${patientId}/consultations`,
         consultationData,
         {
           headers: {

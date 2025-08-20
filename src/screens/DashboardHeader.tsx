@@ -38,12 +38,14 @@ const DashboardHeader: React.FC = () => {
   const {session} = useSession();
   const {width} = useWindowDimensions();
   const [isDropdownVisible, setDropdownVisible] = useState(false);
-  const [notificationCount, setNotificationCount] = useState<NotificationCount>({
-    unread: 0,
-    read: 0,
-    archived: 0,
-    total: 0,
-  });
+  const [notificationCount, setNotificationCount] = useState<NotificationCount>(
+    {
+      unread: 0,
+      read: 0,
+      archived: 0,
+      total: 0,
+    },
+  );
   const [notificationLoading, setNotificationLoading] = useState(false);
 
   const styles = getStyles(
@@ -64,7 +66,7 @@ const DashboardHeader: React.FC = () => {
           headers: {Authorization: `Bearer ${session.idToken}`},
         },
       );
-      
+
       if (notificationResponse.data.success) {
         setNotificationCount(notificationResponse.data.data);
       }
@@ -88,10 +90,10 @@ const DashboardHeader: React.FC = () => {
   // Fetch notifications on component mount and set up interval
   useEffect(() => {
     fetchNotificationCount();
-    
+
     // Poll for notifications every 30 seconds
     const interval = setInterval(fetchNotificationCount, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -124,27 +126,30 @@ const DashboardHeader: React.FC = () => {
             style={styles.logoImage}
             resizeMode="contain"
           />
-          <Text style={styles.versionText}>v0.7</Text>
+          <Text style={styles.versionText}>v0.8</Text>
         </View>
-        
+
         <View style={styles.headerActions}>
           {/* Notification Bell Icon */}
-          <TouchableOpacity 
-            style={styles.notificationButton} 
-            onPress={handleNotificationPress}
-          >
+          <TouchableOpacity
+            style={styles.notificationButton}
+            onPress={handleNotificationPress}>
             <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
             {notificationCount.unread > 0 && (
               <View style={styles.notificationBadge}>
                 <Text style={styles.notificationBadgeText}>
-                  {notificationCount.unread > 99 ? '99+' : notificationCount.unread}
+                  {notificationCount.unread > 99
+                    ? '99+'
+                    : notificationCount.unread}
                 </Text>
               </View>
             )}
           </TouchableOpacity>
 
           {/* Menu Button */}
-          <TouchableOpacity style={styles.profileButton} onPress={toggleDropdown}>
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={toggleDropdown}>
             <Ionicons name="menu" size={26} color="#FFFFFF" />
           </TouchableOpacity>
         </View>

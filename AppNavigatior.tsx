@@ -257,7 +257,7 @@ const AllAppointmentsStack = () => (
       component={TherapyHistory}
       options={{headerShown: false}}
     />
-    
+
     {/* Add more screens here if you want to navigate deeper from AllAppointments */}
   </Stack.Navigator>
 );
@@ -397,13 +397,24 @@ const TabNavigator = () => (
 const AppNavigator = () => {
   const {session, isLoading} = useSession();
   const [isSplashComplete, setSplashComplete] = useState(false);
-  if (!isSplashComplete) {
+  const [startTime] = useState(Date.now());
+  const minimumSplashTime = 2000; // 2 seconds minimum
+
+  const handleAnimationComplete = () => {
+    const elapsed = Date.now() - startTime;
+    const remainingTime = Math.max(0, minimumSplashTime - elapsed);
+
+    setTimeout(() => {
+      setSplashComplete(true);
+    }, remainingTime);
+  };
+
+  if (isLoading || !isSplashComplete) {
     return (
-      <AnimatedSplashScreen
-        onAnimationComplete={() => setSplashComplete(true)}
-      />
+      <AnimatedSplashScreen onAnimationComplete={handleAnimationComplete} />
     );
   }
+
   return (
     <SafeAreaProvider>
       <NavigationContainer>
@@ -418,5 +429,4 @@ const AppNavigator = () => {
     </SafeAreaProvider>
   );
 };
-
 export default AppNavigator;

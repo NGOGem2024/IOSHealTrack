@@ -22,7 +22,7 @@ import {handleError, showSuccessToast} from '../utils/errorHandler';
 import axiosInstance from '../utils/axiosConfig';
 import BackTabTop from './BackTopTab';
 import TherapyCategoryDropdown from './TherapyCategoryDropdown';
-import LocationPicker from './BottomTab/HospitalLocation'; 
+import LocationPicker from './BottomTab/HospitalLocation';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -88,10 +88,12 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     estimated_sessions: '',
     discount_percentage: '0',
   });
-  
+
   // Add selectedLocation state
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(
+    null,
+  );
+
   const {session} = useSession();
   const {patientId} = route.params;
   const colorScheme = useColorScheme();
@@ -148,7 +150,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
       }),
     ]).start();
   }, []);
-  
+
   useEffect(() => {
     if (startDate && endDate) {
       const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
@@ -184,7 +186,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
       }
     }
   };
-  
+
   useEffect(() => {
     if (
       therapyPlan.payment_type === 'recurring' &&
@@ -234,12 +236,12 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     if (!therapyPlan.therapy_name.trim()) {
       newErrors.therapy_name = 'Therapy name is required';
     }
-    
+
     // Add location validation
     if (!selectedLocation) {
       newErrors.location = 'Location is required';
     }
-    
+
     if (!session.is_admin) {
       if (!therapyPlan.patient_symptoms.trim()) {
         newErrors.patient_symptoms = 'Patient symptoms are required';
@@ -287,7 +289,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const paymentTypes = [
     {label: 'Recurring Payment', value: 'recurring'},
     {label: 'One-time Payment', value: 'one-time'},
@@ -398,14 +400,14 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
       )}
     </View>
   );
-  
+
   useEffect(() => {
     const industryCategories = getCategoriesByIndustry();
     setCategories(industryCategories);
   }, [session.organization_industry]);
-  
+
   const [categories, setCategories] = useState<string[]>([]);
-  
+
   const getCategoriesByIndustry = () => {
     const industry = session.organization_industry?.toLowerCase();
     switch (industry) {
@@ -485,7 +487,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
 
       default:
         return [
-         'Musculoskeletal',
+          'Musculoskeletal',
           'Neurological',
           'Cardiorespiratory',
           'Paediatrics',
@@ -502,7 +504,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
     const balance = total - received;
     setTherapyPlan({...therapyPlan, balance: balance.toString()});
   }, [therapyPlan.total_amount, therapyPlan.received_amount]);
-  
+
   useEffect(() => {
     const total = parseFloat(therapyPlan.total_amount) || 0;
     const discount = parseFloat(therapyPlan.discount_percentage) || 0;
@@ -569,7 +571,6 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           </Text>
 
           {/* Add Location Picker Section */}
-          
 
           <TherapyCategoryDropdown
             value={therapyPlan.therapy_category}
@@ -581,7 +582,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           {errors.therapy_category && (
             <Text style={styles.errorText}>{errors.therapy_category}</Text>
           )}
-          
+
           <View
             style={[
               styles.inputContainer,
@@ -607,7 +608,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           {errors.therapy_name && (
             <Text style={styles.errorText}>{errors.therapy_name}</Text>
           )}
-          
+
           <View
             style={[
               styles.inputContainer,
@@ -632,7 +633,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           {errors.patient_symptoms && (
             <Text style={styles.errorText}>{errors.patient_symptoms}</Text>
           )}
-          
+
           <View
             style={[
               styles.inputContainer,
@@ -647,9 +648,8 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
               style={styles.input}
               placeholder="Patient Diagnosis"
               value={therapyPlan.patient_diagnosis}
-              onChangeText={
-                text =>
-                  setTherapyPlan({...therapyPlan, patient_diagnosis: text})
+              onChangeText={text =>
+                setTherapyPlan({...therapyPlan, patient_diagnosis: text})
               }
               keyboardType="default"
               placeholderTextColor="#A0A0A0"
@@ -666,7 +666,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
             <LocationPicker
               selectedLocation={selectedLocation}
               onLocationSelect={handleLocationSelect}
-              showSetAsDefault={false}
+              showSetAsDefault={true}
               autoSelectPreferred={true}
             />
             {errors.location && (
@@ -709,7 +709,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
               Duration: {therapyPlan.therapy_duration}
             </Text>
           </View>
-          
+
           <View style={styles.paymentTypeContainer}>
             <Text style={[styles.inputLabel, isDarkMode && styles.labelDark]}>
               Payment Type
@@ -859,7 +859,7 @@ const CreateTherapyPlan: React.FC<CreateTherapyPlanProps> = ({
           {errors.total_amount && (
             <Text style={styles.errorText}>{errors.total_amount}</Text>
           )}
-          
+
           <View style={styles.labeledInputContainer}>
             <Text style={styles.inputLabel}>Discount Percentage</Text>
             <View

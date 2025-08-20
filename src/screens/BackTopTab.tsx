@@ -78,7 +78,7 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
             style={styles.logoImage}
             resizeMode="contain"
           />
-          <Text style={styles.versionText}>v0.7</Text>
+          <Text style={styles.versionText}>v0.8</Text>
         </TouchableOpacity>
 
         <View style={styles.rightSection}>
@@ -134,8 +134,6 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
               <Text style={styles.drawerItemText}>Dashboard</Text>
             </TouchableOpacity>
 
-            
-
             {session.is_admin && (
               <>
                 <TouchableOpacity
@@ -157,11 +155,11 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-              style={styles.drawerItem}
-              onPress={() => navigateToScreen('PaymentHistory')}>
-              <Ionicons name="card-outline" size={24} color="#007B8E" />
-              <Text style={styles.drawerItemText}>Payment History</Text>
-            </TouchableOpacity>
+                  style={styles.drawerItem}
+                  onPress={() => navigateToScreen('PaymentHistory')}>
+                  <Ionicons name="card-outline" size={24} color="#007B8E" />
+                  <Text style={styles.drawerItemText}>Payment History</Text>
+                </TouchableOpacity>
               </>
             )}
             <View style={styles.drawerDivider} />

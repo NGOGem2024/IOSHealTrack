@@ -76,12 +76,55 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
 
   const appointmentTypes = ['In Clinic', 'In Home', 'IP/ICU', 'Online'];
 
-  // Refs
+  // Refs for scrolling to specific sections
   const scrollViewRef = useRef<ScrollView>(null);
+  const doctorSectionRef = useRef<View>(null);
+  const locationSectionRef = useRef<View>(null);
+  const slotsSectionRef = useRef<View>(null);
+  const sectionRefs = useRef<{[key: string]: View | null}>({});
 
   const resetScrollPosition = () => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollTo({y: 0, animated: false});
+    }
+  };
+
+  // Enhanced scroll to section function
+  const scrollToSection = (sectionKey: string) => {
+    const sectionRef = sectionRefs.current[sectionKey];
+    if (sectionRef && scrollViewRef.current) {
+      // Use setTimeout to ensure the component is ready
+      setTimeout(() => {
+        sectionRef.measureLayout(
+          scrollViewRef.current?.getInnerViewNode(),
+          (x: number, y: number) => {
+            console.log(`Scrolling to ${sectionKey} at position:`, y);
+            scrollViewRef.current?.scrollTo({
+              y: Math.max(0, y - 50), // 50px offset from top
+              animated: true,
+            });
+          },
+          () => {
+            console.warn(`Error measuring ${sectionKey} section layout`);
+            // Fallback based on section type
+            let fallbackY = 300;
+            if (sectionKey === 'doctor') fallbackY = 200;
+            if (sectionKey === 'location') fallbackY = 400;
+            if (sectionKey === 'slots') fallbackY = 600;
+
+            scrollViewRef.current?.scrollTo({y: fallbackY, animated: true});
+          },
+        );
+      }, 100);
+    } else {
+      console.warn(`Section ref not found for: ${sectionKey}`);
+      // Direct fallback if ref is not available
+      let fallbackY = 300;
+      if (sectionKey === 'doctor') fallbackY = 200;
+      if (sectionKey === 'location') fallbackY = 400;
+      if (sectionKey === 'slots') fallbackY = 600;
+
+      scrollViewRef.current?.scrollTo({y: fallbackY, animated: true});
     }
   };
 
@@ -351,23 +394,39 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
     );
   };
 
-
   const handleBookConsultation = async () => {
     try {
       if (!session.idToken) {
         throw new Error('Please log in to book a consultation.');
       }
 
+      // Enhanced validation with auto-scroll
       if (selectedSlot === null || selectedSlot === undefined) {
-        throw new Error('Select a time slot');
+        scrollToSection('slots');
+        setTimeout(() => {
+          handleError(new Error('Please select a time slot'));
+        }, 300);
+        return;
       }
 
       if (!selectedDoctor) {
-        throw new Error('Please select a doctor for the consultation.');
+        scrollToSection('doctor');
+        setTimeout(() => {
+          handleError(
+            new Error('Please select a doctor for the consultation.'),
+          );
+        }, 300);
+        return;
       }
 
       if (!selectedLocation) {
-        throw new Error('Please select a location for the consultation.');
+        scrollToSection('location');
+        setTimeout(() => {
+          handleError(
+            new Error('Please select a location for the consultation.'),
+          );
+        }, 300);
+        return;
       }
 
       setIsBooking(true);
@@ -419,6 +478,11 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
     }
   };
 
+  // Helper function to set section refs
+  const setSectionRef = (key: string, ref: View | null) => {
+    sectionRefs.current[key] = ref;
+  };
+
   if (isLoading) {
     return (
       <View style={styles.safeArea}>
@@ -440,14 +504,18 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
       <View style={styles.safeArea}>
         <View style={styles.container}>
           <BackTopTab screenName="Create Consultation" />
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            ref={scrollViewRef}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled">
             <Text style={styles.title}>Book Consultation</Text>
 
-            <View style={styles.section}>
+            <View
+              style={styles.section}
+              ref={ref => setSectionRef('doctor', ref)}>
               <Text style={styles.sectionTitle}>Select Doctor</Text>
               {renderDoctorPicker()}
             </View>
-
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Consultation Type</Text>
@@ -478,7 +546,9 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
               </ScrollView>
             </View>
 
-            <View style={styles.section}>
+            <View
+              style={styles.section}
+              ref={ref => setSectionRef('location', ref)}>
               <Text style={styles.sectionTitle}>Select Location</Text>
               <LocationPicker
                 selectedLocation={selectedLocation}
@@ -521,7 +591,9 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
               {renderSlotDurationPicker()}
             </View>
 
-            <View style={styles.section}>
+            <View
+              style={styles.section}
+              ref={ref => setSectionRef('slots', ref)}>
               <Text style={styles.sectionTitle}>Available Slots</Text>
               <AvailableSlots
                 slotDuration={selectedSlotDuration}
@@ -540,9 +612,7 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                Patient Symptoms 
-              </Text>
+              <Text style={styles.sectionTitle}>Patient Symptoms</Text>
               <TextInput
                 style={[styles.input, styles.multilineInput]}
                 value={patientSymptoms}
@@ -555,9 +625,7 @@ const SetupConsultationScreen: React.FC<CreateConsultationScreenProps> = ({
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                Therapy Reason
-              </Text>
+              <Text style={styles.sectionTitle}>Therapy Reason</Text>
               <TextInput
                 style={[styles.input, styles.multilineInput]}
                 value={therapyReason}

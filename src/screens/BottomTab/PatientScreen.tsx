@@ -43,6 +43,8 @@ import {useTheme} from '../ThemeContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PatientDocumentUploader from '../../components/documentsupload';
 import DocumentDeleteDialog from '../../components/DocumentDelete';
+import DocumentDisplay from '../../components/documentsupload';
+import DocumentSetupModal from '../../components/documentuploadmodel';
 //import LoadingScreen from '../../components/loadingScreen';
 
 type PatientScreenProps = StackScreenProps<RootStackParamList, 'Patient'>;
@@ -235,6 +237,8 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
   const [selectedDocument, setSelectedDocument] = useState<DocumentInfo | null>(
     null,
   );
+  const [documents, setDocuments] = useState<DocumentInfo[]>([]);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
 
   const fetchPatientData = async () => {
     if (!session.idToken) return;
@@ -254,6 +258,7 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
       setIsRefreshing(false); // Hide loading indicator after refresh
     }
   };
+
   const handleDocumentDownload = async (
     documentUrl: string,
     documentName: string,
@@ -361,6 +366,68 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
   if (isLoading) {
     return <PatientScreenSkeleton theme={theme} />;
   }
+  const handleDocumentPress = (document: DocumentInfo, index: number) => {
+    if (isUploading) return;
+
+    Alert.alert(
+      'Document Options',
+      `What would you like to do with "${
+        document.document_name || document.name
+      }"?`,
+      [
+        {
+          text: 'View Document',
+          onPress: () => {
+            // Implement document viewing logic
+            console.log('View document:', document);
+          },
+        },
+        {
+          text: 'Replace Document',
+          onPress: () => {
+            setShowDocumentModal(true);
+          },
+        },
+        {
+          text: 'Remove Document',
+          onPress: () => handleRemoveDocument(index),
+          style: 'destructive',
+        },
+        {text: 'Cancel', style: 'cancel'},
+      ],
+      {cancelable: true},
+    );
+  };
+  const handleDocumentConfirmed = async (document: DocumentInfo) => {
+    await fetchPatientData(); // Refresh patient data to show the new document
+    setShowDocumentModal(false);
+  };
+
+  // Handle remove document
+  const handleRemoveDocument = (index: number) => {
+    Alert.alert(
+      'Remove Document',
+      'Are you sure you want to remove this document?',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Remove',
+          onPress: () => {
+            setDocuments(prev => prev.filter((_, i) => i !== index));
+            // Here you would also call API to remove from server
+            // removeDocumentFromServer(documents[index].id);
+          },
+          style: 'destructive',
+        },
+      ],
+      {cancelable: true},
+    );
+  };
+
+  // Handle add more documents
+  const handleAddMore = () => {
+    setShowDocumentModal(true);
+  };
 
   return (
     <View style={styles.safeArea}>
@@ -691,15 +758,16 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
         )}
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Documents</Text>
-          <PatientDocumentUploader
-            onDocumentSelected={handleDocumentSelected}
-            onDocumentRemoved={handleDocumentRemoved}
-            initialDocument={selectedDocument}
-            isUploading={isUploading}
-            documentType="Medical Report"
-            patientId={patientId}
-          />
+          <View style={styles.sectionHeaderContainer}>
+            <Text style={styles.sectionTitle}>Documents</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setShowDocumentModal(true)}>
+              <MaterialIcons name="add" size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Remove the DocumentDisplay usage and replace with direct document rendering */}
           {patientData?.documents && patientData.documents.length > 0 ? (
             <View style={styles.documentsContainer}>
               {patientData.documents.map((document, index) => (
@@ -758,13 +826,23 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             </View>
           ) : (
             <View style={styles.noDocumentsContainer}>
+              <MaterialIcons name="folder-open" size={48} color="#119FB3" />
               <Text style={styles.noDocumentsText}>
                 No documents uploaded yet
+              </Text>
+              <Text style={styles.noDocumentsSubtext}>
+                Tap the + button above to add your first document
               </Text>
             </View>
           )}
         </View>
       </ScrollView>
+      <DocumentSetupModal
+        visible={showDocumentModal}
+        onClose={() => setShowDocumentModal(false)}
+        onDocumentConfirmed={handleDocumentConfirmed}
+        patientId={patientId}
+      />
     </View>
   );
 };
@@ -789,6 +867,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderColor: 'rgba(17, 159, 179, 0.2)',
       flex: 1,
       marginRight: 8,
+    },
+    noDocumentsSubtext: {
+      fontSize: 12,
+      color: theme.colors.text + '66',
+      textAlign: 'center',
+      marginTop: 4,
     },
     deleteButton: {
       backgroundColor:

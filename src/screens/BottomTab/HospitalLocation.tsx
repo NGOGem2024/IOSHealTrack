@@ -59,26 +59,34 @@ const NoLocationsPopup: React.FC<{
           <View style={styles.iconContainer}>
             <Icon name="location-off" size={60} color="#FF6B6B" />
           </View>
-          
+
           <Text style={styles.title}>No Locations Available</Text>
-          
+
           <Text style={styles.message}>
-            No locations have been configured for your organization yet. 
-            Please contact your administrator or add locations through the Organization settings.
+            No locations have been configured for your organization yet. Please
+            contact your administrator or add locations through the Organization
+            settings.
           </Text>
-          
+
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={[styles.button, styles.secondaryButton]}
               onPress={onClose}>
               <Text style={styles.secondaryButtonText}>Close</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={[styles.button, styles.primaryButton]}
               onPress={onNavigateToOrganization}>
-              <Icon name="business" size={18} color="white" style={styles.buttonIcon} />
-              <Text style={styles.primaryButtonText}>Organization Settings</Text>
+              <Icon
+                name="business"
+                size={18}
+                color="white"
+                style={styles.buttonIcon}
+              />
+              <Text style={styles.primaryButtonText}>
+                Organization Settings
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -98,10 +106,11 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   const {session, setSession} = useSession();
   const navigation = useNavigation();
   const [locations, setLocations] = useState<Location[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Start with true for initial load
   const [showLocationPicker, setShowLocationPicker] = useState<boolean>(false);
   const [isSettingPreferred, setIsSettingPreferred] = useState<boolean>(false);
-  const [showNoLocationsPopup, setShowNoLocationsPopup] = useState<boolean>(false);
+  const [showNoLocationsPopup, setShowNoLocationsPopup] =
+    useState<boolean>(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const styles = createStyles(theme.colors, isDarkMode);
@@ -143,7 +152,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
       if (response.data && response.data.locations) {
         setLocations(response.data.locations);
-        
+
         // Check if no locations are available
         if (response.data.locations.length === 0) {
           setShowNoLocationsPopup(true);
@@ -224,7 +233,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
   const openLocationInMaps = (addressLink: string) => {
     if (addressLink) {
-
       Linking.openURL(addressLink).catch(err => {
         console.error('Failed to open maps:', err);
         handleError(new Error('Failed to open location in maps'));
@@ -242,6 +250,16 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
     // Adjust the navigation route name according to your navigation structure
     navigation.navigate('OrganizationSettings' as never);
   };
+
+  // Show loader while fetching initial data
+  if (isLoading) {
+    return (
+      <View style={styles.loadingPickerContainer}>
+        <ActivityIndicator size="small" color="#007B8E" />
+        <Text style={styles.loadingPickerText}>Loading locations...</Text>
+      </View>
+    );
+  }
 
   const renderPickerField = () => {
     const locationName = selectedLocation ? selectedLocation.name : undefined;
@@ -305,100 +323,93 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
               </TouchableOpacity>
             </View>
 
-            {isLoading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#007B8E" />
-                <Text style={styles.loadingText}>Loading locations...</Text>
-              </View>
-            ) : (
-              <ScrollView
-                ref={scrollViewRef}
-                style={styles.scrollContainer}
-                contentContainerStyle={styles.scrollContentContainer}>
-                {locations.length === 0 ? (
-                  <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>No locations available</Text>
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.scrollContainer}
+              contentContainerStyle={styles.scrollContentContainer}>
+              {locations.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>No locations available</Text>
+                  <TouchableOpacity
+                    style={styles.addLocationButton}
+                    onPress={handleNavigateToOrganization}>
+                    <Icon name="add-location" size={20} color="#007B8E" />
+                    <Text style={styles.addLocationButtonText}>
+                      Add Locations
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                locations.map(location => (
+                  <View key={location._id} style={styles.locationItemWrapper}>
                     <TouchableOpacity
-                      style={styles.addLocationButton}
-                      onPress={handleNavigateToOrganization}>
-                      <Icon name="add-location" size={20} color="#007B8E" />
-                      <Text style={styles.addLocationButtonText}>
-                        Add Locations
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  locations.map(location => (
-                    <View key={location._id} style={styles.locationItemWrapper}>
-                      <TouchableOpacity
-                        style={[
-                          styles.locationItem,
-                          selectedLocation?._id === location._id &&
-                            styles.selectedLocationItem,
-                        ]}
-                        onPress={() => handleLocationPress(location)}>
-                        <View style={styles.locationItemContent}>
-                          <View style={styles.locationInfo}>
-                            <View style={styles.locationNameRow}>
-                              <Text
-                                style={[
-                                  styles.locationItemText,
-                                  selectedLocation?._id === location._id &&
-                                    styles.selectedLocationItemText,
-                                ]}>
-                                {location.name}
-                              </Text>
-                              {isPreferredLocation(location._id) && (
-                                <View style={styles.preferredBadgeSmall}>
-                                  <Icon name="star" size={12} color="#FFD700" />
-                                </View>
-                              )}
-                            </View>
+                      style={[
+                        styles.locationItem,
+                        selectedLocation?._id === location._id &&
+                          styles.selectedLocationItem,
+                      ]}
+                      onPress={() => handleLocationPress(location)}>
+                      <View style={styles.locationItemContent}>
+                        <View style={styles.locationInfo}>
+                          <View style={styles.locationNameRow}>
                             <Text
                               style={[
-                                styles.locationIdText,
+                                styles.locationItemText,
                                 selectedLocation?._id === location._id &&
-                                  styles.selectedLocationIdText,
+                                  styles.selectedLocationItemText,
                               ]}>
-                              ID: {location.locationId}
+                              {location.name}
                             </Text>
+                            {isPreferredLocation(location._id) && (
+                              <View style={styles.preferredBadgeSmall}>
+                                <Icon name="star" size={12} color="#FFD700" />
+                              </View>
+                            )}
                           </View>
-                          <View style={styles.locationActions}>
-                            <TouchableOpacity
-                              style={styles.mapIconButton}
-                              onPress={() =>
-                                openLocationInMaps(location.addressLink)
-                              }>
-                              <Icon name="map" size={20} color="#007B8E" />
-                            </TouchableOpacity>
-                            {showSetAsDefault &&
-                              !isPreferredLocation(location._id) && (
-                                <TouchableOpacity
-                                  style={styles.setDefaultButton}
-                                  onPress={() => handleSetAsDefault(location)}
-                                  disabled={isSettingPreferred}>
-                                  {isSettingPreferred ? (
-                                    <ActivityIndicator
-                                      size="small"
-                                      color="#007B8E"
-                                    />
-                                  ) : (
-                                    <Icon
-                                      name="star-border"
-                                      size={20}
-                                      color="#007B8E"
-                                    />
-                                  )}
-                                </TouchableOpacity>
-                              )}
-                          </View>
+                          <Text
+                            style={[
+                              styles.locationIdText,
+                              selectedLocation?._id === location._id &&
+                                styles.selectedLocationIdText,
+                            ]}>
+                            ID: {location.locationId}
+                          </Text>
                         </View>
-                      </TouchableOpacity>
-                    </View>
-                  ))
-                )}
-              </ScrollView>
-            )}
+                        <View style={styles.locationActions}>
+                          <TouchableOpacity
+                            style={styles.mapIconButton}
+                            onPress={() =>
+                              openLocationInMaps(location.addressLink)
+                            }>
+                            <Icon name="map" size={20} color="#007B8E" />
+                          </TouchableOpacity>
+                          {showSetAsDefault &&
+                            !isPreferredLocation(location._id) && (
+                              <TouchableOpacity
+                                style={styles.setDefaultButton}
+                                onPress={() => handleSetAsDefault(location)}
+                                disabled={isSettingPreferred}>
+                                {isSettingPreferred ? (
+                                  <ActivityIndicator
+                                    size="small"
+                                    color="#007B8E"
+                                  />
+                                ) : (
+                                  <Icon
+                                    name="star-border"
+                                    size={20}
+                                    color="#007B8E"
+                                  />
+                                )}
+                              </TouchableOpacity>
+                            )}
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                ))
+              )}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -448,7 +459,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
           />
         ))}
       </Picker>
-      
+
       {locations.length === 0 && (
         <View style={styles.androidEmptyContainer}>
           <Text style={styles.androidEmptyText}>No locations available</Text>
@@ -462,7 +473,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
           </TouchableOpacity>
         </View>
       )}
-      
+
       <View style={styles.androidButtonsContainer}>
         {selectedLocation && (
           <TouchableOpacity
@@ -492,7 +503,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
             </TouchableOpacity>
           )}
       </View>
-      
+
       <NoLocationsPopup
         visible={showNoLocationsPopup}
         onClose={() => setShowNoLocationsPopup(false)}
@@ -506,6 +517,23 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
 const createStyles = (colors: any, isDarkMode: boolean) =>
   StyleSheet.create({
+    // Loading state for the entire picker
+    loadingPickerContainer: {
+      backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
+      borderRadius: 10,
+      padding: 16,
+      marginTop: 8,
+      borderWidth: 1,
+      borderColor: isDarkMode ? colors.border : '#E0E0E0',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    loadingPickerText: {
+      marginLeft: 8,
+      color: colors.text,
+      fontSize: 14,
+    },
     pickerWrapper: {
       backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
       borderRadius: 10,

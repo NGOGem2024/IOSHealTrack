@@ -94,6 +94,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     doctor_phone: false,
     is_admin: false,
     status: false,
+    online_available: false,
   });
 
   const validatePhone = (fullPhone: string): boolean => {
@@ -138,9 +139,12 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       return validateEmail(value);
     } else if (field === 'doctor_phone') {
       return validatePhone(countryCode + phoneDigits);
-    } else if (field === 'is_admin' || field === 'online_available') {
-      // Boolean fields are always valid
+    } else if (field === 'is_admin') {
+      // Boolean fields are always valid for is_admin
       return true;
+    } else if (field === 'online_available') {
+      // online_available is mandatory - must be explicitly selected (true or false)
+      return value !== undefined && value !== null;
     } else {
       // For text fields, check if they're not empty
       return typeof value === 'string' ? value.trim() !== '' : true;
@@ -244,8 +248,8 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
 
       setProfileInfo(prev => ({...prev, [field]: value}));
 
-      // Validate field and update form errors - skip validation for boolean fields
-      if (field !== 'is_admin' && field !== 'online_available') {
+      // Validate field and update form errors - skip validation for is_admin only
+      if (field !== 'is_admin') {
         setFormErrors(prev => ({
           ...prev,
           [field]: !validateField(field, value),
@@ -278,6 +282,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       doctor_phone: !validatePhone(fullPhone),
       is_admin: false, // Boolean field, no validation needed
       status: false, // This is a string with predefined values, no validation needed
+      online_available: profileInfo.online_available === undefined || profileInfo.online_available === null,
     };
 
     setFormErrors(errors);
@@ -510,9 +515,14 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
 
               {/* Online Availability Checkbox */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Online Treatment</Text>
+                <Text style={styles.label}>
+                  Online Treatment <Text style={styles.requiredStar}>*</Text>
+                </Text>
                 <TouchableOpacity
-                  style={styles.checkboxContainer}
+                  style={[
+                    styles.checkboxContainer,
+                    formErrors.online_available && styles.checkboxContainerError,
+                  ]}
                   onPress={() =>
                     handleInputChange('online_available', !profileInfo.online_available)
                   }>
@@ -520,6 +530,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                     style={[
                       styles.checkbox,
                       profileInfo.online_available && styles.checkboxChecked,
+                      formErrors.online_available && styles.checkboxError,
                     ]}>
                     {profileInfo.online_available && (
                       <Icon
@@ -533,6 +544,11 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                     Available for online treatment
                   </Text>
                 </TouchableOpacity>
+                {formErrors.online_available && (
+                  <Text style={styles.errorText}>
+                    Please specify if doctor is available for online treatment
+                  </Text>
+                )}
               </View>
 
               <TouchableOpacity
@@ -700,6 +716,13 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       alignItems: 'center',
       paddingVertical: 10,
     },
+    checkboxContainerError: {
+      borderWidth: 1,
+      borderColor: 'red',
+      borderRadius: 8,
+      paddingHorizontal: 10,
+      backgroundColor: 'rgba(255, 0, 0, 0.05)',
+    },
     checkbox: {
       width: 20,
       height: 20,
@@ -713,6 +736,9 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     },
     checkboxChecked: {
       backgroundColor: '#119FB3',
+    },
+    checkboxError: {
+      borderColor: 'red',
     },
     checkboxLabel: {
       fontSize: 16,

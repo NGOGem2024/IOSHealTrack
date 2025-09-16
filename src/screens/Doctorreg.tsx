@@ -292,11 +292,20 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
       style={styles.inputContainer}>
       <View style={styles.labelContainer}>
         <Text style={[styles.label, {color: colors.text}]}>
-          Online Treatment
+          Online Treatment <Text style={{color: colors.mandatory}}>*</Text>
         </Text>
       </View>
       <TouchableOpacity
-        style={styles.checkboxContainer}
+        style={[
+          styles.checkboxContainer,
+          errors.online_available && {
+            borderWidth: 1,
+            borderColor: colors.error,
+            borderRadius: 8,
+            paddingHorizontal: 10,
+            backgroundColor: 'rgba(255, 0, 0, 0.05)',
+          },
+        ]}
         onPress={() =>
           handleInputChange('online_available', !doctorData.online_available)
         }>
@@ -304,7 +313,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
           style={[
             styles.checkbox,
             {
-              borderColor: colors.inputBorder,
+              borderColor: errors.online_available ? colors.error : colors.inputBorder,
               backgroundColor: colors.inputBg,
             },
             doctorData.online_available && {
@@ -324,6 +333,9 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
           Available for online treatment
         </Text>
       </TouchableOpacity>
+      {errors.online_available && (
+        <Text style={styles.errorText}>{errors.online_available}</Text>
+      )}
     </Animatable.View>
   );
 
@@ -338,6 +350,9 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
     }
     if (!doctorData.doctor_phone) {
       newErrors.doctor_phone = 'Phone number is required';
+    }
+    if (doctorData.online_available === undefined || doctorData.online_available === null) {
+      newErrors.online_available = 'Please specify if doctor is available for online treatment';
     }
 
     if (Object.keys(newErrors).length > 0) {

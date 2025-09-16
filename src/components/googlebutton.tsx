@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {TouchableOpacity, Text, View, StyleSheet, Alert} from 'react-native';
+import {TouchableOpacity, Text, View, StyleSheet, Alert, Animated} from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {
   GoogleSignin,
@@ -15,6 +15,8 @@ const GOOGLE_WEB_CLIENT_ID =
 
 interface GoogleSignInButtonProps {
   onSignInSuccess: () => void;
+  animationScale?: Animated.Value;
+  shouldAnimate?: boolean;
 }
 
 interface ServerResponse {
@@ -28,6 +30,8 @@ type ExtendedSignInResponse = SignInResponse & {
 
 const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   onSignInSuccess,
+  shouldAnimate = false,
+  animationScale,
 }) => {
   const {updateAccessToken} = useSession();
 
@@ -94,17 +98,30 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   };
 
   return (
-    <TouchableOpacity style={styles.googleButton} onPress={signInWithGoogle}>
-      <View style={styles.googleButtonContent}>
-        <AntDesign
-          name="google"
-          size={24}
-          color="white"
-          style={styles.googleIcon}
-        />
-        <Text style={styles.googleButtonText}>Sign in with Google</Text>
-      </View>
-    </TouchableOpacity>
+    <Animated.View 
+      style={[
+        animationScale && { transform: [{ scale: animationScale }] },
+        shouldAnimate && styles.highlightedContainer,
+      ]}
+    >
+      <TouchableOpacity 
+        style={[
+          styles.googleButton,
+          shouldAnimate && styles.highlightedButton,
+        ]} 
+        onPress={signInWithGoogle}
+      >
+        <View style={styles.googleButtonContent}>
+          <AntDesign
+            name="google"
+            size={24}
+            color="white"
+            style={styles.googleIcon}
+          />
+          <Text style={styles.googleButtonText}>Sign in with Google</Text>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
@@ -113,7 +130,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2a7fba',
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 8,
     marginBottom: 15,
     width: '95%',
     alignItems: 'center',
@@ -130,6 +147,18 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  highlightedContainer: {
+    // Additional styling for the animated container if needed
+  },
+  highlightedButton: {
+    borderWidth: 2,
+    borderColor: '#4285f4',
+    shadowColor: '#4285f4',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });
 

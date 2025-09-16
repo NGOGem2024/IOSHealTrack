@@ -36,6 +36,7 @@ interface DoctorData {
   doctor_phone: string;
   qualification: string;
   is_admin: boolean;
+  online_available: boolean; // Added online availability field
 }
 
 interface Country {
@@ -89,6 +90,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
     doctor_phone: '',
     qualification: '',
     is_admin: false,
+    online_available: false, // Default to false
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -126,25 +128,33 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
     return '';
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     let newValue = value;
-    if (field.includes('name')) {
-      newValue = value.replace(/[^a-zA-Z\s]/g, '');
-    } else if (field === 'doctor_phone') {
-      newValue = value.replace(/[^0-9]/g, '');
-    } else if (field === 'doctor_email') {
-      newValue = value.toLowerCase();
+    
+    // Handle different field types
+    if (typeof value === 'string') {
+      if (field.includes('name')) {
+        newValue = value.replace(/[^a-zA-Z\s]/g, '');
+      } else if (field === 'doctor_phone') {
+        newValue = value.replace(/[^0-9]/g, '');
+      } else if (field === 'doctor_email') {
+        newValue = value.toLowerCase();
+      }
     }
 
     setDoctorData(prev => ({...prev, [field]: newValue}));
-    const error = validateField(field, newValue);
-    setErrors(prev => ({...prev, [field]: error}));
+    
+    // Only validate string fields
+    if (typeof newValue === 'string') {
+      const error = validateField(field, newValue);
+      setErrors(prev => ({...prev, [field]: error}));
+    }
   };
 
   const renderInput = (
     label: string,
     placeholder: string,
-    field: keyof Omit<DoctorData, 'is_admin'>,
+    field: keyof Omit<DoctorData, 'is_admin' | 'online_available'>,
     icon: string,
     keyboardType: 'default' | 'email-address' | 'numeric' = 'default',
     isMandatory: boolean = true,
@@ -274,6 +284,49 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
     </Animatable.View>
   );
 
+  // Online Availability Checkbox Component
+  const renderOnlineAvailability = () => (
+    <Animatable.View
+      animation="fadeInUp"
+      duration={800}
+      style={styles.inputContainer}>
+      <View style={styles.labelContainer}>
+        <Text style={[styles.label, {color: colors.text}]}>
+          Online Treatment
+        </Text>
+      </View>
+      <TouchableOpacity
+        style={styles.checkboxContainer}
+        onPress={() =>
+          handleInputChange('online_available', !doctorData.online_available)
+        }>
+        <View
+          style={[
+            styles.checkbox,
+            {
+              borderColor: colors.inputBorder,
+              backgroundColor: colors.inputBg,
+            },
+            doctorData.online_available && {
+              backgroundColor: colors.primary,
+              borderColor: colors.primary,
+            },
+          ]}>
+          {doctorData.online_available && (
+            <Icon
+              name="check"
+              size={16}
+              color="#FFFFFF"
+            />
+          )}
+        </View>
+        <Text style={[styles.checkboxLabel, {color: colors.text}]}>
+          Available for online treatment
+        </Text>
+      </TouchableOpacity>
+    </Animatable.View>
+  );
+
   const handleDoctorRegister = async () => {
     const newErrors: {[key: string]: string} = {};
 
@@ -314,6 +367,7 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
         doctor_phone: '',
         qualification: '',
         is_admin: false,
+        online_available: false,
       });
       navigation.navigate('DoctorDashboard');
     } catch (error) {
@@ -384,6 +438,8 @@ const DoctorRegister: React.FC<DoctorRegisterScreenProps> = ({navigation}) => {
             )}
 
             {renderRolePicker()}
+
+            {renderOnlineAvailability()}
 
             <Animatable.View
               animation="fadeInUp"
@@ -580,6 +636,25 @@ const styles = StyleSheet.create({
   pickerDoneText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Checkbox styles
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    flex: 1,
   },
   buttonContainer: {
     marginTop: 20,

@@ -49,6 +49,7 @@ interface ProfileInfo {
   doctors_photo: string;
   is_admin: boolean;
   status: string;
+  online_available: boolean; // Added online availability field
 }
 
 const initialProfileState: ProfileInfo = {
@@ -62,6 +63,7 @@ const initialProfileState: ProfileInfo = {
   doctors_photo: '',
   is_admin: false,
   status: 'active',
+  online_available: false, // Default to false
 };
 
 const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
@@ -136,7 +138,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       return validateEmail(value);
     } else if (field === 'doctor_phone') {
       return validatePhone(countryCode + phoneDigits);
-    } else if (field === 'is_admin') {
+    } else if (field === 'is_admin' || field === 'online_available') {
       // Boolean fields are always valid
       return true;
     } else {
@@ -202,6 +204,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       setProfileInfo({
         ...response.data,
         status: response.data.status?.toLowerCase?.() || 'active',
+        online_available: response.data.online_available || false, // Handle existing data
       });
       setOriginalProfileInfo(response.data);
     } catch (error) {
@@ -231,8 +234,8 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     if (field === 'doctor_phone') {
       handlePhoneChange(value);
     } else {
-      // For is_admin, ensure value is treated as boolean
-      if (field === 'is_admin') {
+      // For is_admin and online_available, ensure value is treated as boolean
+      if (field === 'is_admin' || field === 'online_available') {
         // Convert string "true"/"false" to actual boolean if needed
         if (typeof value === 'string') {
           value = value === 'true';
@@ -242,7 +245,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       setProfileInfo(prev => ({...prev, [field]: value}));
 
       // Validate field and update form errors - skip validation for boolean fields
-      if (field !== 'is_admin') {
+      if (field !== 'is_admin' && field !== 'online_available') {
         setFormErrors(prev => ({
           ...prev,
           [field]: !validateField(field, value),
@@ -324,6 +327,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           doctor_phone: fullPhone, // Save the combined phone number
           is_admin: profileInfo.is_admin,
           status: profileInfo.status,
+          online_available: profileInfo.online_available, // Include online availability
         },
         {
           headers: {
@@ -504,6 +508,33 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                 />
               </View>
 
+              {/* Online Availability Checkbox */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Online Treatment</Text>
+                <TouchableOpacity
+                  style={styles.checkboxContainer}
+                  onPress={() =>
+                    handleInputChange('online_available', !profileInfo.online_available)
+                  }>
+                  <View
+                    style={[
+                      styles.checkbox,
+                      profileInfo.online_available && styles.checkboxChecked,
+                    ]}>
+                    {profileInfo.online_available && (
+                      <Icon
+                        name="checkmark"
+                        size={16}
+                        color="#FFFFFF"
+                      />
+                    )}
+                  </View>
+                  <Text style={styles.checkboxLabel}>
+                    Available for online treatment
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
               <TouchableOpacity
                 style={[
                   styles.saveButton,
@@ -662,6 +693,31 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginBottom: 20,
+    },
+    // Checkbox styles
+    checkboxContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+    },
+    checkbox: {
+      width: 20,
+      height: 20,
+      borderRadius: 4,
+      borderWidth: 2,
+      borderColor: '#119FB3',
+      backgroundColor: theme.colors.card,
+      marginRight: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkboxChecked: {
+      backgroundColor: '#119FB3',
+    },
+    checkboxLabel: {
+      fontSize: 16,
+      color: theme.colors.text,
+      flex: 1,
     },
     saveButton: {
       backgroundColor: '#119FB3',

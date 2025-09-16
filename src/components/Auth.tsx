@@ -64,6 +64,43 @@ const AuthModal: React.FC<AuthModalProps> = ({
     return emailRegex.test(email);
   };
 
+  // Check if user needs to complete setup
+  const checkSetupRequirements = (responseData: any) => {
+    console.log('Checking setup requirements...', responseData);
+    
+    const needsGoogleIntegration = responseData.is_admin && !responseData.has_access_token;
+    const needsLocationSetup = !responseData.organization_location || responseData.organization_location.length === 0;
+    
+    return needsGoogleIntegration || needsLocationSetup;
+  };
+
+// inside Auth.tsx (replace your current handlePostLoginSetup)
+const handlePostLoginSetup = async (responseData: any) => {
+  // Determine what is needed
+  const needsGoogleIntegration = !!(responseData.is_admin && !responseData.has_access_token);
+  const needsLocationSetup = !responseData.organization_location || responseData.organization_location.length === 0;
+
+  console.log('Setup flags -> Google:', needsGoogleIntegration, 'Location:', needsLocationSetup);
+
+  // If any setup required, close modal and navigate to Settings with flags
+  if (needsGoogleIntegration || needsLocationSetup) {
+    onClose();
+
+    // small delay for smooth UX
+    setTimeout(() => {
+      // navigate to Settings and pass params that Settings will read
+      // @ts-ignore - depending on your navigation typing
+      navigation.navigate('Settings', {
+        showGooglePopup: needsGoogleIntegration,
+        showOrgPopup: needsLocationSetup,
+      });
+    }, 500);
+    return true;
+  }
+  return false;
+};
+
+
   const sendOtp = async () => {
     const lowerCaseEmail = email.toLowerCase();
     if (!isValidEmail(lowerCaseEmail)) {
@@ -107,9 +144,10 @@ const AuthModal: React.FC<AuthModalProps> = ({
       });
 
       if (response.data.token) {
-        // Store token and other basic info
+        // Store token and all response data
         await Keychain.setGenericPassword('auth', response.data.token);
-
+        
+        // Store all necessary data including new fields
         await AsyncStorage.setItem(
           'is_admin',
           JSON.stringify(response.data.is_admin),
@@ -119,6 +157,25 @@ const AuthModal: React.FC<AuthModalProps> = ({
           'organization_industry',
           response.data.organization_industry,
         );
+        
+        // Store new fields for setup checking
+        await AsyncStorage.setItem(
+          'has_access_token',
+          JSON.stringify(response.data.has_access_token),
+        );
+        await AsyncStorage.setItem(
+          'organization_location',
+          JSON.stringify(response.data.organization_location),
+        );
+        await AsyncStorage.setItem(
+          'doctor_first_name',
+          response.data.doctor_first_name || '',
+        );
+        await AsyncStorage.setItem(
+          'doctor_last_name',
+          response.data.doctor_last_name || '',
+        );
+
         // Download and store image if available
         if (response.data.doctor_photo) {
           try {
@@ -160,9 +217,18 @@ const AuthModal: React.FC<AuthModalProps> = ({
           doctor_id: response.data.doctor_id,
           organization_industry: response.data.organization_industry,
           preferred_location: null,
+          has_access_token: response.data.has_access_token,
+          organization_location: response.data.organization_location,
         };
         setSession(newSession);
-        onLoginSuccess();
+        
+        // Check if setup is needed and handle accordingly
+        const setupNeeded = await handlePostLoginSetup(response.data);
+        
+        // Only call onLoginSuccess if no setup was needed
+        if (!setupNeeded) {
+          onLoginSuccess();
+        }
       }
     } catch (error) {
       console.error('Error logging in:', error);
@@ -181,8 +247,10 @@ const AuthModal: React.FC<AuthModalProps> = ({
       });
 
       if (response.data.token) {
-        // Store token and other basic info
+        // Store token and all response data
         await Keychain.setGenericPassword('auth', response.data.token);
+        
+        // Store all necessary data including new fields
         await AsyncStorage.setItem(
           'is_admin',
           JSON.stringify(response.data.is_admin),
@@ -192,6 +260,25 @@ const AuthModal: React.FC<AuthModalProps> = ({
           'organization_industry',
           response.data.organization_industry,
         );
+        
+        // Store new fields for setup checking
+        await AsyncStorage.setItem(
+          'has_access_token',
+          JSON.stringify(response.data.has_access_token),
+        );
+        await AsyncStorage.setItem(
+          'organization_location',
+          JSON.stringify(response.data.organization_location),
+        );
+        await AsyncStorage.setItem(
+          'doctor_first_name',
+          response.data.doctor_first_name || '',
+        );
+        await AsyncStorage.setItem(
+          'doctor_last_name',
+          response.data.doctor_last_name || '',
+        );
+
         // Download and store image if available
         if (response.data.doctor_photo) {
           try {
@@ -232,9 +319,18 @@ const AuthModal: React.FC<AuthModalProps> = ({
           doctor_id: response.data.doctor_id,
           organization_industry: response.data.organization_industry,
           preferred_location: null,
+          has_access_token: response.data.has_access_token,
+          organization_location: response.data.organization_location,
         };
         setSession(newSession);
-        onLoginSuccess();
+        
+        // Check if setup is needed and handle accordingly
+        const setupNeeded = await handlePostLoginSetup(response.data);
+        
+        // Only call onLoginSuccess if no setup was needed
+        if (!setupNeeded) {
+          onLoginSuccess();
+        }
       } else {
         Alert.alert('Error', 'OTP verification failed');
       }
@@ -245,12 +341,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
       setLoading(false);
     }
   };
+
   const handleForgotPassword = () => {
     // Instead of navigating, simply call the onForgotPassword callback
     if (onForgotPassword) {
       onForgotPassword();
     }
   };
+
   const resetForm = () => {
     setIsOtpSent(false);
     setOtp('');

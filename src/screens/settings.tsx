@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,10 @@ import {
   ActivityIndicator,
   SafeAreaView,
   Alert,
+  Modal,
+  Animated,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import GoogleSignInButton from '../components/googlebutton';
 import axiosInstance from '../utils/axiosConfig';
 import axios from 'axios';
@@ -37,6 +39,9 @@ interface SessionInfo {
   updatedBy?: string;
   organization_name?: string;
   doctor_name?: string;
+  is_admin?: boolean;
+  has_access_token?: boolean;
+  organization_location?: any[];
 }
 
 interface ServerResponse {
@@ -54,10 +59,22 @@ const SettingsScreen: React.FC = () => {
       theme.name as 'purple' | 'blue' | 'green' | 'orange' | 'pink' | 'dark',
     ),
   );
+  const route = useRoute();
   const {updateAccessToken} = useSession();
   const navigation = useNavigation();
 
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
+  const [showOrgPopup, setShowOrgPopup] = useState(false);
+  const [forceShowGoogle, setForceShowGoogle] = useState(false);
+
+  useEffect(() => {
+    const params = (route.params as any) || {};
+    if (params.showGooglePopup) setForceShowGoogle(true);
+    if (params.showOrgPopup) setShowOrgPopup(true);
+  }, [route.params]);
+
+  // Animation refs - only for Google button
+  const googleButtonScale = useRef(new Animated.Value(1)).current;
 
   const fetchSessionStatus = async () => {
     setIsLoading(true);
@@ -79,9 +96,60 @@ const SettingsScreen: React.FC = () => {
     }
   };
 
+  // Animation functions - only for Google button
+  const startPulseAnimation = (animatedValue: Animated.Value) => {
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1.1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    pulseAnimation.start();
+    return pulseAnimation;
+  };
+
+  const stopPulseAnimation = (animatedValue: Animated.Value) => {
+    animatedValue.stopAnimation();
+    Animated.timing(animatedValue, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
   useEffect(() => {
     fetchSessionStatus();
   }, []);
+
+  useEffect(() => {
+    // Only animate Google integration if needed
+    const needsGoogleIntegration =
+      sessionInfo?.is_admin && !sessionInfo?.has_access_token;
+
+    let googleAnimation: Animated.CompositeAnimation | null = null;
+
+    // Start animation only for Google button
+    if (needsGoogleIntegration) {
+      googleAnimation = startPulseAnimation(googleButtonScale);
+    } else {
+      stopPulseAnimation(googleButtonScale);
+    }
+
+    // Cleanup function
+    return () => {
+      if (googleAnimation) {
+        googleAnimation.stop();
+      }
+    };
+  }, [sessionInfo]);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -117,7 +185,7 @@ const SettingsScreen: React.FC = () => {
 
       // Store the access token and update the session
       await updateAccessToken(accessToken);
-      await fetchSessionStatus();
+      await fetchSessionStatus(); // Refresh to update has_access_token
     } catch (error) {
       let errorMessage = 'Failed to sign in with Google. Please try again.';
 
@@ -151,6 +219,17 @@ const SettingsScreen: React.FC = () => {
     navigation.navigate('OrganizationSettings');
   };
 
+  // Highlight conditions
+  const needsGoogleIntegration =
+    sessionInfo?.is_admin && !sessionInfo?.has_access_token;
+  const needsLocationSetup =
+    !sessionInfo?.organization_location ||
+    sessionInfo.organization_location.length === 0;
+  const isSessionConnected = !!sessionInfo;
+
+  const shouldShowGoogleBtn =
+    forceShowGoogle || needsGoogleIntegration || !isSessionConnected;
+
   if (isLoading) {
     return (
       <View style={styles.safeArea}>
@@ -159,15 +238,19 @@ const SettingsScreen: React.FC = () => {
       </View>
     );
   }
+
   return (
     <View style={styles.safeArea}>
       <ScrollView style={styles.container}>
         <BackTabTop screenName="Settings" />
         <View style={styles.content}>
-          {/* Organization Settings Section */}
+          {/* Organization Settings Section - No Animation */}
           <View style={styles.section}>
             <TouchableOpacity
-              style={styles.organizationCard}
+              style={[
+                styles.organizationCard,
+                needsLocationSetup && styles.highlightedCard,
+              ]}
               onPress={navigateToOrganizationSettings}>
               <View style={styles.orgCardContent}>
                 <Icon
@@ -176,7 +259,13 @@ const SettingsScreen: React.FC = () => {
                   color={theme.colors.primary}
                 />
                 <View style={styles.orgCardText}>
-                  <Text style={styles.orgCardTitle}>Update Organization</Text>
+                  <View style={styles.orgCardTitleContainer}>
+                    <Text style={styles.orgCardTitle}>Update Organization</Text>
+                    {needsLocationSetup && (
+                      <View style={styles.badgeContainer}>
+                      </View>
+                    )}
+                  </View>
                   <Text style={styles.orgCardDescription}>
                     Edit organization details, logo, and contact information
                   </Text>
@@ -188,9 +277,31 @@ const SettingsScreen: React.FC = () => {
 
           {/* Google Calendar Integration Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Google Calendar Integration</Text>
+            <View style={styles.sectionTitleContainer}>
+              <Text style={styles.sectionTitle}>
+                Google Calendar Integration
+              </Text>
+              {needsGoogleIntegration && (
+                <View style={styles.badgeContainer}>
+                  <View style={styles.requiredBadge}>
+                    <Text style={styles.requiredBadgeText}>Required</Text>
+                  </View>
+                </View>
+              )}
+            </View>
 
-            {sessionInfo ? (
+            {shouldShowGoogleBtn ? (
+              <View style={styles.signInContainer}>
+                <Text style={styles.noteText}>
+                  Connect your Google Calendar to sync appointments
+                </Text>
+                <GoogleSignInButton
+                  onSignInSuccess={handleGoogleSignIn}
+                  shouldAnimate={needsGoogleIntegration}
+                  animationScale={googleButtonScale}
+                />
+              </View>
+            ) : (
               <>
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>Doctor:</Text>
@@ -214,11 +325,17 @@ const SettingsScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    style={styles.syncButton}
-                    onPress={handleGoogleSignIn}>
-                    <Text style={styles.buttonText}>Update Integration</Text>
-                  </TouchableOpacity>
+                  <Animated.View
+                    style={[{transform: [{scale: googleButtonScale}]}]}>
+                    <TouchableOpacity
+                      style={[
+                        styles.syncButton,
+                        needsGoogleIntegration && styles.highlightedButton,
+                      ]}
+                      onPress={handleGoogleSignIn}>
+                      <Text style={styles.buttonText}>Update Integration</Text>
+                    </TouchableOpacity>
+                  </Animated.View>
 
                   <TouchableOpacity
                     style={styles.refreshButton}
@@ -227,17 +344,31 @@ const SettingsScreen: React.FC = () => {
                   </TouchableOpacity>
                 </View>
               </>
-            ) : (
-              <View style={styles.signInContainer}>
-                <Text style={styles.noteText}>
-                  Connect your Google Calendar to sync appointments
-                </Text>
-                <GoogleSignInButton onSignInSuccess={handleGoogleSignIn} />
-              </View>
             )}
           </View>
         </View>
       </ScrollView>
+
+      {/* Organization Popup Modal */}
+      <Modal
+        visible={showOrgPopup}
+        onRequestClose={() => setShowOrgPopup(false)}
+        animationType="fade"
+        transparent={true}>
+        <View style={styles.popupContainer}>
+          <View style={styles.popupContent}>
+            <Text style={styles.popupTitle}>Organization Setup Required</Text>
+            <Text style={styles.popupText}>
+              Please set up your organization location and sign in with Google.
+            </Text>
+            <TouchableOpacity
+              style={styles.popupButton}
+              onPress={() => setShowOrgPopup(false)}>
+              <Text style={styles.popupButtonText}>Got it</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -279,10 +410,15 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       shadowRadius: 1.5,
       elevation: 3,
     },
+    sectionTitleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 15,
+    },
     sectionTitle: {
       fontSize: 18,
       fontWeight: '600',
-      marginBottom: 15,
       color: theme.colors.text,
     },
     infoRow: {
@@ -335,13 +471,16 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       textAlign: 'center',
       marginBottom: 10,
     },
-    // New styles for organization card
+    // Organization card styles
     organizationCard: {
       backgroundColor: theme.colors.secondary,
       borderRadius: 8,
       overflow: 'hidden',
       borderWidth: 1,
       borderColor: '#E5E7EB',
+    },
+    highlightedCard: {
+      backgroundColor: theme.colors.secondary,
     },
     orgCardContent: {
       flexDirection: 'row',
@@ -352,15 +491,81 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       flex: 1,
       marginLeft: 12,
     },
+    orgCardTitleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
     orgCardTitle: {
       fontSize: 16,
       fontWeight: '600',
       color: theme.colors.mainColor,
       marginBottom: 4,
     },
+    requiredBadge: {
+      backgroundColor: '#FF4444',
+      borderRadius: 6,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+    },
+    requiredBadgeText: {
+      color: '#fff',
+      fontSize: 10,
+      fontWeight: 'bold',
+    },
     orgCardDescription: {
       fontSize: 14,
       color: theme.colors.text,
+    },
+    highlightedButton: {
+      borderWidth: 2,
+      borderColor: theme.colors.primary,
+      shadowColor: theme.colors.primary,
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    badgeContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    infoIcon: {
+      marginLeft: 8,
+    },
+    popupContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    popupContent: {
+      backgroundColor: theme.colors.card,
+      padding: 20,
+      borderRadius: 12,
+      width: '80%',
+      alignItems: 'center',
+    },
+    popupTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 10,
+      color: theme.colors.text,
+    },
+    popupText: {
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 20,
+      color: theme.colors.text,
+    },
+    popupButton: {
+      backgroundColor: theme.colors.primary,
+      padding: 10,
+      borderRadius: 8,
+    },
+    popupButtonText: {
+      color: '#fff',
+      fontWeight: 'bold',
     },
   });
 

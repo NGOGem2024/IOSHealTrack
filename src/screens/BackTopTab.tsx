@@ -155,6 +155,13 @@ const BackTabTop: React.FC<{screenName: string}> = ({screenName}) => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => navigateToScreen('DoctorLocationAssignment')}>
+              <Ionicons name="grid-outline" size={24} color="#007B8E" />
+              <Text style={styles.drawerItemText}>Location</Text>
+            </TouchableOpacity>
+
+                <TouchableOpacity
                   style={styles.drawerItem}
                   onPress={() => navigateToScreen('PaymentHistory')}>
                   <Ionicons name="card-outline" size={24} color="#007B8E" />

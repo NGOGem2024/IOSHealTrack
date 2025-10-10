@@ -54,6 +54,7 @@ export type RootStackParamList = {
   CreateConsultation: {patientId: string; appointmentId: string};
   AllAppointments: undefined;
   Profile: undefined;
+  DoctorLocationAssignment: undefined;
   NotificationsScreen: undefined;
   NotificationDetailScreen: {notificationId: string};
 };

@@ -46,6 +46,7 @@ import PaymentHistory from './src/screens/PaymentHistory';
 import NotificationDetailScreen from './src/screens/NotificationDetailsScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import SetupConsultationScreen from './src/screens/SetupConsultation';
+import DoctorLocationAssignment from './src/screens/DoctorLocationAssignment';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -60,6 +61,11 @@ const HomeStackNavigator = () => (
     <Stack.Screen
       name="AllPatients"
       component={AllPatients}
+      options={{headerShown: false}}
+    />
+      <Stack.Screen
+      name="DoctorLocationAssignment"
+      component={DoctorLocationAssignment}
       options={{headerShown: false}}
     />
     <Stack.Screen

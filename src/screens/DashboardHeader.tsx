@@ -213,6 +213,13 @@ const DashboardHeader: React.FC = () => {
 
                 <TouchableOpacity
                   style={styles.drawerItem}
+                  onPress={() => navigateToScreen('DoctorLocationAssignment')}>
+                  <Ionicons name="grid-outline" size={24} color="#007B8E" />
+                  <Text style={styles.drawerItemText}>Location</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.drawerItem}
                   onPress={() => navigateToScreen('PaymentHistory')}>
                   <Ionicons name="card-outline" size={24} color="#007B8E" />
                   <Text style={styles.drawerItemText}>Payment History</Text>
@@ -247,7 +254,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     dropdown: {
       backgroundColor: theme.colors.card,
-      maxHeight: 400, // Increased height to accommodate new menu item
+      maxHeight: 410, // Increased height to accommodate new menu item
       minHeight: 50,
       padding: 0,
       shadowColor: '#000',

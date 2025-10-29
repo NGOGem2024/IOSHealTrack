@@ -15,6 +15,7 @@ import {
   Linking,
   Modal,
   TextInput,
+  Share,
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import FileViewer from 'react-native-file-viewer';
@@ -253,92 +254,133 @@ const TherapyPlanDetails: React.FC = () => {
     }
   }, [noteText, planId, session.idToken, fetchPlanDetails]);
 
-  const downloadPDF = useCallback(async (planId: string) => {
+  const sharePDF = useCallback(async (filePath: string, fileName: string) => {
     try {
-      setDownloadingPdf(true);
-      const fileName = `therapy_plan_${planId}.pdf`;
+      if (Platform.OS === 'android') {
+        // For Android, use file:// URI
+        const shareOptions = {
+          title: 'Share Therapy Plan',
+          message: 'Therapy Plan PDF',
+          url: `file://${filePath}`,
+          type: 'application/pdf',
+        };
 
-      if (
-        Platform.OS === 'android' &&
-        Number(Platform.Version) < 30 &&
-        Number(Platform.Version) >= 23
-      ) {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission Required',
-            message:
-              'This app needs access to your storage to download the PDF file',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          Alert.alert(
-            'Permission Denied',
-            'Storage permission is required to download the file',
-          );
-          return;
-        }
-      }
-
-      const response = await axiosInstance.get(`/${planId}/pdf`);
-      const base64PDF = response.data.pdf;
-
-      if (!base64PDF) {
-        throw new Error('No PDF data received');
-      }
-
-      if (Platform.OS === 'ios') {
-        const filePath = `${ReactNativeBlobUtil.fs.dirs.DocumentDir}/${fileName}`;
-        await ReactNativeBlobUtil.fs.writeFile(filePath, base64PDF, 'base64');
-        await ReactNativeBlobUtil.ios.openDocument(filePath);
-        Alert.alert('Success', 'PDF opened successfully');
+        await Share.share(shareOptions);
       } else {
-        let downloadPath = '';
-        if (Number(Platform.Version) >= 30) {
-          downloadPath = `${RNFS.ExternalStorageDirectoryPath}/Download/${fileName}`;
-        } else {
-          downloadPath = `${ReactNativeBlobUtil.fs.dirs.DownloadDir}/${fileName}`;
-        }
+        // For iOS
+        const shareOptions = {
+          url: filePath,
+          title: 'Share Therapy Plan',
+        };
 
-        await ReactNativeBlobUtil.fs.writeFile(
-          downloadPath,
-          base64PDF,
-          'base64',
-        );
-
-        await ReactNativeBlobUtil.fs
-          .scanFile([{path: downloadPath, mime: 'application/pdf'}])
-          .catch(err => console.error('Media scan failed:', err));
-
-        if (Number(Platform.Version) >= 30) {
-          await ReactNativeBlobUtil.android.addCompleteDownload({
-            title: fileName,
-            description: 'Therapy plan PDF',
-            mime: 'application/pdf',
-            path: downloadPath,
-            showNotification: true,
-          });
-        }
-
-        Alert.alert(
-          'Download Complete',
-          `PDF saved to Downloads folder as ${fileName}`,
-          [{text: 'OK'}],
-        );
+        await Share.share(shareOptions);
       }
     } catch (error) {
-      console.error('Error downloading PDF:', error);
-      Alert.alert(
-        'Download Failed',
-        'Unable to download the PDF file. Please try again.',
-      );
-    } finally {
-      setDownloadingPdf(false);
+      console.error('Error sharing PDF:', error);
+      Alert.alert('Error', 'Failed to share PDF. Please try again.');
     }
   }, []);
+
+  const downloadPDF = useCallback(
+    async (planId: string) => {
+      try {
+        setDownloadingPdf(true);
+        const fileName = `therapy_plan_${planId}.pdf`;
+
+        if (
+          Platform.OS === 'android' &&
+          Number(Platform.Version) < 30 &&
+          Number(Platform.Version) >= 23
+        ) {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            {
+              title: 'Storage Permission Required',
+              message:
+                'This app needs access to your storage to download the PDF file',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          );
+          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+            Alert.alert(
+              'Permission Denied',
+              'Storage permission is required to download the file',
+            );
+            return;
+          }
+        }
+
+        const response = await axiosInstance.get(`/${planId}/pdf`);
+        const base64PDF = response.data.pdf;
+
+        if (!base64PDF) {
+          throw new Error('No PDF data received');
+        }
+
+        let filePath = '';
+
+        if (Platform.OS === 'ios') {
+          filePath = `${ReactNativeBlobUtil.fs.dirs.DocumentDir}/${fileName}`;
+          await ReactNativeBlobUtil.fs.writeFile(filePath, base64PDF, 'base64');
+          await ReactNativeBlobUtil.ios.openDocument(filePath);
+
+          // Show share dialog after opening
+          Alert.alert('PDF Downloaded', 'Would you like to share this PDF?', [
+            {text: 'Cancel', style: 'cancel'},
+            {
+              text: 'Share',
+              onPress: () => sharePDF(filePath, fileName),
+            },
+          ]);
+        } else {
+          if (Number(Platform.Version) >= 30) {
+            filePath = `${RNFS.ExternalStorageDirectoryPath}/Download/${fileName}`;
+          } else {
+            filePath = `${ReactNativeBlobUtil.fs.dirs.DownloadDir}/${fileName}`;
+          }
+
+          await ReactNativeBlobUtil.fs.writeFile(filePath, base64PDF, 'base64');
+
+          await ReactNativeBlobUtil.fs
+            .scanFile([{path: filePath, mime: 'application/pdf'}])
+            .catch(err => console.error('Media scan failed:', err));
+
+          if (Number(Platform.Version) >= 30) {
+            await ReactNativeBlobUtil.android.addCompleteDownload({
+              title: fileName,
+              description: 'Therapy plan PDF',
+              mime: 'application/pdf',
+              path: filePath,
+              showNotification: true,
+            });
+          }
+
+          Alert.alert(
+            'Download Complete',
+            `PDF saved to Downloads folder as ${fileName}`,
+            [
+              {text: 'OK'},
+              {
+                text: 'Share',
+                onPress: () => sharePDF(filePath, fileName),
+              },
+            ],
+          );
+        }
+      } catch (error) {
+        console.error('Error downloading PDF:', error);
+        Alert.alert(
+          'Download Failed',
+          'Unable to download the PDF file. Please try again.',
+        );
+      } finally {
+        setDownloadingPdf(false);
+      }
+    },
+    [sharePDF],
+  );
 
   // Memoize note modal to prevent unnecessary re-renders
   const renderNoteModal = useMemo(
@@ -1017,7 +1059,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       backgroundColor:
         theme.colors.card === '#FFFFFF'
           ? 'rgb(240, 246, 255)'
-          : 'rgba(17, 159, 179, 0.1)', // Darker background for dark mode
+          : 'rgba(17, 159, 179, 0.1)',
       padding: 12,
       borderRadius: 8,
     },
@@ -1030,11 +1072,11 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderRadius: 8,
     },
     notesContainer: {
-      flexDirection: 'row', // Align items in a row
-      alignItems: 'center', // Align vertically centered
-      justifyContent: 'space-between', // Ensure spacing is balanced
-      paddingHorizontal: 10, // Adjust padding as needed
-      marginVertical: 8, // Space out from other elements
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 10,
+      marginVertical: 8,
     },
     notesText: {
       fontSize: 16,
@@ -1042,7 +1084,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: theme.colors.text,
     },
     plusIcon: {
-      marginLeft: 10, // Adjust spacing between text and icon
+      marginLeft: 10,
     },
     sessionListTitle: {
       fontSize: 16,
@@ -1133,7 +1175,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     iconButton: {
       marginLeft: 10,
     },
-
     iconButton1: {
       flexDirection: 'row',
       marginLeft: 3,
@@ -1172,7 +1213,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       marginBottom: 12,
       marginTop: 8,
     },
-
     paymentInfoButton: {
       padding: 8,
       marginLeft: 8,

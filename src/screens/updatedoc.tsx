@@ -33,10 +33,42 @@ import LoadingScreen from '../components/loadingScreen';
 import PhoneInput from 'react-native-phone-number-input';
 import CountryPicker from './CountryPickerDoctors';
 import UpdateDocSkeletonLoader from '../components/UpdateDocSkeletonLoader';
+import EditLocationModal from '../components/EditLocationModal';
 
 const {width} = Dimensions.get('window');
 
 type DoctorScreenProps = StackScreenProps<RootStackParamList, 'UpdateDoctor'>;
+
+interface TimeSlot {
+  start: string;
+  end: string;
+}
+
+interface DaySchedule {
+  enabled: boolean;
+  slots: TimeSlot[];
+}
+
+interface WorkingHours {
+  monday: DaySchedule;
+  tuesday: DaySchedule;
+  wednesday: DaySchedule;
+  thursday: DaySchedule;
+  friday: DaySchedule;
+  saturday: DaySchedule;
+  sunday: DaySchedule;
+}
+
+interface AssignedLocation {
+  location_id: string;
+  location_name: string;
+  working_hours: WorkingHours;
+  has_fixed_schedule: boolean;
+  schedule_notes: string;
+  assigned_at: string;
+  is_active: boolean;
+  _id?: string;
+}
 
 interface ProfileInfo {
   _id: string;
@@ -49,7 +81,8 @@ interface ProfileInfo {
   doctors_photo: string;
   is_admin: boolean;
   status: string;
-  online_available: boolean; // Added online availability field
+  online_available: boolean;
+  assigned_locations: AssignedLocation[];
 }
 
 const initialProfileState: ProfileInfo = {
@@ -63,7 +96,8 @@ const initialProfileState: ProfileInfo = {
   doctors_photo: '',
   is_admin: false,
   status: 'active',
-  online_available: false, // Default to false
+  online_available: false,
+  assigned_locations: [],
 };
 
 const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
@@ -75,10 +109,8 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   );
   const {session} = useSession();
   const {doctorId} = route.params;
-  const [profileInfo, setProfileInfo] =
-    useState<ProfileInfo>(initialProfileState);
-  const [originalProfileInfo, setOriginalProfileInfo] =
-    useState<ProfileInfo>(initialProfileState);
+  const [profileInfo, setProfileInfo] = useState<ProfileInfo>(initialProfileState);
+  const [originalProfileInfo, setOriginalProfileInfo] = useState<ProfileInfo>(initialProfileState);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [countryCode, setCountryCode] = useState('+91');
@@ -86,6 +118,9 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [editingLocationIndex, setEditingLocationIndex] = useState<number | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<AssignedLocation | null>(null);
   const [formErrors, setFormErrors] = useState({
     doctor_first_name: false,
     doctor_last_name: false,
@@ -101,7 +136,6 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     let isValid = false;
 
     if (fullPhone.startsWith('+1')) {
-      // US numbers: +1 followed by area code (2-9) and 7 more digits (total 10 digits)
       const usRegex = /^\+1[2-9]\d{9}$/;
       isValid = usRegex.test(fullPhone);
       setPhoneError(
@@ -110,7 +144,6 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           : 'US numbers must start with 2-9 and be 10 digits total',
       );
     } else if (fullPhone.startsWith('+44')) {
-      // UK numbers: +44 followed by digits starting with 1-5 (total 12 digits)
       const ukRegex = /^\+44[1-5]\d{9}$/;
       isValid = ukRegex.test(fullPhone);
       setPhoneError(
@@ -119,7 +152,6 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           : 'UK numbers must start with 1-5 and be 12 digits total',
       );
     } else {
-      // Default validation for other countries (you can adjust this as needed)
       const defaultRegex = /^\+\d{1,4}\d{6,}$/;
       isValid = defaultRegex.test(fullPhone);
       setPhoneError(isValid ? null : 'Please enter a valid phone number');
@@ -127,6 +159,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
 
     return isValid;
   };
+
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValid = emailRegex.test(email);
@@ -140,16 +173,14 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     } else if (field === 'doctor_phone') {
       return validatePhone(countryCode + phoneDigits);
     } else if (field === 'is_admin') {
-      // Boolean fields are always valid for is_admin
       return true;
     } else if (field === 'online_available') {
-      // online_available is mandatory - must be explicitly selected (true or false)
       return value !== undefined && value !== null;
     } else {
-      // For text fields, check if they're not empty
       return typeof value === 'string' ? value.trim() !== '' : true;
     }
   };
+
   useEffect(() => {
     if (session.idToken) {
       fetchDoctorInfo();
@@ -160,25 +191,19 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
 
   useEffect(() => {
     if (profileInfo.doctor_phone) {
-      // Assume the stored number is either in the format "+44 1234567890" (with space)
-      // or "+441234567890" (without a space).
       let code = '';
       let digits = '';
 
       if (profileInfo.doctor_phone.includes(' ')) {
-        // Split on space
         const parts = profileInfo.doctor_phone.split(' ');
         code = parts[0];
-        digits = parts.slice(1).join(''); // In case there are extra spaces
+        digits = parts.slice(1).join('');
       } else {
-        // Use a regex to capture country code and the rest.
-        // This regex assumes the phone is in the format: +[1-4 digits][10 digits]
         const match = profileInfo.doctor_phone.match(/^(\+\d{1,4})(\d{10})$/);
         if (match) {
           code = match[1];
           digits = match[2];
         } else {
-          // Fallback: use the first 3 or 4 characters as the code, adjust as needed.
           code = profileInfo.doctor_phone.slice(0, 3);
           digits = profileInfo.doctor_phone.slice(3);
         }
@@ -208,7 +233,8 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       setProfileInfo({
         ...response.data,
         status: response.data.status?.toLowerCase?.() || 'active',
-        online_available: response.data.online_available || false, // Handle existing data
+        online_available: response.data.online_available || false,
+        assigned_locations: response.data.assigned_locations || [],
       });
       setOriginalProfileInfo(response.data);
     } catch (error) {
@@ -219,15 +245,11 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
   };
 
   const handlePhoneChange = (value: string) => {
-    // Allow only digits
     const cleaned = value.replace(/[^\d]/g, '');
-    // Limit to 10 digits (or adjust as needed)
     const limited = cleaned.slice(0, 10);
     setPhoneDigits(limited);
-    // Validate the full number (combine country code and digits)
     validatePhone(countryCode + limited);
 
-    // Update form errors
     setFormErrors(prev => ({
       ...prev,
       doctor_phone: limited.length === 0,
@@ -238,9 +260,7 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     if (field === 'doctor_phone') {
       handlePhoneChange(value);
     } else {
-      // For is_admin and online_available, ensure value is treated as boolean
       if (field === 'is_admin' || field === 'online_available') {
-        // Convert string "true"/"false" to actual boolean if needed
         if (typeof value === 'string') {
           value = value === 'true';
         }
@@ -248,7 +268,6 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
 
       setProfileInfo(prev => ({...prev, [field]: value}));
 
-      // Validate field and update form errors - skip validation for is_admin only
       if (field !== 'is_admin') {
         setFormErrors(prev => ({
           ...prev,
@@ -257,14 +276,67 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       }
 
       if (field === 'doctor_email') {
-        validateEmail(value); // Trigger validation on email change
+        validateEmail(value);
       }
     }
   };
 
+  const handleAddLocation = () => {
+    setSelectedLocation(null);
+    setEditingLocationIndex(null);
+    setShowLocationModal(true);
+  };
+
+  const handleEditLocation = (index: number) => {
+    setSelectedLocation(profileInfo.assigned_locations[index]);
+    setEditingLocationIndex(index);
+    setShowLocationModal(true);
+  };
+
+  const handleSaveLocation = (location: AssignedLocation) => {
+    const updatedLocations = [...profileInfo.assigned_locations];
+    
+    if (editingLocationIndex !== null) {
+      updatedLocations[editingLocationIndex] = location;
+    } else {
+      updatedLocations.push(location);
+    }
+
+    setProfileInfo(prev => ({
+      ...prev,
+      assigned_locations: updatedLocations,
+    }));
+
+    setShowLocationModal(false);
+    setSelectedLocation(null);
+    setEditingLocationIndex(null);
+  };
+
+  const handleDeleteLocation = (index: number) => {
+    Alert.alert(
+      'Delete Location',
+      'Are you sure you want to remove this location?',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            const updatedLocations = profileInfo.assigned_locations.filter(
+              (_, i) => i !== index,
+            );
+            setProfileInfo(prev => ({
+              ...prev,
+              assigned_locations: updatedLocations,
+            }));
+          },
+        },
+      ],
+    );
+  };
+
   const hasChanges = () => {
     const currentFullPhone = countryCode + phoneDigits;
-
     return (
       JSON.stringify(profileInfo) !== JSON.stringify(originalProfileInfo) ||
       currentFullPhone !== originalProfileInfo.doctor_phone
@@ -280,23 +352,19 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
       qualification: profileInfo.qualification.trim() === '',
       doctor_email: !validateEmail(profileInfo.doctor_email),
       doctor_phone: !validatePhone(fullPhone),
-      is_admin: false, // Boolean field, no validation needed
-      status: false, // This is a string with predefined values, no validation needed
+      is_admin: false,
+      status: false,
       online_available: profileInfo.online_available === undefined || profileInfo.online_available === null,
     };
 
     setFormErrors(errors);
-
-    // Check if any errors exist
     return !Object.values(errors).some(error => error === true);
   };
 
   const handleSave = async () => {
     Keyboard.dismiss();
 
-    // Validate all fields first
     if (!validateAllFields()) {
-      // If validation fails, show a validation error message
       Alert.alert(
         'Validation Error',
         'Please fill in all required fields correctly.',
@@ -320,8 +388,6 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
     setIsSaving(true);
 
     try {
-      // Capitalize the first letter of status
-
       const response = await axiosInstance.put(
         `/doctor/update/${profileInfo._id}`,
         {
@@ -329,10 +395,11 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           doctor_last_name: profileInfo.doctor_last_name,
           qualification: profileInfo.qualification,
           doctor_email: profileInfo.doctor_email,
-          doctor_phone: fullPhone, // Save the combined phone number
+          doctor_phone: fullPhone,
           is_admin: profileInfo.is_admin,
           status: profileInfo.status,
-          online_available: profileInfo.online_available, // Include online availability
+          online_available: profileInfo.online_available,
+          assigned_locations: profileInfo.assigned_locations,
         },
         {
           headers: {
@@ -343,8 +410,6 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
 
       setOriginalProfileInfo({...profileInfo, doctor_phone: fullPhone});
       showSuccessToast('Profile updated successfully');
-
-      // Redirect to the doctor's profile
       navigation.navigate('Doctor', {doctorId: profileInfo._id});
     } catch (error) {
       handleError(error);
@@ -513,7 +578,6 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                 />
               </View>
 
-              {/* Online Availability Checkbox */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>
                   Online Treatment <Text style={styles.requiredStar}>*</Text>
@@ -551,6 +615,70 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
                 )}
               </View>
 
+              {/* Assigned Locations Section */}
+              <View style={styles.sectionContainer}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Assigned Locations</Text>
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={handleAddLocation}>
+                    <Icon name="add-circle" size={24} color="#119FB3" />
+                    <Text style={styles.addButtonText}>Add Location</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {profileInfo.assigned_locations.length === 0 ? (
+                  <View style={styles.emptyLocationContainer}>
+                    <Icon name="location-outline" size={48} color="#CCC" />
+                    <Text style={styles.emptyLocationText}>
+                      No locations assigned yet
+                    </Text>
+                  </View>
+                ) : (
+                  profileInfo.assigned_locations.map((location, index) => (
+                    <View key={index} style={styles.locationCard}>
+                      <View style={styles.locationHeader}>
+                        <View style={styles.locationNameContainer}>
+                          <Icon name="location" size={20} color="#119FB3" />
+                          <Text style={styles.locationName}>
+                            {location.location_name}
+                          </Text>
+                        </View>
+                        <View style={styles.locationActions}>
+                          <TouchableOpacity
+                            onPress={() => handleEditLocation(index)}
+                            style={styles.iconButton}>
+                            <Icon name="pencil" size={20} color="#119FB3" />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => handleDeleteLocation(index)}
+                            style={styles.iconButton}>
+                            <Icon name="trash" size={20} color="#FF6B6B" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                      <View style={styles.locationDetails}>
+                        <View style={styles.locationDetailRow}>
+                          <Icon
+                            name={location.is_active ? 'checkmark-circle' : 'close-circle'}
+                            size={16}
+                            color={location.is_active ? '#4CAF50' : '#FF6B6B'}
+                          />
+                          <Text style={styles.locationDetailText}>
+                            {location.is_active ? 'Active' : 'Inactive'}
+                          </Text>
+                        </View>
+                        {location.schedule_notes && (
+                          <Text style={styles.scheduleNotes} numberOfLines={2}>
+                            {location.schedule_notes}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  ))
+                )}
+              </View>
+
               <TouchableOpacity
                 style={[
                   styles.saveButton,
@@ -569,6 +697,25 @@ const EditDoctor: React.FC<DoctorScreenProps> = ({navigation, route}) => {
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
+
+      {/* Location Edit Modal */}
+      <EditLocationModal
+        visible={showLocationModal}
+        location={selectedLocation}
+        onClose={() => {
+          setShowLocationModal(false);
+          setSelectedLocation(null);
+          setEditingLocationIndex(null);
+        }}
+        onSave={handleSaveLocation}
+        isEdit={editingLocationIndex !== null}
+        themeColors={{
+          card: theme.colors.card,
+          text: theme.colors.text,
+          background: theme.colors.background,
+        }}
+        assignedLocations={profileInfo.assigned_locations}
+      />
     </View>
   );
 };
@@ -582,11 +729,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     scrollView: {
       flex: 1,
       backgroundColor: '#007B8E',
-    },
-    header: {
-      padding: 16,
-      paddingTop: 40,
-      backgroundColor: '#119FB3',
     },
     phoneContainer: {
       flexDirection: 'row',
@@ -623,32 +765,12 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       shadowRadius: 1.41,
     },
     saveButtonKeyboardOpen: {
-      marginBottom: 20, // Adjust spacing
-      marginHorizontal: 20, // Add some horizontal margin
-    },
-    disabledInput: {
-      backgroundColor: '#F0F0F0',
-      color: '#888888',
-      borderColor: '#CCCCCC',
-      elevation: 0,
-    },
-    picker: {
-      width: 110,
-      borderWidth: 1,
-      borderColor: '#119FB3',
-      borderRadius: 10,
-      color: theme.colors.text,
-      backgroundColor: theme.colors.card,
-      marginRight: -8,
+      marginBottom: 20,
+      marginHorizontal: 20,
     },
     inputError: {
       borderColor: 'red',
       borderWidth: 1,
-    },
-    headerText: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: theme.colors.card,
     },
     loadingContainer: {
       flex: 1,
@@ -673,14 +795,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       borderWidth: 1,
       borderColor: theme.colors.card,
     },
-    editImageButton: {
-      position: 'absolute',
-      bottom: 0,
-      right: width / 2 - 75,
-      backgroundColor: '#119FB3',
-      borderRadius: 20,
-      padding: 8,
-    },
     formContainer: {
       backgroundColor: theme.colors.card,
       borderTopLeftRadius: 30,
@@ -700,17 +814,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       color: 'red',
       fontWeight: 'bold',
     },
-    labelText: {
-      fontSize: 16,
-      marginBottom: 5,
-      color: '#333333',
-    },
-    radioButtonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 20,
-    },
-    // Checkbox styles
     checkboxContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -766,6 +869,103 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
     errorText: {
       color: 'red',
       fontSize: 12,
+      marginTop: 5,
+    },
+    // Location Management Styles
+    sectionContainer: {
+      marginTop: 20,
+      marginBottom: 15,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 15,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#119FB3',
+    },
+    addButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(17, 159, 179, 0.1)',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+    },
+    addButtonText: {
+      color: '#119FB3',
+      marginLeft: 5,
+      fontWeight: '600',
+    },
+    emptyLocationContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 40,
+      backgroundColor: theme.colors.background,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: '#E0E0E0',
+      borderStyle: 'dashed',
+    },
+    emptyLocationText: {
+      marginTop: 10,
+      fontSize: 14,
+      color: '#999',
+    },
+    locationCard: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 10,
+      padding: 15,
+      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: '#119FB3',
+    },
+    locationHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    locationNameContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      gap: 8,
+    },
+    locationName: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      flex: 1,
+    },
+    locationActions: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    iconButton: {
+      padding: 5,
+    },
+    locationDetails: {
+      marginTop: 5,
+    },
+    locationDetailRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 5,
+    },
+    locationDetailText: {
+      fontSize: 14,
+      color: theme.colors.text,
+    },
+    scheduleNotes: {
+      fontSize: 12,
+      color: theme.colors.text,
+      opacity: 0.7,
+      fontStyle: 'italic',
       marginTop: 5,
     },
   });

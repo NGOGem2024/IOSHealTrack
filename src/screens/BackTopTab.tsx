@@ -202,7 +202,7 @@ const getStyles = (theme: ReturnType<typeof getTheme>, insets: any) =>
     },
     dropdown: {
       backgroundColor: theme.colors.card,
-      maxHeight: 360, // Increased height to accommodate new menu item
+      maxHeight: 410, // Increased height to accommodate new menu item
       minHeight: 50,
       padding: 0,
       shadowColor: '#000',

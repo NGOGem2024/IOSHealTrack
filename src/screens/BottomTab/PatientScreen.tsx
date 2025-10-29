@@ -16,10 +16,11 @@ import {
   Alert,
   Linking,
   Platform,
+  Modal,
 } from 'react-native';
 import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../../types/types';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {GestureHandlerRootView, TextInput} from 'react-native-gesture-handler';
 import {
   Mail,
   Phone,
@@ -206,9 +207,14 @@ interface PatientData {
   doctor_name?: string;
   patient_address1: string;
   therapy_plans: TherapyPlan[];
-  consultations?: Consultation[]; // Add consultations to the patient data
+  consultations?: Consultation[];
   documents?: PatientDocument[];
+  status?: string; // Add this field to track status
+  archived_at?: string;
+  archived_by?: string;
+  archived_reason?: string;
 }
+
 interface PatientDocument {
   _id: string;
   document_name: string;
@@ -238,6 +244,9 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
     null,
   );
   const [documents, setDocuments] = useState<DocumentInfo[]>([]);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [archiveReason, setArchiveReason] = useState('');
   const [showDocumentModal, setShowDocumentModal] = useState(false);
 
   const fetchPatientData = async () => {
@@ -314,6 +323,100 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
       setSelectedDocument(null); // Clear on error as well
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleArchivePatient = async () => {
+    if (patientData?.status === 'Archived') {
+      // Direct unarchive without reason
+      Alert.alert(
+        'Unarchive Patient',
+        `Are you sure you want to unarchive ${patientData?.patient_first_name} ${patientData?.patient_last_name}? They will be visible in your active patients list.`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Unarchive',
+            style: 'default',
+            onPress: async () => {
+              setIsArchiving(true);
+              try {
+                const response = await axiosInstance.post(
+                  `/patient/unarchive/${patientId}`,
+                  {},
+                  {
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: 'Bearer ' + session.idToken,
+                    },
+                  },
+                );
+
+                if (response.status === 200) {
+                  Alert.alert('Success', 'Patient unarchived successfully', [
+                    {
+                      text: 'OK',
+                      onPress: () => {
+                        navigation.goBack();
+                      },
+                    },
+                  ]);
+                }
+              } catch (error) {
+                console.error('Error unarchiving patient:', error);
+                Alert.alert('Error', 'Failed to unarchive patient');
+              } finally {
+                setIsArchiving(false);
+              }
+            },
+          },
+        ],
+      );
+    } else {
+      // Show modal for archive with optional reason
+      setShowArchiveModal(true);
+    }
+  };
+
+  const confirmArchive = async () => {
+    setShowArchiveModal(false);
+    setIsArchiving(true);
+
+    try {
+      const requestBody: any = {};
+      if (archiveReason.trim()) {
+        requestBody.archived_reason = archiveReason.trim();
+      }
+
+      const response = await axiosInstance.post(
+        `/patient/archive/${patientId}`,
+        requestBody,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + session.idToken,
+          },
+        },
+      );
+
+      if (response.status === 200) {
+        Alert.alert('Success', 'Patient archived successfully', [
+          {
+            text: 'OK',
+            onPress: () => {
+              setArchiveReason(''); // Clear reason
+              navigation.goBack();
+            },
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('Error archiving patient:', error);
+      Alert.alert('Error', 'Failed to archive patient');
+    } finally {
+      setIsArchiving(false);
     }
   };
 
@@ -448,19 +551,20 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             <Text style={styles.patientName}>
               {patientData?.patient_first_name} {patientData?.patient_last_name}
             </Text>
-            <TouchableOpacity
-              style={styles.quickActionButton}
-              onPress={() =>
-                navigation.navigate('UpdatePatient', {
-                  patientId: patientId,
-                })
-              }>
-              <MaterialCommunityIcons
-                name="square-edit-outline"
-                size={22}
-                color="#119FB3"
-              />
-            </TouchableOpacity>
+              {/* Edit Button */}
+              <TouchableOpacity
+                style={styles.quickActionButton}
+                onPress={() =>
+                  navigation.navigate('UpdatePatient', {
+                    patientId: patientId,
+                  })
+                }>
+                <MaterialCommunityIcons
+                  name="square-edit-outline"
+                  size={22}
+                  color="#119FB3"
+                />
+              </TouchableOpacity>
           </View>
 
           <View style={styles.contactInfo}>
@@ -539,6 +643,68 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* ADD THIS MODAL AT THE END OF YOUR COMPONENT, BEFORE THE CLOSING </View> and after DocumentSetupModal */}
+        <Modal
+          visible={showArchiveModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => {
+            setShowArchiveModal(false);
+            setArchiveReason('');
+          }}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.archiveModalContainer}>
+              <View style={styles.archiveModalHeader}>
+                <MaterialCommunityIcons
+                  name="archive"
+                  size={28}
+                  color="#FF6B6B"
+                />
+                <Text style={styles.archiveModalTitle}>Archive Patient</Text>
+              </View>
+
+              <Text style={styles.archiveModalMessage}>
+                Are you sure you want to archive{' '}
+                {patientData?.patient_first_name}{' '}
+                {patientData?.patient_last_name}?
+              </Text>
+
+              <View style={styles.reasonContainer}>
+                <Text style={styles.reasonLabel}>
+                  Reason <Text style={styles.optionalText}>(Optional)</Text>
+                </Text>
+                <TextInput
+                  style={styles.reasonInput}
+                  placeholder="e.g., Treatment completed, Moved to another clinic..."
+                  placeholderTextColor={theme.colors.text + '66'}
+                  value={archiveReason}
+                  onChangeText={setArchiveReason}
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                />
+              </View>
+
+              <View style={styles.archiveModalButtons}>
+                <TouchableOpacity
+                  style={styles.archiveCancelButton}
+                  onPress={() => {
+                    setShowArchiveModal(false);
+                    setArchiveReason('');
+                  }}>
+                  <Text style={styles.archiveCancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.archiveConfirmButton}
+                  onPress={confirmArchive}>
+                  <Text style={styles.archiveConfirmButtonText}>Archive</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         {/* Consultations Section - Modified to always show */}
         <View style={styles.card}>
@@ -836,6 +1002,105 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             </View>
           )}
         </View>
+        <View style={styles.card}>
+          <View style={styles.sectionHeaderContainer}>
+            <Text style={styles.sectionTitle}>Patient Status</Text>
+            {patientData?.status === 'Archived' && (
+              <View style={styles.statusBadge}>
+                <MaterialCommunityIcons
+                  name="archive"
+                  size={16}
+                  color="#FFA500"
+                />
+                <Text style={styles.statusBadgeText}>Archived</Text>
+              </View>
+            )}
+          </View>
+
+          {patientData?.status === 'Archived' ? (
+            <View style={styles.archiveInfoContainer}>
+              <View style={styles.archiveIconWrapper}>
+                <MaterialCommunityIcons
+                  name="archive"
+                  size={32}
+                  color="#FFA500"
+                />
+              </View>
+
+              <View style={styles.archiveDetailsContainer}>
+                {patientData?.archived_reason && (
+                  <View style={styles.archiveDetailRow}>
+                    <Text style={styles.archiveDetailLabel}>Reason:</Text>
+                    <Text style={styles.archiveDetailValue}>
+                      {patientData.archived_reason}
+                    </Text>
+                  </View>
+                )}
+
+                {patientData?.archived_at && (
+                  <View style={styles.archiveDetailRow}>
+                    <Text style={styles.archiveDetailLabel}>Archived on:</Text>
+                    <Text style={styles.archiveDetailValue}>
+                      {new Date(patientData.archived_at).toLocaleDateString()}
+                    </Text>
+                  </View>
+                )}
+
+                {patientData?.archived_by && (
+                  <View style={styles.archiveDetailRow}>
+                    <Text style={styles.archiveDetailLabel}>Archived by:</Text>
+                    <Text style={styles.archiveDetailValue}>
+                      {patientData.archived_by}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              <TouchableOpacity
+                style={styles.unarchiveButton}
+                onPress={handleArchivePatient}
+                disabled={isArchiving}>
+                {isArchiving ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <MaterialCommunityIcons
+                      name="archive-arrow-up"
+                      size={20}
+                      color="#FFFFFF"
+                    />
+                    <Text style={styles.unarchiveButtonText}>
+                      Unarchive Patient
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.activeStatusContainer}>
+
+              <TouchableOpacity
+                style={styles.archiveButton}
+                onPress={handleArchivePatient}
+                disabled={isArchiving}>
+                {isArchiving ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <MaterialCommunityIcons
+                      name="archive-outline"
+                      size={20}
+                      color="#FFFFFF"
+                    />
+                    <Text style={styles.archiveButtonText}>
+                      Archive Patient
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </ScrollView>
       <DocumentSetupModal
         visible={showDocumentModal}
@@ -849,6 +1114,260 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
 
 const getStyles = (theme: ReturnType<typeof getTheme>) =>
   StyleSheet.create({
+    statusBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(255, 165, 0, 0.1)',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+      gap: 6,
+    },
+
+    statusBadgeText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#FFA500',
+    },
+
+    archiveInfoContainer: {
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgba(255, 165, 0, 0.05)'
+          : 'rgba(255, 165, 0, 0.1)',
+      borderRadius: 12,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: 'rgba(255, 165, 0, 0.3)',
+    },
+
+    archiveIconWrapper: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: 'rgba(255, 165, 0, 0.15)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignSelf: 'center',
+      marginBottom: 16,
+    },
+
+    archiveDetailsContainer: {
+      marginBottom: 16,
+    },
+
+    archiveDetailRow: {
+      flexDirection: 'row',
+      marginBottom: 8,
+      alignItems: 'flex-start',
+    },
+
+    archiveDetailLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.text,
+      width: 100,
+    },
+
+    archiveDetailValue: {
+      fontSize: 14,
+      color: theme.colors.text,
+      flex: 1,
+    },
+
+    unarchiveButton: {
+      backgroundColor: '#FFA500',
+      borderRadius: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    },
+
+    unarchiveButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
+
+    activeStatusContainer: {
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgba(76, 175, 80, 0.05)'
+          : 'rgba(76, 175, 80, 0.1)',
+    },
+
+    activeIconWrapper: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: 'rgba(76, 175, 80, 0.15)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignSelf: 'center',
+      marginBottom: 16,
+    },
+
+    activeDetailsContainer: {
+      marginBottom: 16,
+      alignItems: 'center',
+    },
+
+    activeStatusTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 4,
+    },
+
+    activeStatusDescription: {
+      fontSize: 14,
+      color: theme.colors.text + '99',
+      textAlign: 'center',
+    },
+
+    archiveButton: {
+      backgroundColor: '#FF6B6B',
+      borderRadius: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    },
+
+    archiveButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
+    quickActionsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      flexWrap: 'wrap',
+      gap: 12,
+    },
+
+    quickActionButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 8,
+    },
+
+    // Archive Modal Styles
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    archiveModalContainer: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 16,
+      padding: 24,
+      width: '85%',
+      maxWidth: 400,
+      elevation: 5,
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+
+    archiveModalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+
+    archiveModalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      marginLeft: 12,
+    },
+
+    archiveModalMessage: {
+      fontSize: 15,
+      color: theme.colors.text,
+      marginBottom: 20,
+      lineHeight: 22,
+    },
+
+    reasonContainer: {
+      marginBottom: 24,
+    },
+
+    reasonLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 8,
+    },
+
+    optionalText: {
+      fontSize: 12,
+      fontWeight: '400',
+      color: theme.colors.text + '99',
+      fontStyle: 'italic',
+    },
+
+    reasonInput: {
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgba(17, 159, 179, 0.05)'
+          : 'rgba(17, 159, 179, 0.1)',
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 14,
+      color: theme.colors.text,
+      borderWidth: 1,
+      borderColor: 'rgba(17, 159, 179, 0.3)',
+      minHeight: 80,
+    },
+
+    archiveModalButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+
+    archiveCancelButton: {
+      flex: 1,
+      backgroundColor:
+        theme.colors.card === '#FFFFFF'
+          ? 'rgba(0, 0, 0, 0.05)'
+          : 'rgba(255, 255, 255, 0.1)',
+      borderRadius: 8,
+      paddingVertical: 12,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: 'rgba(17, 159, 179, 0.3)',
+    },
+
+    archiveCancelButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.text,
+    },
+
+    archiveConfirmButton: {
+      flex: 1,
+      backgroundColor: '#FF6B6B',
+      borderRadius: 8,
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+
+    archiveConfirmButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
     documentItemWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -1172,15 +1691,6 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
       fontWeight: 'bold',
       color: theme.colors.text,
       marginBottom: 12,
-    },
-    quickActionsContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-    },
-    quickActionButton: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 5,
     },
     quickActionText: {
       marginTop: 4,

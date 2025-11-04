@@ -506,6 +506,56 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
     setShowDocumentModal(false);
   };
 
+  const handleDeleteTherapyPlan = async (planId: string, planName: string) => {
+    Alert.alert(
+      'Delete Therapy Plan',
+      `Are you sure you want to delete "${planName}"?\n\nThis action cannot be undone.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await axiosInstance.post(
+                `/delete/therapyplan/${planId}`,
+                {
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + session.idToken,
+                  },
+                },
+              );
+
+              if (response.status === 200) {
+                Alert.alert('Success', 'Therapy plan deleted successfully');
+                await fetchPatientData(); // Refresh the patient data
+              }
+            } catch (error: any) {
+              console.error('Error deleting therapy plan:', error);
+
+              // Handle specific error messages from backend
+              if (error.response?.data?.msg) {
+                Alert.alert('Cannot Delete Plan', error.response.data.msg, [
+                  {
+                    text: 'OK',
+                    style: 'default',
+                  },
+                ]);
+              } else {
+                Alert.alert('Error', 'Failed to delete therapy plan');
+              }
+            }
+          },
+        },
+      ],
+      {cancelable: true},
+    );
+  };
+
   // Handle remove document
   const handleRemoveDocument = (index: number) => {
     Alert.alert(
@@ -551,20 +601,20 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             <Text style={styles.patientName}>
               {patientData?.patient_first_name} {patientData?.patient_last_name}
             </Text>
-              {/* Edit Button */}
-              <TouchableOpacity
-                style={styles.quickActionButton}
-                onPress={() =>
-                  navigation.navigate('UpdatePatient', {
-                    patientId: patientId,
-                  })
-                }>
-                <MaterialCommunityIcons
-                  name="square-edit-outline"
-                  size={22}
-                  color="#119FB3"
-                />
-              </TouchableOpacity>
+            {/* Edit Button */}
+            <TouchableOpacity
+              style={styles.quickActionButton}
+              onPress={() =>
+                navigation.navigate('UpdatePatient', {
+                  patientId: patientId,
+                })
+              }>
+              <MaterialCommunityIcons
+                name="square-edit-outline"
+                size={22}
+                color="#119FB3"
+              />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.contactInfo}>
@@ -872,19 +922,37 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
                           ? 'Current Plan'
                           : `Past Plan ${index + 1}`}
                       </Text>
-                      <TouchableOpacity
-                        onPress={e => {
-                          e.stopPropagation();
-                          navigation.navigate('EditTherapyPlan', {
-                            planId: plan._id,
-                          });
-                        }}>
-                        <MaterialCommunityIcons
-                          name="square-edit-outline"
-                          size={24}
-                          color="#119FB3"
-                        />
-                      </TouchableOpacity>
+                      <View style={styles.planActionButtons}>
+                        <TouchableOpacity
+                          onPress={e => {
+                            e.stopPropagation();
+                            navigation.navigate('EditTherapyPlan', {
+                              planId: plan._id,
+                            });
+                          }}
+                          style={styles.planActionButton}>
+                          <MaterialCommunityIcons
+                            name="square-edit-outline"
+                            size={22}
+                            color="#119FB3"
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={e => {
+                            e.stopPropagation();
+                            handleDeleteTherapyPlan(
+                              plan._id,
+                              plan.therapy_name,
+                            );
+                          }}
+                          style={styles.planActionButton}>
+                          <MaterialIcons
+                            name="delete-outline"
+                            size={22}
+                            color="#FF6B6B"
+                          />
+                        </TouchableOpacity>
+                      </View>
                     </View>
                     <Text style={styles.therapyPlanName}>
                       {plan.therapy_name}
@@ -1078,7 +1146,6 @@ const PatientScreen: React.FC<PatientScreenProps> = ({navigation, route}) => {
             </View>
           ) : (
             <View style={styles.activeStatusContainer}>
-
               <TouchableOpacity
                 style={styles.archiveButton}
                 onPress={handleArchivePatient}
@@ -1154,6 +1221,15 @@ const getStyles = (theme: ReturnType<typeof getTheme>) =>
 
     archiveDetailsContainer: {
       marginBottom: 16,
+    },
+
+    planActionButtons: {
+      flexDirection: 'row',
+      gap: 12,
+      alignItems: 'center',
+    },
+    planActionButton: {
+      padding: 4,
     },
 
     archiveDetailRow: {

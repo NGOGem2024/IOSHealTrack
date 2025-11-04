@@ -6,7 +6,10 @@ import {useSession} from './src/context/SessionContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Icon2 from 'react-native-vector-icons/Feather';
 import Icon3 from 'react-native-vector-icons/FontAwesome';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import CreateTherapyPlan from './src/screens/Therapyplan';
 import AllPatients from './src/screens/AllPatients';
 import PatientScreen from './src/screens/BottomTab/PatientScreen';
@@ -63,7 +66,7 @@ const HomeStackNavigator = () => (
       component={AllPatients}
       options={{headerShown: false}}
     />
-      <Stack.Screen
+    <Stack.Screen
       name="DoctorLocationAssignment"
       component={DoctorLocationAssignment}
       options={{headerShown: false}}
@@ -314,92 +317,94 @@ const ProfileStack = () => (
   </Stack.Navigator>
 );
 
-const TabNavigator = () => (
-  <Tab.Navigator
-    initialRouteName="HomeStackNavigator"
-    screenOptions={{
-      tabBarActiveTintColor: '#007B8E',
-      tabBarInactiveTintColor: 'gray',
-      tabBarActiveBackgroundColor: 'white',
-      tabBarInactiveBackgroundColor: 'white',
-      tabBarShowLabel: false,
-      tabBarStyle: {
-        borderTopWidth: 1,
-        borderTopColor: '#E2E8F0',
-        height: 60,
-        paddingBottom: 5,
-      },
-      tabBarHideOnKeyboard: true,
-    }}>
-    <Tab.Screen
-      name="HomeStackNavigator"
-      component={HomeStackNavigator}
-      options={({navigation}) => ({
-        headerShown: false,
-        tabBarIcon: ({color, size}) => (
-          <Icon name="home-outline" color={color} size={size} />
-        ),
-        tabBarButton: props => (
-          <TouchableOpacity
-            {...props}
-            onPress={() => {
-              // If we're already on the HomeStack, navigate to DoctorDashboard
-              // and pass params to trigger scroll to top
-              navigation.navigate('HomeStackNavigator', {
-                screen: 'DoctorDashboard',
-                params: {
-                  scrollToTop: true,
-                  timestamp: Date.now(), // Force re-render
-                },
-              });
-            }}
-          />
-        ),
-      })}
-    />
-    <Tab.Screen
-      name="AllAppointmentsStack"
-      component={AllAppointmentsStack}
-      options={{
-        headerShown: false,
-        tabBarIcon: ({color, size}) => (
-          <Icon3 name="calendar" color={color} size={size} />
-        ),
-      }}
-    />
-    <Tab.Screen
-      name="SearchPatients"
-      component={SearchPatients}
-      options={{
-        headerShown: false,
-        tabBarIcon: ({color, size}) => (
-          <Icon3 name="search" color={color} size={size} />
-        ),
-      }}
-    />
-    <Tab.Screen
-      name="AddPatient"
-      component={PatientRegister}
-      options={{
-        headerShown: false,
-        tabBarIcon: ({color, size}) => (
-          <Icon name="person-add-sharp" size={size} color={color} />
-        ),
-      }}
-    />
-    <Tab.Screen
-      name="ProfileStack"
-      component={ProfileStack}
-      options={{
-        headerShown: false,
-        tabBarIcon: ({color, size}) => (
-          <Icon name="person-circle-outline" color={color} size={30} />
-        ),
-      }}
-    />
-  </Tab.Navigator>
-);
-
+const TabNavigator = () => {
+  const insets = useSafeAreaInsets();
+  return (
+    <Tab.Navigator
+      initialRouteName="HomeStackNavigator"
+      screenOptions={{
+        tabBarActiveTintColor: '#007B8E',
+        tabBarInactiveTintColor: 'gray',
+        tabBarActiveBackgroundColor: 'white',
+        tabBarInactiveBackgroundColor: 'white',
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          borderTopWidth: 1,
+          borderTopColor: '#E2E8F0',
+          height: 60 + insets.bottom,
+          paddingBottom: 5 + insets.bottom,
+        },
+        tabBarHideOnKeyboard: true,
+      }}>
+      <Tab.Screen
+        name="HomeStackNavigator"
+        component={HomeStackNavigator}
+        options={({navigation}) => ({
+          headerShown: false,
+          tabBarIcon: ({color, size}) => (
+            <Icon name="home-outline" color={color} size={size} />
+          ),
+          tabBarButton: props => (
+            <TouchableOpacity
+              {...props}
+              onPress={() => {
+                // If we're already on the HomeStack, navigate to DoctorDashboard
+                // and pass params to trigger scroll to top
+                navigation.navigate('HomeStackNavigator', {
+                  screen: 'DoctorDashboard',
+                  params: {
+                    scrollToTop: true,
+                    timestamp: Date.now(), // Force re-render
+                  },
+                });
+              }}
+            />
+          ),
+        })}
+      />
+      <Tab.Screen
+        name="AllAppointmentsStack"
+        component={AllAppointmentsStack}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({color, size}) => (
+            <Icon3 name="calendar" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="SearchPatients"
+        component={SearchPatients}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({color, size}) => (
+            <Icon3 name="search" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="AddPatient"
+        component={PatientRegister}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({color, size}) => (
+            <Icon name="person-add-sharp" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="ProfileStack"
+        component={ProfileStack}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({color, size}) => (
+            <Icon name="person-circle-outline" color={color} size={30} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
 const AppNavigator = () => {
   const {session, isLoading} = useSession();
   const [isSplashComplete, setSplashComplete] = useState(false);

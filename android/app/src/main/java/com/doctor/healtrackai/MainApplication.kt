@@ -1,4 +1,4 @@
-package com.ioshealtrack
+package com.healtrackai.doctors
 
 import android.app.Application
 import com.facebook.react.PackageList

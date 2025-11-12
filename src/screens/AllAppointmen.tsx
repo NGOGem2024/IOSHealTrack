@@ -997,7 +997,7 @@ const getStyles = (
     daySection: {
       marginBottom: 10,
     },
-    daySectionHeader: {
+      daySectionHeader: {
       fontSize: 20,
       fontWeight: 'bold',
       color: isDarkMode ? 'white' : 'black',

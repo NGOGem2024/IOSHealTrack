@@ -50,6 +50,7 @@ import NotificationDetailScreen from './src/screens/NotificationDetailsScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import SetupConsultationScreen from './src/screens/SetupConsultation';
 import DoctorLocationAssignment from './src/screens/DoctorLocationAssignment';
+import HealTrackConnectScreen from './src/screens/HealTrackConnectScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -389,6 +390,16 @@ const TabNavigator = () => {
           headerShown: false,
           tabBarIcon: ({color, size}) => (
             <Icon name="person-add-sharp" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="HealTrackConnect"
+        component={HealTrackConnectScreen}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({color, size}) => (
+            <Icon name="chatbubbles" color={color} size={size} />
           ),
         }}
       />

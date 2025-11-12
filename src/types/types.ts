@@ -74,6 +74,7 @@ export type RootTabParamList = {
   Profile: undefined;
   AllAppointmentsStack: undefined;
   ProfileStack: undefined;
+  HealTrackConnect: undefined;
 };
 
 export type RootStackNavProps<T extends keyof RootStackParamList> = {
